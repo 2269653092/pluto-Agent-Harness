@@ -16,7 +16,7 @@
 </div>
 
 Pluto 是一个面向长期工作的本地 AI Agent Harness。它不只完成当前对话，还会管理
-长上下文、跟踪复杂任务、恢复中断 Run、使用本地与 MCP 工具，并从真实完成的工作中
+长上下文、planner，worker 双agent协同，跟踪复杂任务、恢复中断 Run、使用本地与 MCP 工具，并从真实完成的工作中
 逐步形成可复用的记忆与 Skill。
 
 当前项目由 Python Host、Electron Desktop 和 Windows 原生 Computer Runtime 组成，
