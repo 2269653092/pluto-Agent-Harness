@@ -1,0 +1,8 @@
+-r requirements.txt
+
+pytest==9.1.1
+pytest-asyncio==1.4.0
+ruff==0.16.0
+PyYAML==6.0.3
+# 跨平台断言"无残留进程"用（POSIX 用 pgrep，Windows 没有）
+psutil==7.1.3

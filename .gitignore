@@ -1,0 +1,52 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Virtual environments
+.venv/
+
+# Local runtime data
+workspace/*
+!workspace/.gitkeep
+output/
+.pluto/
+backend/.pluto/
+# 旧数据目录（迁移前仍忽略，避免误提交用户已有数据）
+.oneagent/
+backend/.oneagent/
+
+# Local tooling, IDE state, logs, and work traces
+.claude/
+.specify/
+.jbeval/
+.workbuddy/
+.idea/
+tmp/
+
+# Local evaluation artifacts
+backend/tests/eval_legacy/reports/*.md
+!backend/tests/eval_legacy/reports/README.md
+backend/tests/eval_legacy/reports/comprehensive/
+backend/tests/eval_legacy/reports/historical/
+backend/tests/eval_legacy/reports/historical/runtime/*.md
+backend/tests/eval_legacy/reports/historical/skill_learning/*.md
+
+# Private local notes and evaluation records
+docs/eval-records/
+docs/eval.md
+docs/task.md
+docs/learning-notes.md
+docs/desktop-learning-notes.md
+
+# Desktop (Electron / Vite)
+desktop/node_modules/
+desktop/dist/
+desktop/dist-electron/
