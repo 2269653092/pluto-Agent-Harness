@@ -1,3 +1,4 @@
+
 <div align="center">
 
 # Pluto
@@ -30,6 +31,14 @@
 当前项目由 Python Host、Electron Desktop 和 Windows 原生 Computer Runtime 组成，
 模型层通过统一 Adapter 接入 OpenAI、Qwen、DeepSeek 与 Anthropic。
 
+效果展示如下
+
+<p align="center">
+  <img src="docs/assets/img.png" alt="Pluto desktop interface" width="48%" />
+  <img src="docs/assets/img_1.png" alt="Pluto agent execution" width="48%" />
+</p>
+
+
 > 当前阶段为本地开发版本，接口、数据格式和交互仍可能调整。
 > 运行环境为 Windows（API Key 存 Windows 凭据管理器，Computer Runtime
 > 直接调用 Win32）。
@@ -37,7 +46,7 @@
 ## What Pluto Can Do
 
 - **Multi-Provider Models** — 统一适配 OpenAI、Qwen、DeepSeek 和 Anthropic API。
-- **Hierarchical Agents** — Planner 主图负责判断、规划和最终汇总；简单且边界清晰的子任务通过标准载荷下发给最小权限 Worker 子图。
+- **Hierarchical Agents** — Planner 主图负责判断、规划和最终汇总；简单且边界清晰的子任务通过标准载荷下发给可使用全部业务工具、但禁止再次委派的 Worker 子图。
 - **Tool System** — 本地文件、Shell、网页搜索、时间等工具共享注册、超时、权限和审计边界；Shell 默认在 workspace 沙箱中执行。
 - **MCP Extensions** — 通过 Desktop 导入和管理外部 stdio MCP Server；第三方进程使用白名单环境并在 Windows 受限后端中隔离。
 - **Memory** — Core Memory 常驻，Ordinary Memory 按索引由模型主动读取，并在 Run 后反思更新。
@@ -105,7 +114,7 @@ ConversationService / RunManager / AgentRuntime
 | --- | --- |
 | Conversation | 保存用户与 Agent 的完整原始消息历史 |
 | Planner | 主管 Agent；判断难度、规划复杂任务、下发简单子任务并验收汇总 |
-| Worker | 工人 Agent；只执行标准 `task_payload`，没有任务规划和再次委派权限 |
+| Worker | 工人 Agent；只执行标准 `task_payload`，可使用全部业务工具，但没有任务规划和再次委派权限 |
 | Context | 为当前模型请求整理预算、工具结果和滚动摘要 |
 | Task | 记录当前长期目标、Steps 和进度 |
 | Memory | 保存跨会话仍值得知道的事实、偏好和决定 |
