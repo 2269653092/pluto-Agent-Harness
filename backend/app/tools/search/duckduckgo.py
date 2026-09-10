@@ -27,15 +27,18 @@ class DuckDuckGoSearchProvider(SearchProvider):
         client: httpx.AsyncClient | None = None,
         fetcher: Fetcher | None = None,
     ) -> None:
+        """初始化 `DuckDuckGoSearchProvider` 实例及其依赖。"""
         self._timeout_seconds = timeout_seconds
         self._client = client
         self._fetcher = fetcher
 
     @property
     def name(self) -> str:
+        """执行 `name` 对应的业务逻辑。"""
         return "duckduckgo"
 
     async def search(self, request: SearchRequest) -> SearchResponse:
+        """搜索`DuckDuckGoSearchProvider`的相关流程。"""
         query = _provider_query(request)
         html = (
             await self._fetcher(query)
@@ -52,6 +55,7 @@ class DuckDuckGoSearchProvider(SearchProvider):
         )
 
     async def _fetch_html(self, query: str) -> str:
+        """获取 `html` 对应的数据或流程。"""
         url = DUCKDUCKGO_SEARCH_URL.format(query=quote_plus(query))
         try:
             if self._client is not None:
@@ -79,6 +83,7 @@ class _LiteResultsParser(HTMLParser):
     """解析 DuckDuckGo Lite 结果页的链接与摘要。"""
 
     def __init__(self) -> None:
+        """初始化 `_LiteResultsParser` 实例及其依赖。"""
         super().__init__()
         self.links: list[tuple[str, str]] = []
         self.snippets: list[str] = []
@@ -89,6 +94,7 @@ class _LiteResultsParser(HTMLParser):
         self._snippet: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        """处理 `starttag` 对应的数据或流程。"""
         attr_map = {key: value for key, value in attrs}
         href = attr_map.get("href") or ""
         if tag == "a" and attr_map.get("rel") == "nofollow" and href:
@@ -100,12 +106,14 @@ class _LiteResultsParser(HTMLParser):
             self._snippet = []
 
     def handle_data(self, data: str) -> None:
+        """处理 `data` 对应的数据或流程。"""
         if self._in_link:
             self._link_text.append(data)
         elif self._in_snippet:
             self._snippet.append(data)
 
     def handle_endtag(self, tag: str) -> None:
+        """处理 `endtag` 对应的数据或流程。"""
         if tag == "a" and self._in_link:
             title = " ".join("".join(self._link_text).split())
             url = _clean_result_url(self._link_href or "")
@@ -120,6 +128,7 @@ class _LiteResultsParser(HTMLParser):
 
 
 def _provider_query(request: SearchRequest) -> str:
+    """处理 `_provider_query` 的内部辅助逻辑。"""
     parts = [request.query]
     if request.include_domains:
         domains = " OR ".join(f"site:{domain}" for domain in request.include_domains)
@@ -129,6 +138,7 @@ def _provider_query(request: SearchRequest) -> str:
 
 
 def _clean_result_url(href: str) -> str:
+    """处理 `_clean_result_url` 的内部辅助逻辑。"""
     if href.startswith("//"):
         href = f"https:{href}"
     parsed = urlsplit(href)
@@ -141,6 +151,7 @@ def _clean_result_url(href: str) -> str:
 
 
 def _parse_lite_results(html: str, max_results: int) -> list[SearchResult]:
+    """解析 `lite_results` 对应的数据或流程。"""
     parser = _LiteResultsParser()
     parser.feed(html)
     results: list[SearchResult] = []

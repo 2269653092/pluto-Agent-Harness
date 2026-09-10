@@ -68,9 +68,11 @@ class SQLiteAutomationStore:
     """持久化 Automation，支持按状态 / 会话简单过滤。"""
 
     def __init__(self, database_path: str | Path = DEFAULT_DATABASE_PATH) -> None:
+        """初始化 `SQLiteAutomationStore` 实例及其依赖。"""
         self.database_path = Path(database_path).expanduser().resolve()
 
     async def initialize(self) -> None:
+        """初始化`SQLiteAutomationStore`的相关流程。"""
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
         async with self._connect() as database:
             await database.executescript(_SCHEMA)
@@ -115,6 +117,7 @@ class SQLiteAutomationStore:
         return automation
 
     async def get(self, automation_id: str) -> Automation | None:
+        """获取`SQLiteAutomationStore`的相关流程。"""
         async with self._connect() as database:
             cursor = await database.execute(
                 "SELECT * FROM automations WHERE id = ?",
@@ -153,6 +156,7 @@ class SQLiteAutomationStore:
         conversation_id: str | None = None,
         limit: int = 50,
     ) -> tuple[Automation, ...]:
+        """列出`SQLiteAutomationStore`的相关流程。"""
         if limit < 1:
             raise ValueError("limit must be at least 1")
         clauses: list[str] = []
@@ -270,6 +274,7 @@ class SQLiteAutomationStore:
         return await self.require(automation_id)
 
     async def require(self, automation_id: str) -> Automation:
+        """读取并校验`SQLiteAutomationStore`的相关流程。"""
         automation = await self.get(automation_id)
         if automation is None:
             raise KeyError(f"Automation 不存在：{automation_id}")
@@ -277,6 +282,7 @@ class SQLiteAutomationStore:
 
     @asynccontextmanager
     async def _connect(self) -> AsyncIterator[aiosqlite.Connection]:
+        """建立连接`SQLiteAutomationStore`的相关流程。"""
         database = await aiosqlite.connect(self.database_path)
         database.row_factory = aiosqlite.Row
         try:
@@ -286,10 +292,12 @@ class SQLiteAutomationStore:
 
 
 def _now() -> str:
+    """处理 `_now` 的内部辅助逻辑。"""
     return datetime.now(UTC).isoformat()
 
 
 def _required_identifier(value: str, field: str) -> str:
+    """处理 `_required_identifier` 的内部辅助逻辑。"""
     normalized = value.strip()
     if not normalized:
         raise ValueError(f"{field} cannot be empty")
@@ -297,6 +305,7 @@ def _required_identifier(value: str, field: str) -> str:
 
 
 def _optional_identifier(value: str | None) -> str | None:
+    """处理 `_optional_identifier` 的内部辅助逻辑。"""
     if value is None:
         return None
     return _required_identifier(value, "identifier")
@@ -306,6 +315,7 @@ async def _require_row(
     database: aiosqlite.Connection,
     automation_id: str,
 ) -> Automation:
+    """读取并校验 `row` 对应的数据或流程。"""
     cursor = await database.execute(
         "SELECT * FROM automations WHERE id = ?",
         (_required_identifier(automation_id, "automation_id"),),
@@ -317,6 +327,7 @@ async def _require_row(
 
 
 def _automation_from_row(row: aiosqlite.Row) -> Automation:
+    """处理 `_automation_from_row` 的内部辅助逻辑。"""
     return Automation(
         id=row["id"],
         title=row["title"] or "",
@@ -341,6 +352,7 @@ def _automation_from_row(row: aiosqlite.Row) -> Automation:
 
 
 def _parse_datetime(value: str) -> datetime:
+    """解析 `datetime` 对应的数据或流程。"""
     return datetime.fromisoformat(value)
 
 

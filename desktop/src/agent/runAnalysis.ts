@@ -46,6 +46,7 @@ export interface TraceGroupVM {
   events: AgentEvent[]
 }
 
+/** 执行 `numberOrZero` 对应的界面或业务逻辑。 */
 function numberOrZero(value: number | null | undefined): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0
 }
@@ -58,6 +59,7 @@ export function latestRunId(runs: Run[]): string | null {
   }, null)?.id ?? null
 }
 
+/** 合并 `run_events` 对应的数据或流程。 */
 export function mergeRunEvents(
   durable: AgentEvent[],
   live: AgentEvent[],
@@ -70,6 +72,7 @@ export function mergeRunEvents(
   })
 }
 
+/** 构建 `context_steps` 对应的数据或流程。 */
 export function buildContextSteps(events: AgentEvent[]): ContextStepVM[] {
   return events
     .filter((event) => event.type === 'model_started' && event.step != null)
@@ -137,6 +140,7 @@ export function buildContextSteps(events: AgentEvent[]): ContextStepVM[] {
     })
 }
 
+/** 构建 `trace_groups` 对应的数据或流程。 */
 export function buildTraceGroups(events: AgentEvent[]): TraceGroupVM[] {
   const groups = new Map<string, AgentEvent[]>()
   for (const event of events) {

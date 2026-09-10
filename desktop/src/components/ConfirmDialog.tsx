@@ -16,6 +16,7 @@ export interface ConfirmDialogProps {
   onCancel: () => void
 }
 
+/** 渲染 `ConfirmDialog` React 组件。 */
 export function ConfirmDialog({
   open,
   title,

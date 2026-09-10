@@ -36,10 +36,12 @@ class TaskCreateTool(BaseTool):
     """创建用于长期跟踪进度的任务。"""
 
     def __init__(self, store: FileTaskStore) -> None:
+        """初始化 `TaskCreateTool` 实例及其依赖。"""
         self._store = store
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="task_create",
             record_output=False,
@@ -98,6 +100,7 @@ class TaskCreateTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`TaskCreateTool`的相关流程。"""
         return await self._execute(arguments, context=None)
 
     async def execute_with_context(
@@ -105,6 +108,7 @@ class TaskCreateTool(BaseTool):
         arguments: dict[str, Any],
         context: ToolExecutionContext,
     ) -> dict[str, Any]:
+        """执行 `with_context` 对应的数据或流程。"""
         return await self._execute(arguments, context=context)
 
     async def _execute(
@@ -113,6 +117,7 @@ class TaskCreateTool(BaseTool):
         *,
         context: ToolExecutionContext | None,
     ) -> dict[str, Any]:
+        """执行`TaskCreateTool`的相关流程。"""
         conversation_id = _require_conversation_id(context)
         title = arguments.get("title")
         if not isinstance(title, str) or not title.strip():
@@ -152,10 +157,12 @@ class TaskUpdateTool(BaseTool):
     """更新任务：推进步骤、改变状态、补充约束/事实或关联执行记录。"""
 
     def __init__(self, store: FileTaskStore) -> None:
+        """初始化 `TaskUpdateTool` 实例及其依赖。"""
         self._store = store
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="task_update",
             record_output=False,
@@ -260,6 +267,7 @@ class TaskUpdateTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`TaskUpdateTool`的相关流程。"""
         return await self._execute(arguments, context=None)
 
     async def execute_with_context(
@@ -267,6 +275,7 @@ class TaskUpdateTool(BaseTool):
         arguments: dict[str, Any],
         context: ToolExecutionContext,
     ) -> dict[str, Any]:
+        """执行 `with_context` 对应的数据或流程。"""
         return await self._execute(arguments, context=context)
 
     async def _execute(
@@ -275,6 +284,7 @@ class TaskUpdateTool(BaseTool):
         *,
         context: ToolExecutionContext | None,
     ) -> dict[str, Any]:
+        """执行`TaskUpdateTool`的相关流程。"""
         task_id = arguments.get("task_id")
         if not isinstance(task_id, str) or not task_id.strip():
             raise ValueError("'task_id' must be a non-empty string")
@@ -422,10 +432,12 @@ class TaskGetTool(BaseTool):
     """获取单个任务的完整详情，用于重新确认当前状态。"""
 
     def __init__(self, store: FileTaskStore) -> None:
+        """初始化 `TaskGetTool` 实例及其依赖。"""
         self._store = store
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="task_get",
             record_output=False,
@@ -451,6 +463,7 @@ class TaskGetTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`TaskGetTool`的相关流程。"""
         return await self._execute(arguments, context=None)
 
     async def execute_with_context(
@@ -458,6 +471,7 @@ class TaskGetTool(BaseTool):
         arguments: dict[str, Any],
         context: ToolExecutionContext,
     ) -> dict[str, Any]:
+        """执行 `with_context` 对应的数据或流程。"""
         return await self._execute(arguments, context=context)
 
     async def _execute(
@@ -466,6 +480,7 @@ class TaskGetTool(BaseTool):
         *,
         context: ToolExecutionContext | None,
     ) -> dict[str, Any]:
+        """执行`TaskGetTool`的相关流程。"""
         task_id = arguments.get("task_id")
         if not isinstance(task_id, str) or not task_id.strip():
             raise ValueError("'task_id' must be a non-empty string")
@@ -478,10 +493,12 @@ class TaskListTool(BaseTool):
     """列出任务，可按状态过滤。"""
 
     def __init__(self, store: FileTaskStore) -> None:
+        """初始化 `TaskListTool` 实例及其依赖。"""
         self._store = store
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="task_list",
             record_output=False,
@@ -512,6 +529,7 @@ class TaskListTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`TaskListTool`的相关流程。"""
         return await self._execute(arguments, context=None)
 
     async def execute_with_context(
@@ -519,6 +537,7 @@ class TaskListTool(BaseTool):
         arguments: dict[str, Any],
         context: ToolExecutionContext,
     ) -> dict[str, Any]:
+        """执行 `with_context` 对应的数据或流程。"""
         return await self._execute(arguments, context=context)
 
     async def _execute(
@@ -527,6 +546,7 @@ class TaskListTool(BaseTool):
         *,
         context: ToolExecutionContext | None,
     ) -> dict[str, Any]:
+        """执行`TaskListTool`的相关流程。"""
         limit = arguments.get("limit", 50)
         if not isinstance(limit, int) or not 1 <= limit <= _MAX_LIST_LIMIT:
             raise ValueError(
@@ -560,6 +580,7 @@ def register_task_tools(registry: ToolRegistry, store: FileTaskStore) -> None:
 
 
 def _task_full(task: Task) -> dict[str, Any]:
+    """处理 `_task_full` 的内部辅助逻辑。"""
     return task.model_dump(mode="json")
 
 
@@ -598,6 +619,7 @@ def _require_conversation_id(
 
 
 def _task_brief(task: Task) -> dict[str, Any]:
+    """处理 `_task_brief` 的内部辅助逻辑。"""
     return {
         "id": task.id,
         "title": task.title,
@@ -610,6 +632,7 @@ def _task_brief(task: Task) -> dict[str, Any]:
 
 
 def _build_steps(raw_steps: object) -> tuple[TaskStep, ...]:
+    """构建 `steps` 对应的数据或流程。"""
     if raw_steps is None:
         return ()
     if not isinstance(raw_steps, list):

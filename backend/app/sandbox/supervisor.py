@@ -37,6 +37,7 @@ class SandboxSupervisor:
         *,
         native_backend: SandboxBackend | None = None,
     ) -> None:
+        """初始化 `SandboxSupervisor` 实例及其依赖。"""
         self.workspace_root = Path(workspace_root).expanduser().resolve()
         self._native_backend = native_backend or _platform_backend()
         self._host_backend = HostSandboxBackend()
@@ -50,6 +51,7 @@ class SandboxSupervisor:
         cwd: str | None,
         config: SandboxConfig,
     ) -> SandboxLaunchSpec:
+        """准备 `launch` 对应的数据或流程。"""
         resolved_command = resolve_executable(command, env=env)
         working_directory = self._resolve_working_directory(cwd)
         policy = self._build_policy(
@@ -78,6 +80,7 @@ class SandboxSupervisor:
         working_directory: Path,
         env: dict[str, str],
     ) -> SandboxPolicy:
+        """构建 `policy` 对应的数据或流程。"""
         readable = [command.parent, command.resolve().parent]
         writable: list[Path] = []
         if config.filesystem in {
@@ -115,11 +118,13 @@ class SandboxSupervisor:
         )
 
     def _resolve_working_directory(self, value: str | None) -> Path:
+        """解析或确定 `working_directory` 对应的数据或流程。"""
         if value is None:
             return self.workspace_root
         return self._resolve_extra_root(value)
 
     def _resolve_extra_root(self, value: str) -> Path:
+        """解析或确定 `extra_root` 对应的数据或流程。"""
         candidate = Path(value).expanduser()
         is_relative = not candidate.is_absolute()
         if is_relative:
@@ -135,6 +140,7 @@ class SandboxSupervisor:
 
 
 def _platform_backend() -> SandboxBackend:
+    """处理 `_platform_backend` 的内部辅助逻辑。"""
     return WindowsRestrictedBackend()
 
 
@@ -168,6 +174,7 @@ def _runtime_support_roots(
 
 
 def _deduplicate(paths: list[Path]) -> tuple[Path, ...]:
+    """处理 `_deduplicate` 的内部辅助逻辑。"""
     return tuple(dict.fromkeys(path.resolve() for path in paths if path.exists()))
 
 

@@ -87,6 +87,7 @@ class ArtifactService:
         *,
         managed_dir: str | Path | None = None,
     ) -> None:
+        """初始化 `ArtifactService` 实例及其依赖。"""
         self.store = store
         self.workspace_root = workspace_root_path(workspace_root)
         if managed_dir is None:
@@ -252,6 +253,7 @@ class ArtifactService:
         return size_bytes, digest.hexdigest()
 
     async def _notify(self, artifact: Artifact) -> None:
+        """通知`ArtifactService`的相关流程。"""
         if self._broadcaster is not None:
             try:
                 await self._broadcaster(
@@ -269,6 +271,7 @@ def _safe_filename(filename: str) -> str:
 
 
 def _cleanup_temp_file(path: Path) -> None:
+    """处理 `_cleanup_temp_file` 的内部辅助逻辑。"""
     with suppress(OSError):
         path.unlink(missing_ok=True)
 

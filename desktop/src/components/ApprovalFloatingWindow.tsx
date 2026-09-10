@@ -18,6 +18,7 @@ import {
   useComputerApprovalQueue,
 } from './ComputerApprovalPopup'
 
+/** 渲染 `ApprovalFloatingWindow` React 组件。 */
 export default function ApprovalFloatingWindow(): React.JSX.Element | null {
   const { queue, active, busy, error, phase, resolve, dismiss } =
     useComputerApprovalQueue()
@@ -40,6 +41,7 @@ export default function ApprovalFloatingWindow(): React.JSX.Element | null {
     if (!shouldShow) return
     const element = document.body
     if (!element) return
+    /** 执行 `sync` 对应的界面或业务逻辑。 */
     const sync = (): void => {
       const height = Math.ceil(element.scrollHeight)
       window.pluto?.setApprovalSize?.(height)

@@ -110,6 +110,7 @@ class AgentRuntime:
         worker_max_tool_rounds: int = 3,
         worker_max_output_tokens: int = 2048,
     ) -> None:
+        """初始化 `AgentRuntime` 实例及其依赖。"""
         if max_steps < 1:
             raise ValueError("max_steps must be at least 1")
         if max_output_tokens is not None and max_output_tokens < 1:
@@ -186,6 +187,7 @@ class AgentRuntime:
 
     @property
     def tool_executor(self) -> ToolExecutor:
+        """执行 `tool_executor` 对应的业务逻辑。"""
         return self._tool_executor
 
     @property
@@ -338,6 +340,7 @@ class AgentRuntime:
             handler = CompositeEventHandler(queue_handler, event_handler)
 
         async def execute() -> None:
+            """执行`AgentRuntime`的相关流程。"""
             try:
                 await self.run(
                     user_input,

@@ -42,6 +42,7 @@ class CurrentTimeTool(BaseTool):
     )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`CurrentTimeTool`的相关流程。"""
         timezone = arguments.get("timezone")
         if timezone is not None and not isinstance(timezone, str):
             raise TypeError("timezone 必须是字符串")
@@ -69,6 +70,7 @@ class CurrentTimeTool(BaseTool):
 
 
 def _local_timezone_name(current: datetime) -> str:
+    """处理 `_local_timezone_name` 的内部辅助逻辑。"""
     key = getattr(current.tzinfo, "key", None)
     if isinstance(key, str) and key:
         return key

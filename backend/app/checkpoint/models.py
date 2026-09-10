@@ -54,6 +54,7 @@ class RunCheckpoint(BaseModel):
     @field_validator("user_message")
     @classmethod
     def validate_user_message(cls, value: Message) -> Message:
+        """校验 `user_message` 对应的数据或流程。"""
         if value.role is not MessageRole.USER:
             raise ValueError("checkpoint user_message must have user role")
         return value
@@ -61,6 +62,7 @@ class RunCheckpoint(BaseModel):
     @field_validator("run_id", "conversation_id", "recovered_by_run_id")
     @classmethod
     def normalize_identifier(cls, value: str | None) -> str | None:
+        """标准化 `identifier` 对应的数据或流程。"""
         if value is None:
             return None
         normalized = value.strip()
@@ -71,6 +73,7 @@ class RunCheckpoint(BaseModel):
     @field_validator("started_at", "updated_at", "completed_at")
     @classmethod
     def normalize_datetime(cls, value: datetime | None) -> datetime | None:
+        """标准化 `datetime` 对应的数据或流程。"""
         if value is None:
             return None
         if value.tzinfo is None or value.utcoffset() is None:

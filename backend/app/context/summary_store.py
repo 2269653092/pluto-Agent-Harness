@@ -28,6 +28,7 @@ class SQLiteConversationSummaryStore:
     """保存模型请求使用的摘要缓存，不替代完整消息历史。"""
 
     def __init__(self, database_path: str | Path = DEFAULT_DATABASE_PATH) -> None:
+        """初始化 `SQLiteConversationSummaryStore` 实例及其依赖。"""
         self.database_path = Path(database_path).expanduser().resolve()
 
     async def initialize(self) -> None:
@@ -104,6 +105,7 @@ class SQLiteConversationSummaryStore:
 
     @asynccontextmanager
     async def _connect(self) -> AsyncIterator[aiosqlite.Connection]:
+        """建立连接`SQLiteConversationSummaryStore`的相关流程。"""
         database = await aiosqlite.connect(self.database_path)
         await database.execute("PRAGMA foreign_keys = ON")
         try:

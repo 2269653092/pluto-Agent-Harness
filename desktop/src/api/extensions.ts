@@ -117,10 +117,12 @@ export interface ExtensionImportResult {
   restart_required: boolean
 }
 
+/** 列出 `extensions` 对应的数据或流程。 */
 export async function listExtensions(): Promise<ExtensionsOverview> {
   return rpcClient.call<ExtensionsOverview>(RpcMethods.extensionList, {})
 }
 
+/** 执行 `previewExtensionImport` 对应的界面或业务逻辑。 */
 export async function previewExtensionImport(
   input: ExtensionImportInput,
 ): Promise<ExtensionImportPlan> {
@@ -131,6 +133,7 @@ export async function previewExtensionImport(
   return result.plan
 }
 
+/** 应用 `extension_import` 对应的数据或流程。 */
 export async function applyExtensionImport(
   input: ExtensionImportInput & { fingerprint: string; confirmed: true },
 ): Promise<ExtensionImportResult> {
@@ -140,6 +143,7 @@ export async function applyExtensionImport(
   )
 }
 
+/** 执行 `installSkill` 对应的界面或业务逻辑。 */
 export async function installSkill(input: InstallSkillInput): Promise<InstalledSkill> {
   const result = await rpcClient.call<{ skill: InstalledSkill }>(
     RpcMethods.skillInstall,
@@ -148,6 +152,7 @@ export async function installSkill(input: InstallSkillInput): Promise<InstalledS
   return result.skill
 }
 
+/** 设置 `skill_enabled` 对应的数据或流程。 */
 export async function setSkillEnabled(
   name: string,
   scope: InstalledSkill['scope'],
@@ -160,6 +165,7 @@ export async function setSkillEnabled(
   return result.skill
 }
 
+/** 删除 `skill` 对应的数据或流程。 */
 export async function deleteSkill(
   name: string,
   scope: InstalledSkill['scope'],
@@ -168,6 +174,7 @@ export async function deleteSkill(
   await rpcClient.call(RpcMethods.skillDelete, { name, scope, enabled })
 }
 
+/** 添加 `mcpserver` 对应的数据或流程。 */
 export async function addMCPServer(
   input: AddMCPServerInput,
 ): Promise<{ server: ManagedMCPServer; restart_required: boolean; config_path: string }> {
@@ -178,6 +185,7 @@ export async function addMCPServer(
   }>(RpcMethods.mcpAdd, { ...input })
 }
 
+/** 设置 `mcpserver_enabled` 对应的数据或流程。 */
 export async function setMCPServerEnabled(
   name: string,
   enabled: boolean,
@@ -189,6 +197,7 @@ export async function setMCPServerEnabled(
   return result.server
 }
 
+/** 删除 `mcpserver` 对应的数据或流程。 */
 export async function deleteMCPServer(name: string): Promise<void> {
   await rpcClient.call(RpcMethods.mcpDelete, { name })
 }

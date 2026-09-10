@@ -19,6 +19,7 @@ import RunBadge from '../components/RunBadge'
 import UsageInspector from '../components/UsageInspector'
 import { toast } from '../stores/toasts'
 
+/** 渲染 `RunDetailPage` React 组件。 */
 export default function RunDetailPage({
   runId,
   onBack,
@@ -30,10 +31,10 @@ export default function RunDetailPage({
 }): React.JSX.Element {
   const queryClient = useQueryClient()
   const [confirmCancel, setConfirmCancel] = useState(false)
-  const runQuery = useQuery({ queryKey: ['run', runId], queryFn: () => getRun(runId), refetchInterval: 3000 })
-  const traceQuery = useQuery({ queryKey: ['run-trace', runId], queryFn: () => getRunTrace(runId), refetchInterval: 3000 })
-  const computerQuery = useQuery({ queryKey: ['computer-observation', runId], queryFn: () => getLatestComputerObservation(runId), retry: false })
-  const artifactsQuery = useQuery({ queryKey: ['artifacts', 'run', runId], queryFn: () => listArtifacts({ runId, limit: 100 }) })
+  const runQuery = useQuery({ queryKey: ['run', runId], /** 执行 `queryFn` 对应的界面或业务逻辑。 */ queryFn: () => getRun(runId), refetchInterval: 3000 })
+  const traceQuery = useQuery({ queryKey: ['run-trace', runId], /** 执行 `queryFn` 对应的界面或业务逻辑。 */ queryFn: () => getRunTrace(runId), refetchInterval: 3000 })
+  const computerQuery = useQuery({ queryKey: ['computer-observation', runId], /** 执行 `queryFn` 对应的界面或业务逻辑。 */ queryFn: () => getLatestComputerObservation(runId), retry: false })
+  const artifactsQuery = useQuery({ queryKey: ['artifacts', 'run', runId], /** 执行 `queryFn` 对应的界面或业务逻辑。 */ queryFn: () => listArtifacts({ runId, limit: 100 }) })
   const run = runQuery.data
   const events = traceQuery.data?.events ?? []
   const turn = buildTurnView(events)
@@ -41,6 +42,7 @@ export default function RunDetailPage({
     ? humanizeRunError(run.stop_reason, run.error)
     : null
 
+  /** 取消当前对象的相关流程。 */
   const cancel = async (): Promise<void> => {
     try {
       await cancelRun(runId)
@@ -52,6 +54,7 @@ export default function RunDetailPage({
       setConfirmCancel(false)
     }
   }
+  /** 恢复当前对象的相关流程。 */
   const recover = async (): Promise<void> => {
     try {
       const next = await recoverRun(runId)
@@ -159,6 +162,7 @@ export default function RunDetailPage({
   )
 }
 
+/** 执行 `RunArtifactsSection` 对应的界面或业务逻辑。 */
 export function RunArtifactsSection({
   artifacts,
 }: {

@@ -28,6 +28,7 @@ export interface ArtifactListQuery {
   limit?: number
 }
 
+/** 列出 `artifacts` 对应的数据或流程。 */
 export async function listArtifacts(
   query: ArtifactListQuery = {},
 ): Promise<Artifact[]> {
@@ -41,6 +42,7 @@ export async function listArtifacts(
   return data.artifacts
 }
 
+/** 获取 `artifact` 对应的数据或流程。 */
 export async function getArtifact(id: string): Promise<Artifact> {
   const data = await rpcClient.call<{ artifact: Artifact }>(
     RpcMethods.artifactGet,

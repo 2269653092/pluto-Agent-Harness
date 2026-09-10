@@ -23,6 +23,7 @@ import { Badge, Button } from '../components/ui'
 import { rpcClient } from '../rpc'
 import { toast } from '../stores/toasts'
 
+/** 格式化 `time` 对应的数据或流程。 */
 function formatTime(iso: string | null): string {
   if (!iso) return '-'
   const date = new Date(iso)
@@ -30,6 +31,7 @@ function formatTime(iso: string | null): string {
   return date.toLocaleString()
 }
 
+/** 格式化 `arguments` 对应的数据或流程。 */
 function formatArguments(argumentsValue: Record<string, unknown>): string {
   try {
     return JSON.stringify(argumentsValue, null, 2)
@@ -59,6 +61,7 @@ const COMPUTER_ACTION_LABEL: Record<string, string> = {
   computer_focus_window: '聚焦窗口',
 }
 
+/** 渲染 `ApprovalItem` React 组件。 */
 function ApprovalItem({
   approval,
   busy,
@@ -144,11 +147,13 @@ export default function ApprovalsPage(): React.JSX.Element {
 
   const pendingQuery = useQuery({
     queryKey: ['approvals', 'pending'],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () => listApprovals('pending'),
     refetchInterval: 2000,
   })
   const historyQuery = useQuery({
     queryKey: ['approvals', 'history'],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () => listApprovals(undefined, 50),
     refetchInterval: 5000,
   })
@@ -159,6 +164,7 @@ export default function ApprovalsPage(): React.JSX.Element {
 
   // 收到 approval.required / approval.resolved 通知时立即刷新。
   useEffect(() => {
+    /** 执行 `refresh` 对应的界面或业务逻辑。 */
     const refresh = (): void => {
       void queryClient.invalidateQueries({ queryKey: ['approvals'] })
       void queryClient.invalidateQueries({ queryKey: ['runs'] })
@@ -172,10 +178,12 @@ export default function ApprovalsPage(): React.JSX.Element {
   }, [queryClient])
 
   const resolveMutation = useMutation({
+    /** 执行 `mutationFn` 对应的界面或业务逻辑。 */
     mutationFn: (action: { id: string; decision: 'approve' | 'deny' }) =>
       action.decision === 'approve'
         ? approveApproval(action.id)
         : denyApproval(action.id),
+    /** 响应 `onSuccess` 对应的事件。 */
     onSuccess: (approval, action) => {
       toast.success(
         action.decision === 'approve'
@@ -185,6 +193,7 @@ export default function ApprovalsPage(): React.JSX.Element {
       void queryClient.invalidateQueries({ queryKey: ['approvals'] })
       void queryClient.invalidateQueries({ queryKey: ['runs'] })
     },
+    /** 响应 `onError` 对应的事件。 */
     onError: (err: unknown) => {
       toast.error(err instanceof Error ? err.message : String(err))
     },

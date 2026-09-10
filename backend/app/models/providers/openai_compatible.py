@@ -33,6 +33,7 @@ class OpenAICompatibleAdapter(ModelAdapter):
         *,
         client: Any | None = None,
     ) -> None:
+        """初始化 `OpenAICompatibleAdapter` 实例及其依赖。"""
         if config.api_style is ApiStyle.ANTHROPIC_MESSAGES:
             raise ValueError("Anthropic Messages requires AnthropicAdapter")
         super().__init__(config)
@@ -47,6 +48,7 @@ class OpenAICompatibleAdapter(ModelAdapter):
         self._client = client or AsyncOpenAI(**client_kwargs)
 
     async def complete(self, request: ModelRequest) -> ModelResponse:
+        """执行 `complete` 对应的业务逻辑。"""
         try:
             if self.config.api_style is ApiStyle.RESPONSES:
                 return await self._complete_responses(request)
@@ -102,12 +104,14 @@ class OpenAICompatibleAdapter(ModelAdapter):
                 ) from exc
 
     async def close(self) -> None:
+        """关闭`OpenAICompatibleAdapter`的相关流程。"""
         await self._client.close()
 
     async def _complete_responses(
         self,
         request: ModelRequest,
     ) -> ModelResponse:
+        """处理 `_complete_responses` 的内部辅助逻辑。"""
         kwargs: dict[str, Any] = {
             "model": request.model or self.default_model,
             "input": _responses_input(request.messages),
@@ -130,6 +134,7 @@ class OpenAICompatibleAdapter(ModelAdapter):
         self,
         request: ModelRequest,
     ) -> ModelResponse:
+        """处理 `_complete_chat` 的内部辅助逻辑。"""
         kwargs: dict[str, Any] = {
             "model": request.model or self.default_model,
             "messages": [_chat_message(message) for message in request.messages],
@@ -179,6 +184,7 @@ class OpenAICompatibleAdapter(ModelAdapter):
         *,
         attempt: _StreamAttemptState,
     ) -> ModelResponse:
+        """处理 `_stream_responses` 的内部辅助逻辑。"""
         kwargs: dict[str, Any] = {
             "model": request.model or self.default_model,
             "input": _responses_input(request.messages),
@@ -223,6 +229,7 @@ class OpenAICompatibleAdapter(ModelAdapter):
         *,
         attempt: _StreamAttemptState,
     ) -> ModelResponse:
+        """处理 `_stream_chat` 的内部辅助逻辑。"""
         kwargs: dict[str, Any] = {
             "model": request.model or self.default_model,
             "messages": [_chat_message(message) for message in request.messages],
@@ -318,12 +325,14 @@ class _StreamAttemptState:
 
 
 def _arguments_json(arguments: dict[str, Any] | str) -> str:
+    """处理 `_arguments_json` 的内部辅助逻辑。"""
     if isinstance(arguments, str):
         return arguments
     return json.dumps(arguments, ensure_ascii=False, separators=(",", ":"))
 
 
 def _normalize_responses_response(response: Any, provider: str) -> ModelResponse:
+    """标准化 `responses_response` 对应的数据或流程。"""
     tool_calls = tuple(
         ToolCall(
             id=item.call_id,
@@ -360,6 +369,7 @@ def _responses_reasoning(response: Any) -> str | None:
 
 
 def _parse_arguments(arguments: Any) -> dict[str, Any] | str:
+    """解析 `arguments` 对应的数据或流程。"""
     if isinstance(arguments, dict):
         return arguments
     if not isinstance(arguments, str):
@@ -372,6 +382,7 @@ def _parse_arguments(arguments: Any) -> dict[str, Any] | str:
 
 
 def _responses_input(messages: tuple[Message, ...]) -> list[dict[str, Any]]:
+    """处理 `_responses_input` 的内部辅助逻辑。"""
     items: list[dict[str, Any]] = []
     for message in messages:
         if message.role is MessageRole.TOOL:
@@ -404,6 +415,7 @@ def _responses_input(messages: tuple[Message, ...]) -> list[dict[str, Any]]:
 
 
 def _chat_message(message: Message) -> dict[str, Any]:
+    """处理 `_chat_message` 的内部辅助逻辑。"""
     result: dict[str, Any] = {
         "role": message.role.value,
         "content": message.content,
@@ -428,6 +440,7 @@ def _chat_message(message: Message) -> dict[str, Any]:
 
 
 def _responses_tool(tool: ToolDefinition) -> dict[str, Any]:
+    """处理 `_responses_tool` 的内部辅助逻辑。"""
     result: dict[str, Any] = {
         "type": "function",
         "name": tool.name,
@@ -440,6 +453,7 @@ def _responses_tool(tool: ToolDefinition) -> dict[str, Any]:
 
 
 def _chat_tool(tool: ToolDefinition) -> dict[str, Any]:
+    """处理 `_chat_tool` 的内部辅助逻辑。"""
     function: dict[str, Any] = {
         "name": tool.name,
         "description": tool.description,
@@ -454,6 +468,7 @@ def _responses_finish_reason(
     response: Any,
     tool_calls: tuple[ToolCall, ...],
 ) -> str | None:
+    """处理 `_responses_finish_reason` 的内部辅助逻辑。"""
     if tool_calls:
         return "tool_calls"
     if getattr(response, "status", None) == "incomplete":
@@ -463,6 +478,7 @@ def _responses_finish_reason(
 
 
 def _responses_usage(usage: Any | None) -> ModelUsage:
+    """处理 `_responses_usage` 的内部辅助逻辑。"""
     if usage is None:
         return ModelUsage()
     input_tokens = int(getattr(usage, "input_tokens", 0) or 0)
@@ -489,6 +505,7 @@ def _responses_usage(usage: Any | None) -> ModelUsage:
 
 
 def _chat_usage(usage: Any | None) -> ModelUsage:
+    """处理 `_chat_usage` 的内部辅助逻辑。"""
     if usage is None:
         return ModelUsage()
     input_tokens = int(getattr(usage, "prompt_tokens", 0) or 0)
@@ -540,6 +557,7 @@ def _openai_cache_usage(
 
 
 def _optional_int(value: Any, field: str) -> int | None:
+    """处理 `_optional_int` 的内部辅助逻辑。"""
     if value is None:
         return None
     raw = value.get(field) if isinstance(value, dict) else getattr(value, field, None)
@@ -549,6 +567,7 @@ def _optional_int(value: Any, field: str) -> int | None:
 
 
 def _model_dump(value: Any) -> dict[str, Any] | None:
+    """处理 `_model_dump` 的内部辅助逻辑。"""
     if hasattr(value, "model_dump"):
         return value.model_dump(mode="json")
     return value if isinstance(value, dict) else None

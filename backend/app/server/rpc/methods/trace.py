@@ -11,6 +11,7 @@ from ..protocol import RESOURCE_NOT_FOUND, JsonRpcError, RpcErrorCode
 
 
 async def trace_get(params: dict[str, Any], ctx: RpcContext) -> dict[str, Any]:
+    """执行 `trace_get` 对应的业务逻辑。"""
     run_id = params.get("run_id")
     if not isinstance(run_id, str) or not run_id:
         raise JsonRpcError(RpcErrorCode.INVALID_PARAMS, "run_id is required")
@@ -27,4 +28,5 @@ async def trace_get(params: dict[str, Any], ctx: RpcContext) -> dict[str, Any]:
 
 
 def register(dispatcher: RpcDispatcher) -> None:
+    """注册当前对象的相关流程。"""
     dispatcher.register("trace.get", trace_get)

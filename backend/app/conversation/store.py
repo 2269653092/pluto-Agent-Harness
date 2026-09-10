@@ -54,6 +54,7 @@ class SQLiteConversationStore:
     """将会话与通用消息保存在单个 SQLite 文件中。"""
 
     def __init__(self, database_path: str | Path = DEFAULT_DATABASE_PATH) -> None:
+        """初始化 `SQLiteConversationStore` 实例及其依赖。"""
         self.database_path = Path(database_path).expanduser().resolve()
 
     async def initialize(self) -> None:
@@ -290,6 +291,7 @@ class SQLiteConversationStore:
 
     @asynccontextmanager
     async def _connect(self) -> AsyncIterator[aiosqlite.Connection]:
+        """建立连接`SQLiteConversationStore`的相关流程。"""
         database = await aiosqlite.connect(self.database_path)
         database.row_factory = aiosqlite.Row
         await database.execute("PRAGMA foreign_keys = ON")
@@ -305,6 +307,7 @@ class SQLiteConversationStore:
         messages: Sequence[Message],
         created_at: str,
     ) -> None:
+        """处理 `_insert_messages` 的内部辅助逻辑。"""
         rows = [
             (
                 conversation_id,
@@ -358,6 +361,7 @@ LEFT JOIN messages AS m ON m.conversation_id = c.id
 
 
 def _conversation_from_row(row: aiosqlite.Row) -> Conversation:
+    """处理 `_conversation_from_row` 的内部辅助逻辑。"""
     return Conversation(
         id=row["id"],
         title=row["title"],
@@ -384,6 +388,7 @@ async def _ensure_column(
 
 
 def _message_from_row(row: aiosqlite.Row) -> Message:
+    """处理 `_message_from_row` 的内部辅助逻辑。"""
     raw_tool_calls = json.loads(row["tool_calls_json"])
     return Message(
         role=row["role"],
@@ -396,6 +401,7 @@ def _message_from_row(row: aiosqlite.Row) -> Message:
 
 
 def _message_record_from_row(row: aiosqlite.Row) -> ConversationMessageRecord:
+    """处理 `_message_record_from_row` 的内部辅助逻辑。"""
     return ConversationMessageRecord(
         sequence=row["sequence"],
         message=_message_from_row(row),
@@ -404,9 +410,11 @@ def _message_record_from_row(row: aiosqlite.Row) -> ConversationMessageRecord:
 
 
 def _normalize_title(title: str) -> str:
+    """标准化 `title` 对应的数据或流程。"""
     normalized = " ".join(title.split()).strip()
     return normalized[:80] or "新会话"
 
 
 def _now_iso() -> str:
+    """处理 `_now_iso` 的内部辅助逻辑。"""
     return datetime.now(UTC).isoformat()

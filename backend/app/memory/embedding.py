@@ -53,6 +53,7 @@ class MemoryEmbeddingSettings(BaseSettings):
     @field_validator("base_url", "model", mode="before")
     @classmethod
     def normalize_optional_text(cls, value: object) -> str | None:
+        """标准化 `optional_text` 对应的数据或流程。"""
         if value is None:
             return None
         if not isinstance(value, str):
@@ -104,6 +105,7 @@ class OpenAICompatibleEmbeddingAdapter:
         max_retries: int = 1,
         batch_size: int = 16,
     ) -> None:
+        """初始化 `OpenAICompatibleEmbeddingAdapter` 实例及其依赖。"""
         import httpx
         from openai import AsyncOpenAI
 
@@ -127,16 +129,19 @@ class OpenAICompatibleEmbeddingAdapter:
 
     @property
     def model_name(self) -> str:
+        """执行 `model_name` 对应的业务逻辑。"""
         return self._model
 
     @property
     def dimensions(self) -> int | None:
+        """执行 `dimensions` 对应的业务逻辑。"""
         return self._dimensions
 
     async def embed_documents(
         self,
         texts: tuple[str, ...],
     ) -> tuple[tuple[float, ...], ...]:
+        """执行 `embed_documents` 对应的业务逻辑。"""
         vectors: list[tuple[float, ...]] = []
         for start in range(0, len(texts), self._batch_size):
             batch = texts[start : start + self._batch_size]
@@ -144,6 +149,7 @@ class OpenAICompatibleEmbeddingAdapter:
         return tuple(vectors)
 
     async def embed_query(self, text: str) -> tuple[float, ...]:
+        """执行 `embed_query` 对应的业务逻辑。"""
         vectors = await self._embed([text])
         return vectors[0]
 
@@ -153,6 +159,7 @@ class OpenAICompatibleEmbeddingAdapter:
     ) -> list[tuple[float, ...]]:
         # 未配置 dimensions 时不传该参数：显式 None 会被序列化成 null，
         # Ollama 等本地端点对不支持降维的模型会拒绝该字段。
+        """处理 `_embed` 的内部辅助逻辑。"""
         request: dict[str, object] = {
             "model": self._model,
             "input": texts,
@@ -166,6 +173,7 @@ class OpenAICompatibleEmbeddingAdapter:
         )
 
     async def close(self) -> None:
+        """关闭`OpenAICompatibleEmbeddingAdapter`的相关流程。"""
         await self._client.close()
 
 
@@ -182,6 +190,7 @@ class FakeEmbeddingAdapter:
         dimensions: int = 1024,
         model_name: str = "fake-embedding",
     ) -> None:
+        """初始化 `FakeEmbeddingAdapter` 实例及其依赖。"""
         if dimensions <= 0:
             raise ValueError("fake embedding dimensions must be positive")
         self._dimensions = dimensions
@@ -189,25 +198,31 @@ class FakeEmbeddingAdapter:
 
     @property
     def model_name(self) -> str:
+        """执行 `model_name` 对应的业务逻辑。"""
         return self._model_name
 
     @property
     def dimensions(self) -> int | None:
+        """执行 `dimensions` 对应的业务逻辑。"""
         return self._dimensions
 
     async def embed_documents(
         self,
         texts: tuple[str, ...],
     ) -> tuple[tuple[float, ...], ...]:
+        """执行 `embed_documents` 对应的业务逻辑。"""
         return tuple(self._vector(text) for text in texts)
 
     async def embed_query(self, text: str) -> tuple[float, ...]:
+        """执行 `embed_query` 对应的业务逻辑。"""
         return self._vector(text)
 
     async def close(self) -> None:
+        """关闭`FakeEmbeddingAdapter`的相关流程。"""
         return None
 
     def _vector(self, text: str) -> tuple[float, ...]:
+        """处理 `_vector` 的内部辅助逻辑。"""
         counts: dict[int, float] = {}
         for token in _semantic_tokens(text):
             bucket = _hash_bucket(token, self._dimensions)
@@ -255,6 +270,7 @@ def _semantic_tokens(text: str) -> list[str]:
 
 
 def _hash_bucket(token: str, dimensions: int) -> int:
+    """处理 `_hash_bucket` 的内部辅助逻辑。"""
     digest = hashlib.blake2b(token.encode("utf-8"), digest_size=8).digest()
     return int.from_bytes(digest, "big") % dimensions
 

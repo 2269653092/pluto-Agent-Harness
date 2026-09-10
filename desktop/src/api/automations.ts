@@ -15,6 +15,7 @@ export interface CreateAutomationInput {
   conversation_id?: string
 }
 
+/** 列出 `automations` 对应的数据或流程。 */
 export async function listAutomations(): Promise<Automation[]> {
   const data = await rpcClient.call<{ automations: Automation[] }>(
     RpcMethods.automationList,
@@ -23,6 +24,7 @@ export async function listAutomations(): Promise<Automation[]> {
   return data.automations
 }
 
+/** 获取 `automation` 对应的数据或流程。 */
 export async function getAutomation(id: string): Promise<Automation> {
   const data = await rpcClient.call<{ automation: Automation }>(
     RpcMethods.automationGet,
@@ -31,6 +33,7 @@ export async function getAutomation(id: string): Promise<Automation> {
   return data.automation
 }
 
+/** 创建 `automation` 对应的数据或流程。 */
 export async function createAutomation(
   input: CreateAutomationInput,
 ): Promise<Automation> {
@@ -41,6 +44,7 @@ export async function createAutomation(
   return data.automation
 }
 
+/** 执行 `pauseAutomation` 对应的界面或业务逻辑。 */
 export async function pauseAutomation(id: string): Promise<Automation> {
   const data = await rpcClient.call<{ automation: Automation }>(
     RpcMethods.automationPause,
@@ -49,6 +53,7 @@ export async function pauseAutomation(id: string): Promise<Automation> {
   return data.automation
 }
 
+/** 执行 `resumeAutomation` 对应的界面或业务逻辑。 */
 export async function resumeAutomation(id: string): Promise<Automation> {
   const data = await rpcClient.call<{ automation: Automation }>(
     RpcMethods.automationResume,
@@ -57,6 +62,7 @@ export async function resumeAutomation(id: string): Promise<Automation> {
   return data.automation
 }
 
+/** 取消 `automation` 对应的数据或流程。 */
 export async function cancelAutomation(id: string): Promise<Automation> {
   const data = await rpcClient.call<{ automation: Automation }>(
     RpcMethods.automationCancel,

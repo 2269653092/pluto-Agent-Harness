@@ -13,6 +13,7 @@ import { Icon } from '../components/Icon'
 import { PageShell } from '../components/PageShell'
 import { toast } from '../stores/toasts'
 
+/** 执行 `scheduleText` 对应的界面或业务逻辑。 */
 function scheduleText(schedule: {
   kind: string
   run_at: string | null
@@ -35,6 +36,7 @@ function scheduleText(schedule: {
   return `${schedule.cron_expr ?? 'Cron'} · ${schedule.timezone}`
 }
 
+/** 格式化 `time` 对应的数据或流程。 */
 function formatTime(iso: string | null): string {
   if (!iso) return '-'
   const date = new Date(iso)
@@ -42,6 +44,7 @@ function formatTime(iso: string | null): string {
   return date.toLocaleString('zh-CN')
 }
 
+/** 执行 `automationStatusLabel` 对应的界面或业务逻辑。 */
 function automationStatusLabel(status: string): string {
   if (status === 'active') return '运行中'
   if (status === 'paused') return '已暂停'
@@ -50,34 +53,40 @@ function automationStatusLabel(status: string): string {
   return status
 }
 
+/** 渲染 `AutomationsPage` React 组件。 */
 export default function AutomationsPage(): React.JSX.Element {
   const queryClient = useQueryClient()
   const [cancelTarget, setCancelTarget] = useState<string | null>(null)
 
   const automationsQuery = useQuery({
     queryKey: ['automations'],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () => listAutomations(),
     refetchInterval: 4000,
   })
   const automations = automationsQuery.data ?? []
 
+  /** 执行 `invalidate` 对应的界面或业务逻辑。 */
   const invalidate = (): void => {
     void queryClient.invalidateQueries({ queryKey: ['automations'] })
     void queryClient.invalidateQueries({ queryKey: ['runs'] })
   }
 
   const controlMutation = useMutation({
+    /** 执行 `mutationFn` 对应的界面或业务逻辑。 */
     mutationFn: (action: { id: string; op: 'pause' | 'resume' | 'cancel' }) => {
       if (action.op === 'pause') return pauseAutomation(action.id)
       if (action.op === 'resume') return resumeAutomation(action.id)
       return cancelAutomation(action.id)
     },
+    /** 响应 `onSuccess` 对应的事件。 */
     onSuccess: (_data, action) => {
       const verb =
         action.op === 'pause' ? '已暂停' : action.op === 'resume' ? '已恢复' : '已取消'
       toast.info(`自动化${verb}`)
       invalidate()
     },
+    /** 响应 `onError` 对应的事件。 */
     onError: (err: unknown) => {
       toast.error(err instanceof Error ? err.message : String(err))
     },

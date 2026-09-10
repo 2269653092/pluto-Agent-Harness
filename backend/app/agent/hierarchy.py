@@ -107,6 +107,7 @@ class AgentHierarchySettings(BaseSettings):
         role: Literal["planner", "worker"],
         planner: ModelSettings | None = None,
     ) -> ModelSettings:
+        """处理 `_role_model_settings` 的内部辅助逻辑。"""
         fallback_provider = (
             planner.model_default_provider
             if role == "worker" and planner is not None
@@ -141,6 +142,7 @@ class WorkerTaskPayload(BaseModel):
     context: str | None = Field(default=None, max_length=8000)
 
     def worker_input(self) -> str:
+        """执行 `worker_input` 对应的业务逻辑。"""
         return (
             "执行以下由 Planner 已规划好的 task_payload。不要重新规划或扩展范围。\n"
             + json.dumps(self.model_dump(exclude_none=True), ensure_ascii=False)
@@ -174,6 +176,7 @@ class WorkerSubgraph:
         max_tool_rounds: int,
         max_output_tokens: int,
     ) -> None:
+        """初始化 `WorkerSubgraph` 实例及其依赖。"""
         forbidden = {
             DELEGATE_WORKER_TOOL_NAME,
             "task_create",
@@ -206,6 +209,7 @@ class WorkerSubgraph:
 
     @property
     def tool_names(self) -> tuple[str, ...]:
+        """执行 `tool_names` 对应的业务逻辑。"""
         return self._tool_registry.names()
 
     async def run(
@@ -215,6 +219,7 @@ class WorkerSubgraph:
         parent_run_id: str | None,
         conversation_id: str | None,
     ) -> WorkerExecutionResult:
+        """运行`WorkerSubgraph`的相关流程。"""
         depth = self._depth.get()
         if depth:
             raise RuntimeError("Worker cannot create or invoke another Worker")
@@ -253,10 +258,12 @@ class DelegateWorkerTool(BaseTool):
     """Planner 调用 Worker 子图的唯一入口。"""
 
     def __init__(self, worker: WorkerSubgraph) -> None:
+        """初始化 `DelegateWorkerTool` 实例及其依赖。"""
         self._worker = worker
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name=DELEGATE_WORKER_TOOL_NAME,
             description=(
@@ -268,6 +275,7 @@ class DelegateWorkerTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`DelegateWorkerTool`的相关流程。"""
         payload = WorkerTaskPayload.model_validate(arguments)
         result = await self._worker.run(
             payload,
@@ -281,6 +289,7 @@ class DelegateWorkerTool(BaseTool):
         arguments: dict[str, Any],
         context: ToolExecutionContext,
     ) -> dict[str, Any]:
+        """执行 `with_context` 对应的数据或流程。"""
         payload = WorkerTaskPayload.model_validate(arguments)
         result = await self._worker.run(
             payload,
@@ -302,6 +311,7 @@ def planner_system_prompt(base: str | None) -> str:
 
 
 def _non_empty(value: str | None) -> str | None:
+    """处理 `_non_empty` 的内部辅助逻辑。"""
     if value is None:
         return None
     normalized = value.strip()
@@ -309,6 +319,7 @@ def _non_empty(value: str | None) -> str | None:
 
 
 def _secret_value(value: SecretStr | None) -> str | None:
+    """处理 `_secret_value` 的内部辅助逻辑。"""
     if value is None:
         return None
     return _non_empty(value.get_secret_value())

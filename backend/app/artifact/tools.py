@@ -20,10 +20,12 @@ class ArtifactPublishTool(BaseTool):
     """
 
     def __init__(self, service: ArtifactService) -> None:
+        """初始化 `ArtifactPublishTool` 实例及其依赖。"""
         self._service = service
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="artifact_publish",
             record_output=False,
@@ -55,6 +57,7 @@ class ArtifactPublishTool(BaseTool):
 
     async def execute(self, arguments: dict[str, Any]) -> Any:
         # artifact_publish 需要运行上下文（run_id）；直接调用视为缺上下文。
+        """执行`ArtifactPublishTool`的相关流程。"""
         raise ValueError("artifact_publish requires run context")
 
     async def execute_with_context(
@@ -62,6 +65,7 @@ class ArtifactPublishTool(BaseTool):
         arguments: dict[str, Any],
         context: ToolExecutionContext,
     ) -> dict[str, Any]:
+        """执行 `with_context` 对应的数据或流程。"""
         if not context.run_id:
             raise ValueError("artifact_publish requires run context")
 
@@ -101,6 +105,7 @@ class ArtifactPublishTool(BaseTool):
 
 
 def register_artifact_tools(registry: ToolRegistry, service: ArtifactService) -> None:
+    """注册 `artifact_tools` 对应的数据或流程。"""
     registry.register(ArtifactPublishTool(service))
 
 

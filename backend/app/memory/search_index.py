@@ -83,6 +83,7 @@ class MemorySearchSettings:
         recall_message_max_chars: int = 2_400,
         query_max_chars: int = 1_600,
     ) -> None:
+        """初始化 `MemorySearchSettings` 实例及其依赖。"""
         if top_k <= 0 or chunk_chars <= 0:
             raise ValueError("search settings limits must be positive")
         if not 0 <= chunk_overlap_chars < chunk_chars:
@@ -185,6 +186,7 @@ def _cosine_similarity(
     left: array,
     right: array,
 ) -> float:
+    """处理 `_cosine_similarity` 的内部辅助逻辑。"""
     if len(left) != len(right) or not len(left):
         return 0.0
     dot = 0.0
@@ -196,12 +198,14 @@ def _cosine_similarity(
 
 
 def _decode_embedding(blob: bytes) -> array:
+    """解码 `embedding` 对应的数据或流程。"""
     values = array("f")
     values.frombytes(blob)
     return values
 
 
 def _normalize_vector(vector: tuple[float, ...]) -> tuple[tuple[float, ...], bytes]:
+    """标准化 `vector` 对应的数据或流程。"""
     norm = math.sqrt(sum(value * value for value in vector))
     normalized = (
         tuple(value / norm for value in vector) if norm > 0 else tuple(vector)
@@ -219,6 +223,7 @@ class MemorySearchIndex:
         embedding: EmbeddingAdapter | None,
         settings: MemorySearchSettings | None = None,
     ) -> None:
+        """初始化 `MemorySearchIndex` 实例及其依赖。"""
         self.database_path = Path(database_path).expanduser().resolve()
         self.embedding = embedding
         self.settings = settings or MemorySearchSettings()
@@ -249,6 +254,7 @@ class MemorySearchIndex:
         self._initialized = True
 
     async def _open_schema(self) -> None:
+        """处理 `_open_schema` 的内部辅助逻辑。"""
         async with self._connect() as database:
             await database.execute("PRAGMA journal_mode=WAL")
             await database.executescript(_SCHEMA_META)
@@ -263,6 +269,7 @@ class MemorySearchIndex:
             await database.commit()
 
     async def _ensure_fts_table(self, database: aiosqlite.Connection) -> str:
+        """确保 `fts_table` 对应的数据或流程。"""
         for tokenizer in ("trigram", "unicode61"):
             try:
                 await database.execute(
@@ -318,12 +325,14 @@ class MemorySearchIndex:
     # ------------------------------------------------------------------
 
     async def upsert(self, record: MemoryRecord) -> None:
+        """执行 `upsert` 对应的业务逻辑。"""
         if not self._initialized:
             return
         async with self._write_lock:
             await self._upsert_rows(record)
 
     async def remove(self, memory_id: str) -> None:
+        """移除`MemorySearchIndex`的相关流程。"""
         if not self._initialized:
             return
         async with self._write_lock:
@@ -335,6 +344,7 @@ class MemorySearchIndex:
         *,
         generate_embeddings: bool = True,
     ) -> None:
+        """处理 `_upsert_rows` 的内部辅助逻辑。"""
         chunks = chunk_memory_text(record, settings=self.settings)
         model_name = self._embedding_model_name
         try:
@@ -480,6 +490,7 @@ class MemorySearchIndex:
             logger.warning("memory embedding backfill failed: %s", exc)
 
     async def _remove_rows(self, memory_id: str) -> None:
+        """移除 `rows` 对应的数据或流程。"""
         try:
             async with self._connect() as database:
                 await database.execute(
@@ -505,6 +516,7 @@ class MemorySearchIndex:
         memory_id: str,
         chunk_index: int,
     ) -> None:
+        """删除 `chunk` 对应的数据或流程。"""
         await database.execute(
             "DELETE FROM memory_chunks WHERE memory_id = ? AND chunk_index = ?",
             (memory_id, chunk_index),
@@ -519,6 +531,7 @@ class MemorySearchIndex:
         self,
         texts: tuple[str, ...],
     ) -> tuple[tuple[float, ...], ...] | None:
+        """处理 `_embed_texts` 的内部辅助逻辑。"""
         if self.embedding is None:
             return None
         try:
@@ -618,6 +631,7 @@ class MemorySearchIndex:
         query: str,
         fetch: int,
     ) -> tuple[_ChunkHit, ...] | None:
+        """处理 `_vector_search` 的内部辅助逻辑。"""
         if self.embedding is None or not self._embeddings_ready:
             return None
         try:
@@ -660,6 +674,7 @@ class MemorySearchIndex:
         query: str,
         fetch: int,
     ) -> tuple[_ChunkHit, ...] | None:
+        """处理 `_fts_search` 的内部辅助逻辑。"""
         if not self._fts_available:
             return None
         expression = _fts_match_expression(query)
@@ -692,9 +707,11 @@ class MemorySearchIndex:
 
     @property
     def _embedding_model_name(self) -> str | None:
+        """处理 `_embedding_model_name` 的内部辅助逻辑。"""
         return self.embedding.model_name if self.embedding is not None else None
 
     def _connect(self) -> aiosqlite.Connection:
+        """建立连接`MemorySearchIndex`的相关流程。"""
         return aiosqlite.connect(self.database_path)
 
     @staticmethod
@@ -702,6 +719,7 @@ class MemorySearchIndex:
         database: aiosqlite.Connection,
         key: str,
     ) -> str | None:
+        """处理 `_meta_get` 的内部辅助逻辑。"""
         rows = await database.execute_fetchall(
             "SELECT value FROM search_meta WHERE key = ?",
             (key,),
@@ -714,6 +732,7 @@ class MemorySearchIndex:
         key: str,
         value: str,
     ) -> None:
+        """处理 `_meta_set` 的内部辅助逻辑。"""
         await database.execute(
             "INSERT OR REPLACE INTO search_meta (key, value) VALUES (?, ?)",
             (key, value),
@@ -748,6 +767,7 @@ def _keep_best_chunk(
     best_chunk: dict[str, tuple[float, str, str]],
     hit: _ChunkHit,
 ) -> None:
+    """处理 `_keep_best_chunk` 的内部辅助逻辑。"""
     current = best_chunk.get(hit.memory_id)
     if current is None or hit.score > current[0]:
         best_chunk[hit.memory_id] = (hit.score, hit.title or "", hit.text)

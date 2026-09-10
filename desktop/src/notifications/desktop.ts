@@ -29,6 +29,7 @@ export class DesktopNotificationController {
   private readonly recentKeys = new Set<string>()
   private readonly unsubscribers: Array<() => void> = []
 
+  /** 初始化 `DesktopNotificationController` 实例及其依赖。 */
   constructor(
     private readonly client: Pick<RpcClient, 'on'>,
     private readonly bridge: NotificationBridge,
@@ -36,6 +37,7 @@ export class DesktopNotificationController {
     private readonly maxRecentKeys = 500,
   ) {}
 
+  /** 启动当前对象的相关流程。 */
   start(): void {
     if (this.unsubscribers.length > 0) return
     this.unsubscribers.push(
@@ -45,10 +47,12 @@ export class DesktopNotificationController {
     )
   }
 
+  /** 停止当前对象的相关流程。 */
   stop(): void {
     while (this.unsubscribers.length > 0) this.unsubscribers.pop()?.()
   }
 
+  /** 响应 `onApproval` 对应的事件。 */
   private onApproval(params: unknown): void {
     const data = params as { approval?: { id?: string; tool_name?: string } }
     const id = data.approval?.id
@@ -63,6 +67,7 @@ export class DesktopNotificationController {
     })
   }
 
+  /** 响应 `onRun` 对应的事件。 */
   private onRun(params: unknown): void {
     const data = params as { run_id?: string; status?: string }
     if (
@@ -84,6 +89,7 @@ export class DesktopNotificationController {
     })
   }
 
+  /** 响应 `onArtifact` 对应的事件。 */
   private onArtifact(params: unknown): void {
     const data = params as { artifact?: { id?: string } }
     const id = data.artifact?.id
@@ -95,6 +101,7 @@ export class DesktopNotificationController {
     })
   }
 
+  /** 执行 `deliver` 对应的界面或业务逻辑。 */
   private deliver(key: string, notification: DesktopNotification): void {
     if (this.recentKeys.has(key)) return
     this.recentKeys.add(key)
@@ -107,6 +114,7 @@ export class DesktopNotificationController {
   }
 }
 
+/** 创建 `desktop_notification_controller` 对应的数据或流程。 */
 export function createDesktopNotificationController(): DesktopNotificationController | null {
   const bridge = window.pluto
   if (!bridge) return null

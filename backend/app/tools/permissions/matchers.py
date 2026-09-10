@@ -16,6 +16,7 @@ class PermissionMatcher(ABC):
 
 
 def _canonical(value: Any) -> str:
+    """处理 `_canonical` 的内部辅助逻辑。"""
     return json.dumps(
         value,
         ensure_ascii=False,
@@ -29,9 +30,11 @@ class ExactArgumentsMatcher(PermissionMatcher):
     """参数与已批准操作完全相同。"""
 
     def __init__(self, arguments: dict[str, Any]) -> None:
+        """初始化 `ExactArgumentsMatcher` 实例及其依赖。"""
         self._expected = _canonical(arguments or {})
 
     def matches(self, arguments: dict[str, Any]) -> bool:
+        """执行 `matches` 对应的业务逻辑。"""
         return self._expected == _canonical(arguments or {})
 
 

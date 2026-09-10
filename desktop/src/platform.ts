@@ -2,6 +2,7 @@
 
 export type DesktopPlatform = 'windows' | 'unknown'
 
+/** 执行 `currentPlatform` 对应的界面或业务逻辑。 */
 export function currentPlatform(): DesktopPlatform {
   const electronPlatform =
     typeof window !== 'undefined' &&
@@ -19,6 +20,7 @@ export function currentPlatform(): DesktopPlatform {
   return 'unknown'
 }
 
+/** 判断 `windows` 对应的数据或流程。 */
 export function isWindows(): boolean {
   return currentPlatform() === 'windows'
 }

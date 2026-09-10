@@ -69,6 +69,7 @@ class MemoryManager:
         min_vector_similarity: float | None = None,
         hybrid_search_enabled: bool = True,
     ) -> None:
+        """初始化 `MemoryManager` 实例及其依赖。"""
         self.memory_dir = Path(memory_dir).expanduser().resolve()
         self.max_active = max_active
         self.store = MemoryStore(self.memory_dir, max_active=max_active)
@@ -487,6 +488,7 @@ class MemoryManager:
             return self.maintenance.select_candidates(active, limit=limit)
 
     async def _rebuild_index(self) -> None:
+        """处理 `_rebuild_index` 的内部辅助逻辑。"""
         await self.index.rebuild(await self.store.list_active())
 
     async def _sync_search_index(self, record: MemoryRecord) -> None:
@@ -537,10 +539,12 @@ class MemoryManager:
     @staticmethod
     async def _acquire_file_lock(handle: BinaryIO) -> None:
         # 平台无文件锁（罕见）时退化为纯进程内串行化。
+        """处理 `_acquire_file_lock` 的内部辅助逻辑。"""
         await asyncio.to_thread(lock_file, handle, blocking=True)
 
     @staticmethod
     async def _release_file_lock(handle: BinaryIO) -> None:
+        """处理 `_release_file_lock` 的内部辅助逻辑。"""
         try:
             await asyncio.to_thread(unlock_file, handle)
         finally:

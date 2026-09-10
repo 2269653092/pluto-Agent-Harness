@@ -45,6 +45,7 @@ class InflightBatch(BaseModel):
     @field_validator("started_at")
     @classmethod
     def normalize_datetime(cls, value: datetime) -> datetime:
+        """标准化 `datetime` 对应的数据或流程。"""
         if value.tzinfo is None or value.utcoffset() is None:
             raise ValueError("inflight started_at must include timezone information")
         return value.astimezone(UTC)
@@ -71,6 +72,7 @@ class MiningWatermark(BaseModel):
     @field_validator("last_mining_at")
     @classmethod
     def normalize_datetime(cls, value: datetime | None) -> datetime | None:
+        """标准化 `datetime` 对应的数据或流程。"""
         if value is None:
             return None
         if value.tzinfo is None or value.utcoffset() is None:
@@ -78,10 +80,12 @@ class MiningWatermark(BaseModel):
         return value.astimezone(UTC)
 
     def model_dump_json(self) -> str:
+        """执行 `model_dump_json` 对应的业务逻辑。"""
         return super().model_dump_json()
 
     @classmethod
     def model_validate_json(cls, json_data: str) -> MiningWatermark:
+        """执行 `model_validate_json` 对应的业务逻辑。"""
         return super().model_validate_json(json_data)
 
 
@@ -92,6 +96,7 @@ class SkillCandidateStore:
         self,
         data_dir: str | Path,
     ) -> None:
+        """初始化 `SkillCandidateStore` 实例及其依赖。"""
         self.data_dir = Path(data_dir).expanduser().resolve()
         self.candidates_dir = self.data_dir / "candidates"
         self.watermark_path = self.data_dir / WATERMARK_FILE_NAME
@@ -107,6 +112,7 @@ class SkillCandidateStore:
     # ------------------------------------------------------------------
 
     def _candidate_path(self, candidate_id: str) -> Path:
+        """处理 `_candidate_path` 的内部辅助逻辑。"""
         return self.candidates_dir / f"{candidate_id}.json"
 
     async def create(self, candidate: SkillCandidate) -> SkillCandidate:
@@ -158,6 +164,7 @@ class SkillCandidateStore:
         return tuple(candidates)
 
     def _list_candidate_files(self) -> list[Path]:
+        """列出 `candidate_files` 对应的数据或流程。"""
         if not self.candidates_dir.is_dir():
             return []
         return sorted(self.candidates_dir.glob("*.json"))
@@ -219,18 +226,21 @@ class SkillCandidateStore:
     # ------------------------------------------------------------------
 
     def _lock_for(self, key: str) -> asyncio.Lock:
+        """处理 `_lock_for` 的内部辅助逻辑。"""
         if key not in self._locks:
             self._locks[key] = asyncio.Lock()
         return self._locks[key]
 
 
 def _read_candidate(path: Path) -> SkillCandidate:
+    """读取 `candidate` 对应的数据或流程。"""
     if path.stat().st_size > MAX_CANDIDATE_FILE_BYTES:
         raise ValueError("candidate file too large")
     return SkillCandidate.model_validate_json(path.read_text(encoding="utf-8"))
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
+    """写入 `json` 对应的数据或流程。"""
     path.parent.mkdir(parents=True, exist_ok=True)
     temp = path.with_suffix(f".tmp.{datetime.now(UTC).strftime('%Y%m%d%H%M%S%f')}")
     temp.write_text(

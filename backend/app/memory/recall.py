@@ -146,6 +146,7 @@ class MemoryRecallService:
     """把 Recall Query 转成一次 Hybrid 检索与注入快照。"""
 
     def __init__(self, manager: MemoryManager) -> None:
+        """初始化 `MemoryRecallService` 实例及其依赖。"""
         self._manager = manager
 
     async def recall(

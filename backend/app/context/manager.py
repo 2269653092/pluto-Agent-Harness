@@ -99,6 +99,7 @@ class ContextManager:
         tool_reducer: ToolReducer | None = None,
         conversation_reducer: ConversationReducer | None = None,
     ) -> None:
+        """初始化 `ContextManager` 实例及其依赖。"""
         settings = context_settings or ContextSettings()
         resolved_keep_recent_tool_rounds = (
             settings.context_keep_recent_tool_rounds
@@ -125,10 +126,12 @@ class ContextManager:
 
     @property
     def estimator(self) -> TokenEstimator:
+        """执行 `estimator` 对应的业务逻辑。"""
         return self._estimator
 
     @property
     def registry(self) -> ModelCapabilityRegistry:
+        """执行 `registry` 对应的业务逻辑。"""
         return self._registry
 
     @property
@@ -221,6 +224,7 @@ class ContextManager:
         )
 
         def estimate(candidate: tuple[Message, ...]) -> int:
+            """估算`ContextManager`的相关流程。"""
             return self._estimator.estimate_request(
                 candidate,
                 tools=tools,
@@ -229,6 +233,7 @@ class ContextManager:
             )
 
         def estimate_messages(candidate: tuple[Message, ...]) -> int:
+            """估算 `messages` 对应的数据或流程。"""
             return self._estimate_messages(
                 candidate,
                 model=model,
@@ -469,6 +474,7 @@ class ContextManager:
         model: str | None,
         provider: str | None,
     ) -> int:
+        """估算 `messages` 对应的数据或流程。"""
         method = getattr(self._estimator, "estimate_messages", None)
         if callable(method):
             return method(messages, model=model, provider=provider)
@@ -486,6 +492,7 @@ class ContextManager:
         model: str | None,
         provider: str | None,
     ) -> int:
+        """估算 `tools` 对应的数据或流程。"""
         method = getattr(self._estimator, "estimate_tools", None)
         if callable(method):
             return method(tools, model=model, provider=provider)
@@ -504,6 +511,7 @@ def _estimate_tool_result_tokens(
     messages: Sequence[Message],
     estimate: Callable[[tuple[Message, ...]], int],
 ) -> int:
+    """估算 `tool_result_tokens` 对应的数据或流程。"""
     results = tuple(
         message
         for block in partition_messages(messages)

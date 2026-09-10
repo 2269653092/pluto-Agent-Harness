@@ -160,6 +160,7 @@ def _choose_provider(
     input_fn: Callable[[str], str],
     output_fn: Callable[[str], Any],
 ) -> ModelProvider:
+    """选择 `provider` 对应的数据或流程。"""
     output_fn("选择主模型 Provider：")
     for index, item in enumerate(providers, 1):
         provider = ModelProvider(item["provider"])
@@ -193,6 +194,7 @@ def _choose_provider(
 
 
 def _confirm(prompt: str, input_fn: Callable[[str], str]) -> bool:
+    """处理 `_confirm` 的内部辅助逻辑。"""
     return input_fn(prompt).strip().lower() not in {"n", "no", "否"}
 
 

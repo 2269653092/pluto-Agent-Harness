@@ -51,9 +51,11 @@ class SQLiteArtifactStore:
     """持久化 Artifact 元数据（与 Run / Approval / Trace 共用同一数据库文件）。"""
 
     def __init__(self, database_path: str | Path = DEFAULT_DATABASE_PATH) -> None:
+        """初始化 `SQLiteArtifactStore` 实例及其依赖。"""
         self.database_path = Path(database_path).expanduser().resolve()
 
     async def initialize(self) -> None:
+        """初始化`SQLiteArtifactStore`的相关流程。"""
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
         async with self._connect() as database:
             await database.executescript(_SCHEMA)
@@ -91,6 +93,7 @@ class SQLiteArtifactStore:
         return artifact
 
     async def get(self, artifact_id: str) -> Artifact | None:
+        """获取`SQLiteArtifactStore`的相关流程。"""
         async with self._connect() as database:
             async with database.execute(
                 "SELECT * FROM artifacts WHERE id = ?", (artifact_id,)
@@ -107,6 +110,7 @@ class SQLiteArtifactStore:
         conversation_id: str | None = None,
         limit: int = 50,
     ) -> tuple[Artifact, ...]:
+        """列出`SQLiteArtifactStore`的相关流程。"""
         clauses: list[str] = []
         params: list[Any] = []
         if run_id:
@@ -132,6 +136,7 @@ class SQLiteArtifactStore:
 
     @asynccontextmanager
     async def _connect(self) -> AsyncIterator[aiosqlite.Connection]:
+        """建立连接`SQLiteArtifactStore`的相关流程。"""
         connection = await aiosqlite.connect(self.database_path)
         connection.row_factory = aiosqlite.Row
         try:
@@ -141,6 +146,7 @@ class SQLiteArtifactStore:
 
 
 def _row_to_artifact(row: aiosqlite.Row) -> Artifact:
+    """处理 `_row_to_artifact` 的内部辅助逻辑。"""
     created_at = row["created_at"]
     created = (
         datetime.fromisoformat(created_at).astimezone(UTC)

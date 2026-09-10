@@ -60,6 +60,7 @@ class ApprovalRequest:
     ui_scope: str = "sandbox"
 
     def summary(self, *, max_arguments: int = 500) -> str:
+        """执行 `summary` 对应的业务逻辑。"""
         serialized = json.dumps(
             self.arguments,
             ensure_ascii=False,
@@ -87,6 +88,7 @@ class AutoApproveGate(ApprovalGate):
     """自动批准所有审核请求（仅用于测试或完全信任的环境）。"""
 
     async def request_approval(self, request: ApprovalRequest) -> ApprovalResponse:
+        """请求 `approval` 对应的数据或流程。"""
         return ApprovalResponse(decision=ApprovalDecision.APPROVED)
 
 
@@ -94,6 +96,7 @@ class DenyAllGate(ApprovalGate):
     """拒绝所有审核请求（安全默认值）。"""
 
     async def request_approval(self, request: ApprovalRequest) -> ApprovalResponse:
+        """请求 `approval` 对应的数据或流程。"""
         return ApprovalResponse(decision=ApprovalDecision.DENIED)
 
 
@@ -110,10 +113,12 @@ class ConsoleApprovalGate(ApprovalGate):
         prompt_prefix: str = "[人工审核]",
         rule_label_factory: Callable[[ApprovalRequest], str] | None = None,
     ) -> None:
+        """初始化 `ConsoleApprovalGate` 实例及其依赖。"""
         self._prompt_prefix = prompt_prefix
         self._rule_label_factory = rule_label_factory
 
     async def request_approval(self, request: ApprovalRequest) -> ApprovalResponse:
+        """请求 `approval` 对应的数据或流程。"""
         label = (
             self._rule_label_factory(request)
             if self._rule_label_factory is not None

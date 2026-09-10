@@ -12,6 +12,7 @@ export default function ArtifactsPage(): React.JSX.Element {
   const queryClient = useQueryClient()
   const query = useQuery({
     queryKey: ['artifacts'],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () => listArtifacts({ limit: 100 }),
     refetchInterval: 5000,
   })
@@ -33,6 +34,7 @@ export default function ArtifactsPage(): React.JSX.Element {
   )
 }
 
+/** 渲染 `ArtifactsView` React 组件。 */
 export function ArtifactsView({
   artifacts,
   pending = false,

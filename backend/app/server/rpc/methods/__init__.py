@@ -13,6 +13,7 @@ from . import (
     memories,
     model_settings,
     runs,
+    skill_learning,
     system,
     tasks,
     trace,
@@ -34,6 +35,7 @@ def build_dispatcher() -> RpcDispatcher:
     computer.register(dispatcher)
     memories.register(dispatcher)
     extensions.register(dispatcher)
+    skill_learning.register(dispatcher)
     model_settings.register(dispatcher)
     return dispatcher
 

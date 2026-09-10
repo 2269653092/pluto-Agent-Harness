@@ -26,6 +26,7 @@ async def extension_list(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `extension_list` 对应的业务逻辑。"""
     del params
     skill_store = ctx.application.skill_store
     skills = (
@@ -165,6 +166,7 @@ async def skill_install(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `skill_install` 对应的业务逻辑。"""
     store = ctx.application.skill_store
     if store is None:
         raise JsonRpcError(RpcErrorCode.INTERNAL_ERROR, "Skill Store unavailable")
@@ -196,6 +198,7 @@ async def skill_set_enabled(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `skill_set_enabled` 对应的业务逻辑。"""
     store = ctx.application.skill_store
     if store is None:
         raise JsonRpcError(RpcErrorCode.INTERNAL_ERROR, "Skill Store unavailable")
@@ -222,6 +225,7 @@ async def skill_delete(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `skill_delete` 对应的业务逻辑。"""
     store = ctx.application.skill_store
     if store is None:
         raise JsonRpcError(RpcErrorCode.INTERNAL_ERROR, "Skill Store unavailable")
@@ -241,6 +245,7 @@ async def mcp_add(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `mcp_add` 对应的业务逻辑。"""
     try:
         server = MCPServerConfig.model_validate(
             {
@@ -289,6 +294,7 @@ async def mcp_set_enabled(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `mcp_set_enabled` 对应的业务逻辑。"""
     try:
         server = await ctx.application.mcp_config_store.set_enabled(
             _require_str(params, "name"),
@@ -306,6 +312,7 @@ async def mcp_delete(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `mcp_delete` 对应的业务逻辑。"""
     name = _require_str(params, "name")
     try:
         await ctx.application.mcp_config_store.delete(name)
@@ -315,6 +322,7 @@ async def mcp_delete(
 
 
 def _require_str(params: dict[str, Any], key: str) -> str:
+    """读取并校验 `str` 对应的数据或流程。"""
     value = params.get(key)
     if not isinstance(value, str) or not value.strip():
         raise JsonRpcError(RpcErrorCode.INVALID_PARAMS, f"{key} is required")
@@ -322,6 +330,7 @@ def _require_str(params: dict[str, Any], key: str) -> str:
 
 
 def _require_bool(params: dict[str, Any], key: str) -> bool:
+    """读取并校验 `bool` 对应的数据或流程。"""
     value = params.get(key)
     if not isinstance(value, bool):
         raise JsonRpcError(RpcErrorCode.INVALID_PARAMS, f"{key} must be boolean")
@@ -329,6 +338,7 @@ def _require_bool(params: dict[str, Any], key: str) -> bool:
 
 
 def _import_permission(params: dict[str, Any]) -> str:
+    """导入 `permission` 对应的数据或流程。"""
     value = str(params.get("mcp_permission", "human_approval"))
     if value not in {"allowed", "human_approval", "forbidden"}:
         raise ValueError("mcp_permission is invalid")
@@ -340,6 +350,7 @@ def _server_dict(
     *,
     state: str,
 ) -> dict[str, Any]:
+    """处理 `_server_dict` 的内部辅助逻辑。"""
     return {
         "name": server.name,
         "command": server.command,
@@ -358,6 +369,7 @@ def _server_dict(
 
 
 def register(dispatcher: RpcDispatcher) -> None:
+    """注册当前对象的相关流程。"""
     dispatcher.register("extension.list", extension_list)
     dispatcher.register("extension.import.preview", extension_import_preview)
     dispatcher.register("extension.import.apply", extension_import_apply)

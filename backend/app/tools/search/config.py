@@ -32,6 +32,7 @@ class SearchSettings(BaseSettings):
     search_max_results: int = Field(default=5, ge=1, le=10)
 
     def tavily_api_key_value(self) -> str | None:
+        """执行 `tavily_api_key_value` 对应的业务逻辑。"""
         if self.tavily_api_key is None:
             return None
         value = self.tavily_api_key.get_secret_value().strip()

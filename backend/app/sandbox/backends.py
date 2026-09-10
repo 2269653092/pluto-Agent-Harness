@@ -55,6 +55,7 @@ class HostSandboxBackend(SandboxBackend):
         env: dict[str, str],
         policy: SandboxPolicy,
     ) -> SandboxLaunchSpec:
+        """准备`HostSandboxBackend`的相关流程。"""
         return SandboxLaunchSpec(
             command=str(command),
             args=args,
@@ -89,6 +90,7 @@ class WindowsRestrictedBackend(SandboxBackend):
         env: dict[str, str],
         policy: SandboxPolicy,
     ) -> SandboxLaunchSpec:
+        """准备`WindowsRestrictedBackend`的相关流程。"""
         if policy.allowed_domains:
             raise SandboxUnavailableError(
                 "当前 Windows 后端尚不能强制域名白名单，拒绝弱化网络策略"
@@ -113,6 +115,7 @@ class UnsupportedSandboxBackend(SandboxBackend):
     """没有可靠平台实现时 fail closed。"""
 
     def __init__(self, platform: str) -> None:
+        """初始化 `UnsupportedSandboxBackend` 实例及其依赖。"""
         self.platform = platform
 
     def prepare(
@@ -123,6 +126,7 @@ class UnsupportedSandboxBackend(SandboxBackend):
         env: dict[str, str],
         policy: SandboxPolicy,
     ) -> SandboxLaunchSpec:
+        """准备`UnsupportedSandboxBackend`的相关流程。"""
         del command, args, env, policy
         raise SandboxUnavailableError(
             f"平台 {self.platform!r} 尚无可用的 Pluto 沙箱后端，拒绝降级执行"

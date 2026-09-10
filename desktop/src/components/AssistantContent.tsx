@@ -18,31 +18,53 @@ const THEME = 'github-dark'
 
 /** 支持高亮的语言子路径 bundle（shiki 按需加载 grammar），含常用别名。 */
 const LANG_BUNDLES: Record<string, () => Promise<unknown>> = {
+  /** 执行 `typescript` 对应的界面或业务逻辑。 */
   typescript: () => import('@shikijs/langs/typescript'),
+  /** 执行 `ts` 对应的界面或业务逻辑。 */
   ts: () => import('@shikijs/langs/typescript'),
+  /** 执行 `javascript` 对应的界面或业务逻辑。 */
   javascript: () => import('@shikijs/langs/javascript'),
+  /** 执行 `js` 对应的界面或业务逻辑。 */
   js: () => import('@shikijs/langs/javascript'),
+  /** 执行 `jsx` 对应的界面或业务逻辑。 */
   jsx: () => import('@shikijs/langs/jsx'),
+  /** 执行 `tsx` 对应的界面或业务逻辑。 */
   tsx: () => import('@shikijs/langs/tsx'),
+  /** 执行 `python` 对应的界面或业务逻辑。 */
   python: () => import('@shikijs/langs/python'),
+  /** 执行 `py` 对应的界面或业务逻辑。 */
   py: () => import('@shikijs/langs/python'),
+  /** 执行 `bash` 对应的界面或业务逻辑。 */
   bash: () => import('@shikijs/langs/bash'),
+  /** 执行 `shell` 对应的界面或业务逻辑。 */
   shell: () => import('@shikijs/langs/shellscript'),
+  /** 执行 `sh` 对应的界面或业务逻辑。 */
   sh: () => import('@shikijs/langs/shellscript'),
+  /** 执行 `shellscript` 对应的界面或业务逻辑。 */
   shellscript: () => import('@shikijs/langs/shellscript'),
+  /** 执行 `json` 对应的界面或业务逻辑。 */
   json: () => import('@shikijs/langs/json'),
+  /** 执行 `markdown` 对应的界面或业务逻辑。 */
   markdown: () => import('@shikijs/langs/markdown'),
+  /** 执行 `md` 对应的界面或业务逻辑。 */
   md: () => import('@shikijs/langs/markdown'),
+  /** 执行 `css` 对应的界面或业务逻辑。 */
   css: () => import('@shikijs/langs/css'),
+  /** 执行 `html` 对应的界面或业务逻辑。 */
   html: () => import('@shikijs/langs/html'),
+  /** 执行 `yaml` 对应的界面或业务逻辑。 */
   yaml: () => import('@shikijs/langs/yaml'),
+  /** 执行 `sql` 对应的界面或业务逻辑。 */
   sql: () => import('@shikijs/langs/sql'),
+  /** 执行 `rust` 对应的界面或业务逻辑。 */
   rust: () => import('@shikijs/langs/rust'),
+  /** 执行 `go` 对应的界面或业务逻辑。 */
   go: () => import('@shikijs/langs/go'),
 }
 
 let highlighterPromise: Promise<HighlighterCore> | null = null
 
+/** 获取 `highlighter` 对应的数据或流程。 */
 function getHighlighter(): Promise<HighlighterCore> {
   if (!highlighterPromise) {
     const langs = Object.values(LANG_BUNDLES).map((load) => load()) as unknown as Parameters<
@@ -116,6 +138,7 @@ function CodeBlock({
   )
 }
 
+/** 创建 `components` 对应的数据或流程。 */
 const createComponents = (streaming: boolean): Components => ({
   // 块级代码由 pre 检测 language-* 后交给 Shiki；无语言的块级代码保留默认 <pre>。
   pre({ children }) {
@@ -137,9 +160,11 @@ const createComponents = (streaming: boolean): Components => ({
     }
     return <pre>{children}</pre>
   },
+  /** 执行 `code` 对应的界面或业务逻辑。 */
   code({ className, children }) {
     return <code className={className}>{children}</code>
   },
+  /** 执行 `a` 对应的界面或业务逻辑。 */
   a({ href, children }) {
     const external = href?.startsWith('http://') || href?.startsWith('https://')
     return (
@@ -156,7 +181,7 @@ const createComponents = (streaming: boolean): Components => ({
 /** Assistant 消息正文。memo：content 引用未变时跳过整块 markdown 解析，
 避免父组件因流式事件频繁重渲染导致正文每秒几十次全量解析。
 streaming=true 时不执行 Shiki 代码高亮。 */
-export const AssistantContent = memo(function AssistantContent({
+export const AssistantContent = memo(/** 执行 `AssistantContent` 对应的界面或业务逻辑。 */ function AssistantContent({
   content,
   streaming = false,
 }: {

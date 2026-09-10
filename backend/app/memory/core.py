@@ -62,11 +62,13 @@ class CoreMemoryEntry(BaseModel):
     @field_validator("key", mode="before")
     @classmethod
     def normalize_key(cls, value: object) -> str:
+        """标准化 `key` 对应的数据或流程。"""
         return normalize_core_key(value)
 
     @field_validator("value", "reason", "source_statement", mode="before")
     @classmethod
     def normalize_text(cls, value: object) -> str:
+        """标准化 `text` 对应的数据或流程。"""
         if not isinstance(value, str):
             raise TypeError("core memory value and reason must be strings")
         normalized = " ".join(value.split())
@@ -77,6 +79,7 @@ class CoreMemoryEntry(BaseModel):
     @field_validator("value")
     @classmethod
     def validate_value_length(cls, value: str) -> str:
+        """校验 `value_length` 对应的数据或流程。"""
         if len(value) > _MAX_CORE_VALUE_CHARS:
             raise ValueError(
                 f"core memory value exceeds {_MAX_CORE_VALUE_CHARS} characters"
@@ -86,6 +89,7 @@ class CoreMemoryEntry(BaseModel):
     @field_validator("reason")
     @classmethod
     def validate_reason_length(cls, value: str) -> str:
+        """校验 `reason_length` 对应的数据或流程。"""
         if len(value) > _MAX_CORE_REASON_CHARS:
             raise ValueError(
                 f"core memory reason exceeds {_MAX_CORE_REASON_CHARS} characters"
@@ -95,6 +99,7 @@ class CoreMemoryEntry(BaseModel):
     @field_validator("source_statement")
     @classmethod
     def validate_source_statement_length(cls, value: str) -> str:
+        """校验 `source_statement_length` 对应的数据或流程。"""
         if len(value) > _MAX_SOURCE_STATEMENT_CHARS:
             raise ValueError(
                 "core memory source statement exceeds "
@@ -105,6 +110,7 @@ class CoreMemoryEntry(BaseModel):
     @field_validator("updated_at")
     @classmethod
     def normalize_time(cls, value: datetime) -> datetime:
+        """标准化 `time` 对应的数据或流程。"""
         if value.tzinfo is None or value.utcoffset() is None:
             raise ValueError("core memory timestamp must include timezone")
         return value.astimezone(UTC)
@@ -119,12 +125,14 @@ class CoreMemoryManager:
         *,
         max_tokens: int = DEFAULT_MAX_CORE_TOKENS,
     ) -> None:
+        """初始化 `CoreMemoryManager` 实例及其依赖。"""
         self.path = Path(memory_dir) / "CORE.md"
         self.max_tokens = max_tokens
         if max_tokens <= 0:
             raise ValueError("max_tokens must be greater than zero")
 
     async def initialize(self) -> None:
+        """初始化`CoreMemoryManager`的相关流程。"""
         await asyncio.to_thread(self.path.parent.mkdir, parents=True, exist_ok=True)
         if not await asyncio.to_thread(self.path.is_file):
             return
@@ -234,6 +242,7 @@ class CoreMemoryManager:
         return removed
 
     def _estimate_tokens(self, content: str) -> int:
+        """估算 `tokens` 对应的数据或流程。"""
         try:
             estimator = default_token_estimator()
             return estimator.estimate_text(content)
@@ -241,6 +250,7 @@ class CoreMemoryManager:
             return len(content) // 2
 
     def _write_atomic(self, content: str) -> None:
+        """写入 `atomic` 对应的数据或流程。"""
         self.path.parent.mkdir(parents=True, exist_ok=True)
         temporary = self.path.with_name(f".{self.path.name}.tmp-{os.getpid()}")
         try:
@@ -344,6 +354,7 @@ def _render_document(
     *,
     legacy: str,
 ) -> tuple[str, str]:
+    """渲染 `document` 对应的数据或流程。"""
     metadata = {
         "format": _CORE_FORMAT,
         "updated_at": datetime.now(UTC).isoformat(timespec="seconds"),

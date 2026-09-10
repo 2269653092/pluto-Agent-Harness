@@ -33,6 +33,7 @@ class HttpRequestTool(BaseTool):
         client: httpx.AsyncClient | None = None,
         max_response_bytes: int = 200_000,
     ) -> None:
+        """初始化 `HttpRequestTool` 实例及其依赖。"""
         self._allow_private = allow_private
         self._allowed_hosts = set(allowed_hosts)
         self._client = client
@@ -40,6 +41,7 @@ class HttpRequestTool(BaseTool):
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="http_request",
             description=(
@@ -83,6 +85,7 @@ class HttpRequestTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`HttpRequestTool`的相关流程。"""
         method = str(arguments.get("method", "GET")).upper()
         if method not in _ALLOWED_METHODS:
             raise ValueError(f"'method' must be one of {sorted(_ALLOWED_METHODS)}")
@@ -131,6 +134,7 @@ class HttpRequestTool(BaseTool):
         body: str | None,
         timeout: float,
     ) -> dict[str, Any]:
+        """处理 `_do_request` 的内部辅助逻辑。"""
         started_at = perf_counter()
         content = bytearray()
         response_headers: dict[str, str] = {}
@@ -184,6 +188,7 @@ class HttpRequestTool(BaseTool):
 
 
 def _is_blocked_address(ip: ipaddress._BaseAddress) -> bool:
+    """判断 `blocked_address` 对应的数据或流程。"""
     return (
         ip.is_private
         or ip.is_loopback

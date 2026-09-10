@@ -61,6 +61,7 @@ class TaskTraceSelector:
         *,
         backward_window_steps: int = _DEFAULT_BACKWARD_WINDOW_STEPS,
     ) -> None:
+        """初始化 `TaskTraceSelector` 实例及其依赖。"""
         self.backward_window_steps = max(1, backward_window_steps)
 
     def select(

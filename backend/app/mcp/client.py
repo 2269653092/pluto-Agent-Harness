@@ -33,13 +33,21 @@ _SAFE_INHERITED_ENVIRONMENT = (
 class MCPClientProtocol(Protocol):
     """管理器依赖的最小客户端接口，便于离线替换。"""
 
-    async def start(self) -> None: ...
+    async def start(self) -> None:
+        """启动`MCPClientProtocol`的相关流程。"""
+        ...
 
-    async def list_tools(self) -> tuple[MCPRemoteTool, ...]: ...
+    async def list_tools(self) -> tuple[MCPRemoteTool, ...]:
+        """列出 `tools` 对应的数据或流程。"""
+        ...
 
-    async def call_tool(self, name: str, arguments: dict[str, Any]) -> str: ...
+    async def call_tool(self, name: str, arguments: dict[str, Any]) -> str:
+        """调用 `tool` 对应的数据或流程。"""
+        ...
 
-    async def close(self) -> None: ...
+    async def close(self) -> None:
+        """关闭`MCPClientProtocol`的相关流程。"""
+        ...
 
 
 class StdioMCPClient:
@@ -51,6 +59,7 @@ class StdioMCPClient:
         *,
         sandbox_supervisor: SandboxSupervisor | None = None,
     ) -> None:
+        """初始化 `StdioMCPClient` 实例及其依赖。"""
         self.config = config
         self.sandbox_supervisor = sandbox_supervisor
         self._stack: AsyncExitStack | None = None
@@ -139,6 +148,7 @@ class StdioMCPClient:
             await stack.aclose()
 
     def _prepare_launch(self, environment: dict[str, str]) -> SandboxLaunchSpec:
+        """准备 `launch` 对应的数据或流程。"""
         if self.sandbox_supervisor is None:
             # 单元测试或显式底层调用可不注入 Supervisor；产品装配始终注入。
             cwd = self.config.cwd or os.getcwd()
@@ -159,6 +169,7 @@ class StdioMCPClient:
         )
 
     def _require_session(self) -> ClientSession:
+        """读取并校验 `session` 对应的数据或流程。"""
         if self._session is None:
             raise MCPConnectionError(
                 f"MCP Server '{self.config.name}' 尚未连接"
@@ -185,6 +196,7 @@ def serialize_mcp_result(result: CallToolResult) -> str:
 
 
 async def _close_quietly(stack: AsyncExitStack) -> None:
+    """关闭 `quietly` 对应的数据或流程。"""
     try:
         await stack.aclose()
     except BaseException:

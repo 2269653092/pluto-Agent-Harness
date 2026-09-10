@@ -30,6 +30,7 @@ from .miner import PatternMiningOutcome, TaskPatternMiner
 from .models import (
     SkillCandidate,
     SkillCandidateAction,
+    SkillCandidateOrigin,
     SkillCandidateStatus,
     TaskCard,
     TaskPatternCluster,
@@ -99,6 +100,7 @@ class SkillLearningService:
         default_provider: str | None = None,
         default_model: str | None = None,
     ) -> None:
+        """初始化 `SkillLearningService` 实例及其依赖。"""
         self.task_store = task_store
         self.trace_store = trace_store
         self.skill_store = skill_store
@@ -509,6 +511,70 @@ class SkillLearningService:
             error="; ".join(errors) or None,
         )
 
+    async def generate_for_task(
+        self,
+        task_id: str,
+    ) -> tuple[SkillCandidate | None, bool, str]:
+        """从当前任务的已有执行证据立即提炼待审核 Skill Candidate。
+
+        该入口由桌面端的显式用户操作触发，不经过批量 Pattern Mining；仍然
+        读取 Task/Trace 证据、检查已有 Skill 与待审核候选，并保留 Human Gate。
+        返回值依次为候选、是否新建、供界面显示的说明。
+        """
+
+        if not self.settings.skill_learning_enabled:
+            raise ValueError("Skill Learning 已关闭")
+        task = await self.task_store.resolve(task_id)
+        if task is None:
+            raise KeyError(f"task not found: {task_id}")
+        duplicate = await self.candidate_store.find_duplicate_source((task.id,))
+        if (
+            duplicate is not None
+            and duplicate.status is not SkillCandidateStatus.REJECTED
+        ):
+            return duplicate, False, "该任务已经生成过 Skill 候选"
+
+        events = await self._load_task_events(task)
+        evidence = self.evidence_builder.build(task, events)
+        cluster = TaskPatternCluster(
+            id=f"manual-{task.id}",
+            task_ids=(task.id,),
+            pattern_name=task.title,
+            description=task.description or task.goal or task.title,
+            similarity_reason="用户在桌面端明确要求从当前任务提炼 Skill",
+            reusable_value="提取执行证据支持的可复用步骤、陷阱与验证方法",
+        )
+        pending = await self.list_candidates(status=SkillCandidateStatus.PENDING)
+        catalog = await self.skill_store.catalog()
+        distilled = await self.distiller.distill(
+            cluster,
+            evidence={task.id: evidence},
+            run_ids={task.id: task.run_ids},
+            catalog=catalog,
+            pending_candidates=pending,
+            skill_loader=self.skill_store.load,
+            manual_request=True,
+        )
+        if distilled.error:
+            raise RuntimeError(distilled.error)
+        if distilled.candidate is None:
+            return (
+                None,
+                False,
+                distilled.reason or "当前任务的有效证据不足，未生成 Skill 候选",
+            )
+        if _pending_name_exists(pending, distilled.candidate.proposed_name):
+            return None, False, "已有同名待审核 Skill 候选"
+
+        candidate = distilled.candidate.model_copy(
+            update={
+                "origin": SkillCandidateOrigin.MANUAL_TASK,
+                "source_conversation_id": task.owner_conversation_id,
+            }
+        )
+        await self.candidate_store.create(candidate)
+        return candidate, True, "Skill 候选已生成，请确认后保存"
+
     async def _load_task_events(self, task: Task) -> tuple:
         """读取 Task.run_ids 关联的 Trace，用 task_update 锚点筛选相关事件。
 
@@ -540,9 +606,11 @@ class SkillLearningService:
         *,
         status: SkillCandidateStatus | None = None,
     ) -> tuple[SkillCandidate, ...]:
+        """列出 `candidates` 对应的数据或流程。"""
         return await self.candidate_store.list(status=status)
 
     async def get_candidate(self, candidate_id: str) -> SkillCandidate | None:
+        """获取 `candidate` 对应的数据或流程。"""
         return await self.candidate_store.get(candidate_id)
 
     # ------------------------------------------------------------------
@@ -608,6 +676,7 @@ class SkillLearningService:
         candidate: SkillCandidate,
         scope: SkillScope,
     ) -> Path:
+        """创建 `skill` 对应的数据或流程。"""
         installed = await self.skill_store.install(
             name=candidate.proposed_name,
             description=candidate.description,
@@ -702,6 +771,7 @@ def _pending_name_exists(
 
 
 def _to_card(task: Task) -> TaskCard:
+    """转换 `card` 对应的数据或流程。"""
     return TaskCard(
         task_id=task.id,
         title=task.title,
@@ -719,6 +789,7 @@ def _to_card(task: Task) -> TaskCard:
 
 
 def _resolve_scope(value: str) -> SkillScope:
+    """解析或确定 `scope` 对应的数据或流程。"""
     normalized = value.strip().lower()
     if normalized in ("project", "project_scope", SkillScope.PROJECT.value):
         return SkillScope.PROJECT

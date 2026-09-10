@@ -79,6 +79,7 @@ class ActiveApp(BaseModel):
     @field_validator("name")
     @classmethod
     def name_required(cls, value: str) -> str:
+        """执行 `name_required` 对应的业务逻辑。"""
         normalized = " ".join(value.split()).strip()
         if not normalized:
             raise ValueError("active app name cannot be empty")
@@ -106,6 +107,7 @@ class Window(BaseModel):
     @field_validator("ref")
     @classmethod
     def ref_required(cls, value: str) -> str:
+        """执行 `ref_required` 对应的业务逻辑。"""
         normalized = value.strip()
         if not normalized:
             raise ValueError("window ref cannot be empty")
@@ -132,6 +134,7 @@ class Element(BaseModel):
     @field_validator("ref")
     @classmethod
     def ref_required(cls, value: str) -> str:
+        """执行 `ref_required` 对应的业务逻辑。"""
         normalized = value.strip()
         if not normalized:
             raise ValueError("element ref cannot be empty")
@@ -152,6 +155,7 @@ class ElementStats(BaseModel):
     @field_validator("*")
     @classmethod
     def non_negative(cls, value: int) -> int:
+        """执行 `non_negative` 对应的业务逻辑。"""
         if value < 0:
             raise ValueError("element stats must be non-negative")
         return value
@@ -185,6 +189,7 @@ class Observation(BaseModel):
     @field_validator("id")
     @classmethod
     def id_required(cls, value: str) -> str:
+        """执行 `id_required` 对应的业务逻辑。"""
         normalized = value.strip()
         if not normalized:
             raise ValueError("observation id cannot be empty")
@@ -193,6 +198,7 @@ class Observation(BaseModel):
     @field_validator("created_at")
     @classmethod
     def created_at_valid(cls, value: datetime) -> datetime:
+        """执行 `created_at_valid` 对应的业务逻辑。"""
         if value.tzinfo is None or value.utcoffset() is None:
             raise ValueError("created_at must include timezone information")
         return value.astimezone(UTC)
@@ -213,6 +219,7 @@ class ElementTarget(BaseModel):
     @field_validator("observation_id", "element_ref")
     @classmethod
     def required_non_empty(cls, value: str) -> str:
+        """执行 `required_non_empty` 对应的业务逻辑。"""
         normalized = value.strip()
         if not normalized:
             raise ValueError("observation_id and element_ref cannot be empty")
@@ -235,6 +242,7 @@ class CoordinateTarget(BaseModel):
     @field_validator("observation_id")
     @classmethod
     def observation_id_required(cls, value: str) -> str:
+        """执行 `observation_id_required` 对应的业务逻辑。"""
         normalized = value.strip()
         if not normalized:
             raise ValueError("observation_id cannot be empty")

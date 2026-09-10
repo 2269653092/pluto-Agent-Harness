@@ -55,6 +55,7 @@ class RpcConnection:
         application: Application,
         hub: RpcHub,
     ) -> None:
+        """初始化 `RpcConnection` 实例及其依赖。"""
         self._websocket = websocket
         self._dispatcher = dispatcher
         self._application = application
@@ -65,14 +66,17 @@ class RpcConnection:
 
     @property
     def application(self) -> Application:
+        """执行 `application` 对应的业务逻辑。"""
         return self._application
 
     @property
     def hub(self) -> RpcHub:
+        """执行 `hub` 对应的业务逻辑。"""
         return self._hub
 
     @property
     def is_closed(self) -> bool:
+        """判断 `closed` 对应的数据或流程。"""
         return self._closed
 
     # ------------------------------------------------------------------
@@ -95,6 +99,7 @@ class RpcConnection:
             # 不取消已启动的 task（长 Agent Run 会继续执行，仅停止发送）。
 
     async def _handle_message(self, text: str) -> None:
+        """处理 `message` 对应的数据或流程。"""
         parsed = parse_message(text)
         if parsed.error is not None:
             await self.send_error(parsed.id, parsed.error)
@@ -126,6 +131,7 @@ class RpcConnection:
         params: dict[str, Any],
         ctx: RpcContext,
     ) -> None:
+        """分发 `notification` 对应的数据或流程。"""
         try:
             await self._dispatcher.dispatch(method, params, ctx)
         except JsonRpcError:
@@ -138,6 +144,7 @@ class RpcConnection:
     # ------------------------------------------------------------------
 
     async def _send(self, payload: dict[str, Any]) -> None:
+        """处理 `_send` 的内部辅助逻辑。"""
         if self._closed:
             return
         text = json.dumps(_to_jsonable(payload), ensure_ascii=False)
@@ -150,6 +157,7 @@ class RpcConnection:
                 self._closed = True
 
     async def send_response(self, request_id: str | int, result: Any) -> None:
+        """执行 `send_response` 对应的业务逻辑。"""
         await self._send(
             {"jsonrpc": JSONRPC_VERSION, "id": request_id, "result": result}
         )
@@ -159,6 +167,7 @@ class RpcConnection:
         request_id: str | int | None,
         error: JsonRpcError,
     ) -> None:
+        """执行 `send_error` 对应的业务逻辑。"""
         await self._send(
             {
                 "jsonrpc": JSONRPC_VERSION,
@@ -168,6 +177,7 @@ class RpcConnection:
         )
 
     async def send_notification(self, method: str, params: Any) -> None:
+        """执行 `send_notification` 对应的业务逻辑。"""
         await self._send(
             {
                 "jsonrpc": JSONRPC_VERSION,

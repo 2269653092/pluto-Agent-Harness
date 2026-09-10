@@ -61,6 +61,7 @@ class SQLiteEvidenceStore:
         max_item_bytes: int = DEFAULT_MAX_EVIDENCE_ITEM_BYTES,
         max_total_bytes: int = DEFAULT_MAX_EVIDENCE_TOTAL_BYTES,
     ) -> None:
+        """初始化 `SQLiteEvidenceStore` 实例及其依赖。"""
         if max_item_bytes < 1 or max_total_bytes < 1:
             raise ValueError("evidence capacity limits must be positive")
         if max_item_bytes > max_total_bytes:
@@ -70,6 +71,7 @@ class SQLiteEvidenceStore:
         self.max_total_bytes = max_total_bytes
 
     async def initialize(self) -> None:
+        """初始化`SQLiteEvidenceStore`的相关流程。"""
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
         async with self._connect() as database:
             await database.executescript(_SCHEMA)
@@ -254,6 +256,7 @@ class SQLiteEvidenceStore:
         conversation_id: str,
         limit: int = 12,
     ) -> tuple[EvidenceRecord, ...]:
+        """列出 `recent` 对应的数据或流程。"""
         if limit < 1:
             raise ValueError("limit must be at least 1")
         async with self._connect() as database:
@@ -274,6 +277,7 @@ class SQLiteEvidenceStore:
         task_id: str,
         limit: int = 20,
     ) -> tuple[EvidenceRecord, ...]:
+        """列出 `for_task` 对应的数据或流程。"""
         async with self._connect() as database:
             cursor = await database.execute(
                 """
@@ -292,6 +296,7 @@ class SQLiteEvidenceStore:
 
     @asynccontextmanager
     async def _connect(self) -> AsyncIterator[aiosqlite.Connection]:
+        """建立连接`SQLiteEvidenceStore`的相关流程。"""
         database = await aiosqlite.connect(self.database_path)
         database.row_factory = aiosqlite.Row
         try:
@@ -301,6 +306,7 @@ class SQLiteEvidenceStore:
 
 
 def _record_from_row(row: aiosqlite.Row) -> EvidenceRecord:
+    """记录 `from_row` 对应的数据或流程。"""
     return EvidenceRecord(
         id=row["id"],
         conversation_id=row["conversation_id"],
@@ -318,6 +324,7 @@ def _record_from_row(row: aiosqlite.Row) -> EvidenceRecord:
 
 
 def _snippet(content: str, query: str, *, radius: int = 180) -> str:
+    """处理 `_snippet` 的内部辅助逻辑。"""
     index = content.casefold().find(query.casefold())
     if index < 0:
         return content[: radius * 2]
@@ -329,6 +336,7 @@ def _snippet(content: str, query: str, *, radius: int = 180) -> str:
 
 
 def _required(value: str, field_name: str) -> str:
+    """处理 `_required` 的内部辅助逻辑。"""
     normalized = value.strip()
     if not normalized:
         raise ValueError(f"{field_name} must be a non-empty string")

@@ -16,6 +16,7 @@ export interface PageShellProps {
   maxWidth?: number
 }
 
+/** 渲染 `PageShell` React 组件。 */
 export function PageShell({
   title,
   subtitle,

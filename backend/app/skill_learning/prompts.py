@@ -94,6 +94,35 @@ Rules:
   evidence is too thin to support a stable procedure, return action "none"."""  # noqa: E501
 
 
+_MANUAL_DISTILLATION_PROMPT = """You are Pluto's Manual Task Skill Distiller.
+
+The user explicitly selected "Generate Skill" for one current task. Inspect the
+task summary and its execution evidence, then decide whether the task contains a
+reusable, evidence-backed procedure worth saving as a Skill Candidate. You do NOT
+write or modify a Skill; the candidate enters human review first.
+
+Rules:
+- A single task is allowed in this manual flow; do not require repeated tasks.
+- Output strict JSON only, no markdown fence:
+  {"action":"none|create|update","proposed_name":null,"description":null,
+   "reason":"...","procedure":[...],"pitfalls":[...],"verification":[...],
+   "existing_skill_name":null}
+- Return action "none" when the task is trivial or its evidence cannot support a
+  reusable multi-step procedure. An unfinished or failed task may still yield a
+  candidate only when some reusable steps or recovery checks were actually
+  verified; otherwise return "none".
+- Preserve only steps that the evidence shows were successful. A failed attempt
+  may be recorded as a pitfall, but must never be presented as a successful step.
+- action "update" requires existing_skill_name from the supplied catalog and is
+  preferred when the procedure naturally extends an existing Skill.
+- action "create" requires a unique lowercase-hyphenated proposed_name plus a
+  useful description, ordered procedure, pitfalls, and verification checks.
+- Consider pending_candidates and return action "none" if an equivalent pending
+  candidate already exists.
+- Do not invent commands, outcomes, files, or verification that are absent from
+  the supplied task and trace evidence."""
+
+
 _RELEVANCE_PROMPT = """You are Pluto's Skill Relevance Selector.
 
 A Pattern Miner found a cluster of similar COMPLETED tasks that may be worth
@@ -138,6 +167,7 @@ Rules:
 
 __all__ = [
     "_DISTILLATION_PROMPT",
+    "_MANUAL_DISTILLATION_PROMPT",
     "_OVERLAP_ADJUDICATION_PROMPT",
     "_PATTERN_MINING_PROMPT",
     "_RELEVANCE_PROMPT",

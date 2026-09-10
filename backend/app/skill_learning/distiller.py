@@ -34,6 +34,7 @@ from .models import (
 )
 from .prompts import (
     _DISTILLATION_PROMPT,
+    _MANUAL_DISTILLATION_PROMPT,
     _OVERLAP_ADJUDICATION_PROMPT,
     _RELEVANCE_PROMPT,
 )
@@ -61,6 +62,7 @@ class _Distilled(BaseModel):
     @field_validator("action")
     @classmethod
     def valid_action(cls, value: str) -> str:
+        """执行 `valid_action` 对应的业务逻辑。"""
         normalized = value.strip().lower()
         if normalized not in {"none", "create", "update"}:
             raise ValueError(f"invalid action: {value}")
@@ -128,6 +130,7 @@ class _OverlapDecision(BaseModel):
     @field_validator("relationship")
     @classmethod
     def valid_relationship(cls, value: str) -> str:
+        """执行 `valid_relationship` 对应的业务逻辑。"""
         normalized = value.strip().lower()
         if normalized not in {"same", "different"}:
             raise ValueError(f"invalid relationship: {value}")
@@ -145,6 +148,7 @@ class ProcedureDistiller:
         default_provider: str | None = None,
         default_model: str | None = None,
     ) -> None:
+        """初始化 `ProcedureDistiller` 实例及其依赖。"""
         self._registry = registry
         self.settings = settings
         self._default_provider = default_provider
@@ -159,6 +163,7 @@ class ProcedureDistiller:
         catalog: Sequence[SkillMetadata] = (),
         pending_candidates: Sequence[SkillCandidate] = (),
         skill_loader: Callable[[str], Awaitable[Skill | None]] | None = None,
+        manual_request: bool = False,
     ) -> DistillationOutcome:
         """对单个 Cluster 做蒸馏；action=none 返回空 candidate。
 
@@ -227,7 +232,11 @@ class ProcedureDistiller:
         )
         result: ModelCallResult = await call_model(
             self._registry,
-            system_prompt=_DISTILLATION_PROMPT,
+            system_prompt=(
+                _MANUAL_DISTILLATION_PROMPT
+                if manual_request
+                else _DISTILLATION_PROMPT
+            ),
             user_content=user_content,
             settings=self.settings,
             default_provider=self._default_provider,
@@ -504,6 +513,7 @@ class ProcedureDistiller:
         run_ids: dict[str, tuple[str, ...]],
         catalog: Sequence[SkillMetadata] = (),
     ) -> SkillCandidate:
+        """转换 `candidate` 对应的数据或流程。"""
         source_run_ids: list[str] = []
         for task_id in cluster.task_ids:
             source_run_ids.extend(run_ids.get(task_id, ()))

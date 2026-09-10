@@ -23,9 +23,11 @@ class AgentEventHook(ToolHook):
     """将工具执行阶段映射到现有 Agent 事件模型。"""
 
     def __init__(self, emitter: AgentEventEmitter) -> None:
+        """初始化 `AgentEventHook` 实例及其依赖。"""
         self._emitter = emitter
 
     async def before_execute(self, context: ToolExecutionContext) -> None:
+        """执行 `before_execute` 对应的业务逻辑。"""
         await self._emitter.emit(
             AgentEventType.TOOL_STARTED,
             step=context.step,
@@ -37,6 +39,7 @@ class AgentEventHook(ToolHook):
         context: ToolExecutionContext,
         request: ApprovalRequest,
     ) -> None:
+        """执行 `on_approval_required` 对应的业务逻辑。"""
         await self._emitter.emit(
             AgentEventType.TOOL_APPROVAL_REQUIRED,
             step=context.step,
@@ -50,6 +53,7 @@ class AgentEventHook(ToolHook):
         decision: ApprovalDecision,
         rule: PermissionRule | None = None,
     ) -> None:
+        """执行 `on_approval_completed` 对应的业务逻辑。"""
         await self._emitter.emit(
             AgentEventType.TOOL_APPROVAL_COMPLETED,
             step=context.step,
@@ -64,6 +68,7 @@ class AgentEventHook(ToolHook):
         context: ToolExecutionContext,
         result: ToolResult,
     ) -> None:
+        """执行 `after_execute` 对应的业务逻辑。"""
         await self._emitter.emit(
             AgentEventType.TOOL_COMPLETED,
             step=context.step,

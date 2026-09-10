@@ -33,6 +33,7 @@ export function connectComputerApprovalStream(
 ): () => void {
   let disposed = false
 
+  /** 执行 `syncPending` 对应的界面或业务逻辑。 */
   const syncPending = (): void => {
     void callbacks.syncPending().catch((error: unknown) => {
       if (!disposed) callbacks.onConnectionError?.(error)

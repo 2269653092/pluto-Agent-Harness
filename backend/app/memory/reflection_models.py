@@ -47,6 +47,7 @@ class MemoryReflectionConfig(BaseSettings):
     @field_validator("provider", "model", mode="before")
     @classmethod
     def normalize_optional_text(cls, value: object) -> str | None:
+        """标准化 `optional_text` 对应的数据或流程。"""
         if value is None:
             return None
         if not isinstance(value, str):
@@ -72,6 +73,7 @@ class MemoryReflectionInput(BaseModel):
     @field_validator("recalled_memory_ids")
     @classmethod
     def normalize_recalled_ids(cls, values: tuple[str, ...]) -> tuple[str, ...]:
+        """标准化 `recalled_ids` 对应的数据或流程。"""
         normalized: list[str] = []
         for value in values:
             memory_id = value.strip().upper()
@@ -103,6 +105,7 @@ class ReflectionDecision(BaseModel):
     )
     @classmethod
     def normalize_optional_text(cls, value: object) -> str | None:
+        """标准化 `optional_text` 对应的数据或流程。"""
         if value is None:
             return None
         if not isinstance(value, str):
@@ -112,6 +115,7 @@ class ReflectionDecision(BaseModel):
     @field_validator("reason", mode="before")
     @classmethod
     def normalize_reason(cls, value: object) -> str:
+        """标准化 `reason` 对应的数据或流程。"""
         if not isinstance(value, str):
             raise TypeError("reflection reason must be a string")
         normalized = " ".join(value.split())
@@ -121,6 +125,7 @@ class ReflectionDecision(BaseModel):
 
     @model_validator(mode="after")
     def validate_action_fields(self) -> ReflectionDecision:
+        """校验 `action_fields` 对应的数据或流程。"""
         if self.action is ReflectionAction.NONE:
             if any(
                 value is not None

@@ -39,6 +39,7 @@ export const initialFloatingApprovalState: FloatingApprovalState = {
   error: null,
 }
 
+/** 启动 `approval` 对应的数据或流程。 */
 function startApproval(
   approval: ApprovalRequest,
   queue: ApprovalRequest[] = [],
@@ -51,15 +52,18 @@ function startApproval(
   }
 }
 
+/** 执行 `advanceQueue` 对应的界面或业务逻辑。 */
 function advanceQueue(state: FloatingApprovalState): FloatingApprovalState {
   const [next, ...rest] = state.queue
   return next ? startApproval(next, rest) : initialFloatingApprovalState
 }
 
+/** 判断 `waiting_for_decision` 对应的数据或流程。 */
 function isWaitingForDecision(phase: FloatingApprovalPhase): boolean {
   return phase === 'pending' || phase === 'submitting' || phase === 'rpc_error'
 }
 
+/** 执行 `eventError` 对应的界面或业务逻辑。 */
 function eventError(event: AgentEvent): string | null {
   const raw = event.error
   if (raw && typeof raw === 'object' && 'message' in raw) {

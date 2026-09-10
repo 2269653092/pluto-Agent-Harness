@@ -159,6 +159,7 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
+        """执行 `lifespan` 对应的业务逻辑。"""
         await application.start()
         # Async Approval：把 WebSocket hub 注入审批门作为通知广播器
         # （approval.required / approval.resolved）。
@@ -190,6 +191,7 @@ def create_app(
 
     @app.get("/health")
     async def health(request: Request) -> dict[str, object]:
+        """执行 `health` 对应的业务逻辑。"""
         current: Application = request.app.state.application
         return {
             "status": "ok",
@@ -202,16 +204,19 @@ def create_app(
     async def computer_screenshot_route(
         observation_id: str, request: Request
     ) -> Response:
+        """执行 `computer_screenshot_route` 对应的业务逻辑。"""
         return computer_screenshot(observation_id, request)
 
     @app.get("/artifacts/{artifact_id}/content")
     async def artifact_content_route(
         artifact_id: str, request: Request
     ) -> Response:
+        """执行 `artifact_content_route` 对应的业务逻辑。"""
         return await artifact_content(artifact_id, request)
 
     @app.websocket("/rpc")
     async def rpc_endpoint(websocket: WebSocket) -> None:
+        """执行 `rpc_endpoint` 对应的业务逻辑。"""
         await websocket.accept()
         connection = RpcConnection(websocket, dispatcher, application, hub)
         await hub.register(connection)

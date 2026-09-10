@@ -30,6 +30,7 @@ class TavilySearchProvider(SearchProvider):
         timeout_seconds: float = 15.0,
         client: httpx.AsyncClient | None = None,
     ) -> None:
+        """初始化 `TavilySearchProvider` 实例及其依赖。"""
         normalized_key = api_key.strip()
         if not normalized_key:
             raise ValueError("Tavily API key cannot be empty")
@@ -39,9 +40,11 @@ class TavilySearchProvider(SearchProvider):
 
     @property
     def name(self) -> str:
+        """执行 `name` 对应的业务逻辑。"""
         return "tavily"
 
     async def search(self, request: SearchRequest) -> SearchResponse:
+        """搜索`TavilySearchProvider`的相关流程。"""
         payload: dict[str, Any] = {
             "query": request.query,
             "search_depth": "basic",
@@ -106,6 +109,7 @@ class TavilySearchProvider(SearchProvider):
         )
 
     async def _post(self, payload: dict[str, Any]) -> httpx.Response:
+        """处理 `_post` 的内部辅助逻辑。"""
         headers = {"Authorization": f"Bearer {self._api_key}"}
         try:
             if self._client is not None:
@@ -126,6 +130,7 @@ class TavilySearchProvider(SearchProvider):
 
     @staticmethod
     def _raise_for_status(response: httpx.Response) -> None:
+        """处理 `_raise_for_status` 的内部辅助逻辑。"""
         if response.status_code in {401, 403}:
             raise SearchAuthenticationError(
                 "Tavily API key is invalid or lacks permission"

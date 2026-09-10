@@ -35,6 +35,7 @@ class SearchRequest(BaseModel):
     @field_validator("query")
     @classmethod
     def normalize_query(cls, value: str) -> str:
+        """标准化 `query` 对应的数据或流程。"""
         normalized = " ".join(value.split())
         if not normalized:
             raise ValueError("query cannot be empty")
@@ -43,6 +44,7 @@ class SearchRequest(BaseModel):
     @field_validator("include_domains", "exclude_domains")
     @classmethod
     def normalize_domains(cls, values: tuple[str, ...]) -> tuple[str, ...]:
+        """标准化 `domains` 对应的数据或流程。"""
         normalized: list[str] = []
         for value in values:
             domain = value.strip().lower().removeprefix("https://").removeprefix(

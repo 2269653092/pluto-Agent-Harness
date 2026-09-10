@@ -36,6 +36,7 @@ class ComputerLeaseManager:
     """以 run_id 为 owner 的非等待、不可抢占机器租约。"""
 
     def __init__(self, lock_path: str | Path) -> None:
+        """初始化 `ComputerLeaseManager` 实例及其依赖。"""
         self.lock_path = Path(lock_path).expanduser().resolve()
         self._guard = Lock()
         self._owner_run_id: str | None = None
@@ -44,6 +45,7 @@ class ComputerLeaseManager:
 
     @property
     def snapshot(self) -> ComputerLeaseSnapshot:
+        """执行 `snapshot` 对应的业务逻辑。"""
         with self._guard:
             return ComputerLeaseSnapshot(
                 owner_run_id=self._owner_run_id,
@@ -52,6 +54,7 @@ class ComputerLeaseManager:
             )
 
     def acquire(self, run_id: str) -> ComputerLeaseSnapshot:
+        """执行 `acquire` 对应的业务逻辑。"""
         if not isinstance(run_id, str) or not run_id.strip():
             raise ValueError("computer action requires run context")
         with self._guard:
@@ -91,6 +94,7 @@ class ComputerLeaseManager:
             return self.snapshot_unlocked()
 
     def snapshot_unlocked(self) -> ComputerLeaseSnapshot:
+        """执行 `snapshot_unlocked` 对应的业务逻辑。"""
         return ComputerLeaseSnapshot(
             owner_run_id=self._owner_run_id,
             acquired_at=self._acquired_at,
@@ -98,6 +102,7 @@ class ComputerLeaseManager:
         )
 
     def release(self, run_id: str) -> bool:
+        """执行 `release` 对应的业务逻辑。"""
         with self._guard:
             if self._owner_run_id != run_id:
                 return False
@@ -106,10 +111,12 @@ class ComputerLeaseManager:
             return True
 
     def close(self) -> None:
+        """关闭`ComputerLeaseManager`的相关流程。"""
         with self._guard:
             self._release_unlocked()
 
     def _release_unlocked(self) -> None:
+        """处理 `_release_unlocked` 的内部辅助逻辑。"""
         handle = self._lock_file
         self._lock_file = None
         self._owner_run_id = None
@@ -140,6 +147,7 @@ class ComputerLeaseHook(ToolHook):
         session_manager: ComputerSessionManager | None = None,
         session_starter: Callable[[str], Awaitable[object] | object] | None = None,
     ) -> None:
+        """初始化 `ComputerLeaseHook` 实例及其依赖。"""
         self.manager = manager
         self.session_manager = session_manager
         self.session_starter = session_starter
@@ -147,6 +155,7 @@ class ComputerLeaseHook(ToolHook):
     async def before_execute(
         self, context: ToolExecutionContext
     ) -> ToolHookDecision | None:
+        """执行 `before_execute` 对应的业务逻辑。"""
         if not context.tool_call.name.startswith("computer_"):
             return None
         if not context.run_id:

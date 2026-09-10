@@ -17,6 +17,7 @@ class PermissionPolicyEngine:
     """在给定作用域内查找与当前调用匹配的规则。"""
 
     def __init__(self, store: PermissionRuleStore) -> None:
+        """初始化 `PermissionPolicyEngine` 实例及其依赖。"""
         self._store = store
 
     async def evaluate(

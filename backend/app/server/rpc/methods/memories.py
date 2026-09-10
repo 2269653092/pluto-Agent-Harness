@@ -14,6 +14,7 @@ from ..dispatcher import RpcContext, RpcDispatcher
 async def memory_list(
     params: dict[str, Any], ctx: RpcContext
 ) -> dict[str, Any]:
+    """执行 `memory_list` 对应的业务逻辑。"""
     del params
     manager = ctx.application.memory_manager
     if manager is None:
@@ -38,6 +39,7 @@ async def memory_list(
 
 
 def register(dispatcher: RpcDispatcher) -> None:
+    """注册当前对象的相关流程。"""
     dispatcher.register("memory.list", memory_list)
 
 

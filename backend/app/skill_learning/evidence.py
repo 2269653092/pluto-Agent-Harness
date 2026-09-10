@@ -39,6 +39,7 @@ class TraceEvidenceBuilder:
     """从 Task + AgentEvent 序列构建确定性的过程摘要。"""
 
     def __init__(self, settings: SkillLearningSettings) -> None:
+        """初始化 `TraceEvidenceBuilder` 实例及其依赖。"""
         self.settings = settings
 
     def build(
@@ -129,6 +130,7 @@ class TraceEvidenceBuilder:
         return None
 
     def _task_create_summary(self, arguments: dict[str, Any]) -> str:
+        """处理 `_task_create_summary` 的内部辅助逻辑。"""
         lines = ["task_create:"]
         title = arguments.get("title")
         if isinstance(title, str) and title.strip():
@@ -181,6 +183,7 @@ class TraceEvidenceBuilder:
         return "task_update:\n" + "\n".join("  " + line for line in lines)
 
     def _task_only(self, task: Task, reason: str) -> str:
+        """处理 `_task_only` 的内部辅助逻辑。"""
         final_steps = _task_steps(task)
         parts = [
             f"Task: {task.title}",
@@ -198,6 +201,7 @@ class TraceEvidenceBuilder:
 
 
 def _task_steps(task: Task) -> list[str]:
+    """处理 `_task_steps` 的内部辅助逻辑。"""
     return [
         step.title for step in task.steps if step.status.value == "done"
     ]
@@ -242,6 +246,7 @@ def _clip(text: str, limit: int = 200) -> str:
 
 
 def _dedupe_consecutive(sequence: list[str]) -> list[str]:
+    """处理 `_dedupe_consecutive` 的内部辅助逻辑。"""
     result: list[str] = []
     for item in sequence:
         if not result or result[-1] != item:
@@ -250,6 +255,7 @@ def _dedupe_consecutive(sequence: list[str]) -> list[str]:
 
 
 def _truncate(text: str, limit: int) -> str:
+    """处理 `_truncate` 的内部辅助逻辑。"""
     if len(text) <= limit:
         return text
     return text[:limit] + "…[截断]"

@@ -29,6 +29,7 @@ class AnthropicAdapter(ModelAdapter):
         *,
         client: Any | None = None,
     ) -> None:
+        """初始化 `AnthropicAdapter` 实例及其依赖。"""
         super().__init__(config)
         client_kwargs: dict[str, Any] = {
             "api_key": config.api_key_value(),
@@ -40,6 +41,7 @@ class AnthropicAdapter(ModelAdapter):
         self._client = client or AsyncAnthropic(**client_kwargs)
 
     async def complete(self, request: ModelRequest) -> ModelResponse:
+        """执行 `complete` 对应的业务逻辑。"""
         kwargs = self._request_kwargs(request)
 
         try:
@@ -58,6 +60,7 @@ class AnthropicAdapter(ModelAdapter):
         on_text_delta: Callable[[str], Awaitable[None]],
         on_reasoning_delta: Callable[[str], Awaitable[None]] | None = None,
     ) -> ModelResponse:
+        """执行 `complete_stream` 对应的业务逻辑。"""
         kwargs = self._request_kwargs(request)
         try:
             async with self._client.messages.stream(**kwargs) as stream:
@@ -72,6 +75,7 @@ class AnthropicAdapter(ModelAdapter):
         return _normalize_anthropic_response(response, self.provider)
 
     def _request_kwargs(self, request: ModelRequest) -> dict[str, Any]:
+        """请求 `kwargs` 对应的数据或流程。"""
         system, messages = _anthropic_messages(request.messages)
         kwargs: dict[str, Any] = {
             "model": request.model or self.default_model,
@@ -93,12 +97,14 @@ class AnthropicAdapter(ModelAdapter):
         return kwargs
 
     async def close(self) -> None:
+        """关闭`AnthropicAdapter`的相关流程。"""
         await self._client.close()
 
 
 def _anthropic_messages(
     messages: tuple[Message, ...],
 ) -> tuple[str | None, list[dict[str, Any]]]:
+    """处理 `_anthropic_messages` 的内部辅助逻辑。"""
     system_parts: list[str] = []
     result: list[dict[str, Any]] = []
 
@@ -151,6 +157,7 @@ def _anthropic_messages(
 
 
 def _normalize_anthropic_response(response: Any, provider: str) -> ModelResponse:
+    """标准化 `anthropic_response` 对应的数据或流程。"""
     text_parts: list[str] = []
     reasoning_parts: list[str] = []
     tool_calls: list[ToolCall] = []
@@ -214,6 +221,7 @@ def _normalize_anthropic_response(response: Any, provider: str) -> ModelResponse
 
 
 def _optional_usage_int(usage: Any, field: str) -> int | None:
+    """处理 `_optional_usage_int` 的内部辅助逻辑。"""
     value = getattr(usage, field, None)
     if value is None:
         return None
@@ -221,6 +229,7 @@ def _optional_usage_int(usage: Any, field: str) -> int | None:
 
 
 def _arguments_dict(arguments: dict[str, Any] | str) -> dict[str, Any]:
+    """处理 `_arguments_dict` 的内部辅助逻辑。"""
     if isinstance(arguments, dict):
         return arguments
     try:
@@ -235,6 +244,7 @@ def _arguments_dict(arguments: dict[str, Any] | str) -> dict[str, Any]:
 
 
 def _anthropic_tool(tool: ToolDefinition) -> dict[str, Any]:
+    """处理 `_anthropic_tool` 的内部辅助逻辑。"""
     return {
         "name": tool.name,
         "description": tool.description,
@@ -243,6 +253,7 @@ def _anthropic_tool(tool: ToolDefinition) -> dict[str, Any]:
 
 
 def _anthropic_tool_choice(tool_choice: str) -> dict[str, Any]:
+    """处理 `_anthropic_tool_choice` 的内部辅助逻辑。"""
     if tool_choice in {"auto", "none", "any"}:
         normalized = "any" if tool_choice == "required" else tool_choice
         return {"type": normalized}
@@ -252,6 +263,7 @@ def _anthropic_tool_choice(tool_choice: str) -> dict[str, Any]:
 
 
 def _model_dump(value: Any) -> dict[str, Any] | None:
+    """处理 `_model_dump` 的内部辅助逻辑。"""
     if hasattr(value, "model_dump"):
         return value.model_dump(mode="json")
     return value if isinstance(value, dict) else None

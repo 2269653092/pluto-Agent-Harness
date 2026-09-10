@@ -49,9 +49,11 @@ class SQLiteApprovalStore:
     """持久化 ApprovalRequest，并保证 approve / deny 只能执行一次。"""
 
     def __init__(self, database_path: str | Path = DEFAULT_DATABASE_PATH) -> None:
+        """初始化 `SQLiteApprovalStore` 实例及其依赖。"""
         self.database_path = Path(database_path).expanduser().resolve()
 
     async def initialize(self) -> None:
+        """初始化`SQLiteApprovalStore`的相关流程。"""
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
         async with self._connect() as database:
             await database.executescript(_SCHEMA)
@@ -113,6 +115,7 @@ class SQLiteApprovalStore:
         return await self.require(approval_id)
 
     async def get(self, approval_id: str) -> ApprovalRequest | None:
+        """获取`SQLiteApprovalStore`的相关流程。"""
         async with self._connect() as database:
             cursor = await database.execute(
                 "SELECT * FROM approvals WHERE id = ?",
@@ -122,6 +125,7 @@ class SQLiteApprovalStore:
         return _approval_from_row(row) if row is not None else None
 
     async def require(self, approval_id: str) -> ApprovalRequest:
+        """读取并校验`SQLiteApprovalStore`的相关流程。"""
         approval = await self.get(approval_id)
         if approval is None:
             raise KeyError(f"ApprovalRequest 不存在：{approval_id}")
@@ -266,6 +270,7 @@ class SQLiteApprovalStore:
 
     @asynccontextmanager
     async def _connect(self) -> AsyncIterator[aiosqlite.Connection]:
+        """建立连接`SQLiteApprovalStore`的相关流程。"""
         database = await aiosqlite.connect(self.database_path)
         database.row_factory = aiosqlite.Row
         try:
@@ -275,10 +280,12 @@ class SQLiteApprovalStore:
 
 
 def _now() -> str:
+    """处理 `_now` 的内部辅助逻辑。"""
     return datetime.now(UTC).isoformat()
 
 
 def _required(value: str, field: str) -> str:
+    """处理 `_required` 的内部辅助逻辑。"""
     normalized = value.strip()
     if not normalized:
         raise ValueError(f"{field} cannot be empty")
@@ -286,6 +293,7 @@ def _required(value: str, field: str) -> str:
 
 
 def _optional_identifier(value: str | None) -> str | None:
+    """处理 `_optional_identifier` 的内部辅助逻辑。"""
     if value is None:
         return None
     return _required(value, "identifier")
@@ -295,6 +303,7 @@ async def _require_row(
     database: aiosqlite.Connection,
     approval_id: str,
 ) -> ApprovalRequest:
+    """读取并校验 `row` 对应的数据或流程。"""
     cursor = await database.execute(
         "SELECT * FROM approvals WHERE id = ?",
         (_required(approval_id, "approval_id"),),
@@ -306,6 +315,7 @@ async def _require_row(
 
 
 def _approval_from_row(row: aiosqlite.Row) -> ApprovalRequest:
+    """处理 `_approval_from_row` 的内部辅助逻辑。"""
     return ApprovalRequest(
         id=row["id"],
         run_id=row["run_id"],

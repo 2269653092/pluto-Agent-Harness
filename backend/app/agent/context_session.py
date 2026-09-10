@@ -51,6 +51,7 @@ class RuntimeContextSession:
         task_context_provider: TaskContextProvider | None,
         recall_query: MemoryRecallQueryInputs | None = None,
     ) -> None:
+        """初始化 `RuntimeContextSession` 实例及其依赖。"""
         self._memory_manager = memory_manager
         self._skill_store = skill_store
         self._skill_context_provider = skill_context_provider
@@ -65,6 +66,7 @@ class RuntimeContextSession:
 
     @property
     def active_skill_names(self) -> tuple[str, ...]:
+        """执行 `active_skill_names` 对应的业务逻辑。"""
         return tuple(self._active_skills)
 
     async def build(
@@ -261,6 +263,7 @@ class RuntimeContextSession:
         skill_name: str,
         error: str,
     ) -> None:
+        """发送 `activation_failed` 对应的数据或流程。"""
         await emitter.emit(
             AgentEventType.SKILL_ACTIVATION_FAILED,
             step=step,

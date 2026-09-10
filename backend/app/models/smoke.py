@@ -25,6 +25,7 @@ async def _test_provider(
     prompt: str,
     max_output_tokens: int,
 ) -> bool:
+    """处理 `_test_provider` 的内部辅助逻辑。"""
     started_at = perf_counter()
     try:
         adapter = registry.get(provider)
@@ -53,6 +54,7 @@ async def _test_provider(
 
 
 async def _run(args: argparse.Namespace) -> int:
+    """运行当前对象的相关流程。"""
     settings = ModelSettings()
     configured = settings.configured_providers()
 
@@ -94,6 +96,7 @@ async def _run(args: argparse.Namespace) -> int:
 
 
 def _parse_args() -> argparse.Namespace:
+    """解析 `args` 对应的数据或流程。"""
     parser = argparse.ArgumentParser(
         description="Send a minimal live request to configured model providers."
     )
@@ -121,6 +124,7 @@ def _parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    """执行 `main` 对应的业务逻辑。"""
     raise SystemExit(asyncio.run(_run(_parse_args())))
 
 

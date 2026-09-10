@@ -26,6 +26,7 @@ class ModelCallResult:
 
     @property
     def ok(self) -> bool:
+        """执行 `ok` 对应的业务逻辑。"""
         return self.error is None and bool(self.raw_output)
 
 

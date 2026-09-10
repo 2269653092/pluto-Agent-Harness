@@ -26,6 +26,7 @@ class ComputerHostStatus:
 
 
 def current_platform() -> str:
+    """执行 `current_platform` 对应的业务逻辑。"""
     return "windows"
 
 

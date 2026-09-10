@@ -95,14 +95,17 @@ class RunBudgetDecision(BaseModel):
 
     @property
     def should_warn(self) -> bool:
+        """判断是否需要 `warn` 对应的数据或流程。"""
         return self.status is RunBudgetStatus.WARNING
 
     @property
     def should_finalize(self) -> bool:
+        """判断是否需要 `finalize` 对应的数据或流程。"""
         return self.status is RunBudgetStatus.FINALIZING
 
     @property
     def exceeded(self) -> bool:
+        """执行 `exceeded` 对应的业务逻辑。"""
         return self.status is RunBudgetStatus.EXCEEDED
 
 
@@ -110,6 +113,7 @@ class RunBudget:
     """根据已确认的 Provider Usage 决定下一次主模型调用。"""
 
     def __init__(self, config: RunBudgetConfig | None = None) -> None:
+        """初始化 `RunBudget` 实例及其依赖。"""
         self.config = config or RunBudgetConfig()
 
     def evaluate(

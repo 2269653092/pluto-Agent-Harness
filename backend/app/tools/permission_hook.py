@@ -45,6 +45,7 @@ def _scope_ids(context: ToolExecutionContext) -> tuple[str, ...]:
 
 
 def _scope_id_for(scope: ApprovalScope, context: ToolExecutionContext) -> str | None:
+    """处理 `_scope_id_for` 的内部辅助逻辑。"""
     if scope is ApprovalScope.RUN:
         return context.run_id
     if scope is ApprovalScope.CONVERSATION:
@@ -65,6 +66,7 @@ class PermissionHook(ToolHook):
         rule_store: PermissionRuleStore | None = None,
         rule_factory: RuleFactory = build_safe_rule,
     ) -> None:
+        """初始化 `PermissionHook` 实例及其依赖。"""
         self._approval_gate = approval_gate
         self._policy = policy
         self._rule_store = rule_store
@@ -74,6 +76,7 @@ class PermissionHook(ToolHook):
         self,
         context: ToolExecutionContext,
     ) -> ToolHookDecision | None:
+        """执行 `before_execute` 对应的业务逻辑。"""
         definition = context.tool_definition
         if definition is None:
             return None
@@ -145,6 +148,7 @@ class PermissionHook(ToolHook):
         scope: ApprovalScope,
         context: ToolExecutionContext,
     ) -> PermissionRule | None:
+        """创建 `rule` 对应的数据或流程。"""
         if self._rule_store is None:
             return None
         scope_id = _scope_id_for(scope, context)

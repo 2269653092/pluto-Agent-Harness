@@ -59,6 +59,7 @@ class ConversationReducer:
         large_fold_span_tokens: int = 50_000,
         large_fold_max_output_tokens: int | None = None,
     ) -> None:
+        """初始化 `ConversationReducer` 实例及其依赖。"""
         if keep_recent_conversation_blocks < 0:
             raise ValueError("keep_recent_conversation_blocks cannot be negative")
         if keep_recent_tool_rounds < 0:
@@ -219,6 +220,7 @@ class ConversationReducer:
         summary_model: str | None = None,
         summary_duration_ms: float | None = None,
     ) -> ConversationReductionResult:
+        """处理 `_unchanged` 的内部辅助逻辑。"""
         return ConversationReductionResult(
             messages=messages,
             estimated_input_tokens=estimated,
@@ -233,12 +235,14 @@ class ConversationReducer:
 
 
 def _error_usage(error: Exception) -> ModelUsage:
+    """处理 `_error_usage` 的内部辅助逻辑。"""
     if isinstance(error, SummaryGenerationError):
         return error.usage
     return ModelUsage()
 
 
 def _optional_text(value: object) -> str | None:
+    """处理 `_optional_text` 的内部辅助逻辑。"""
     if value is None:
         return None
     normalized = str(value).strip()
@@ -246,6 +250,7 @@ def _optional_text(value: object) -> str | None:
 
 
 def _add_usage(left: ModelUsage, right: ModelUsage) -> ModelUsage:
+    """添加 `usage` 对应的数据或流程。"""
     return add_model_usage(left, right)
 
 
@@ -282,6 +287,7 @@ def _index_blocks(
     *,
     offset: int,
 ) -> tuple[_IndexedBlock, ...]:
+    """处理 `_index_blocks` 的内部辅助逻辑。"""
     indexed: list[_IndexedBlock] = []
     position = offset
     for block in partition_messages(messages):
@@ -298,6 +304,7 @@ def _summary_cutoff(
     keep_recent_tool_rounds: int,
     history_length: int,
 ) -> int:
+    """处理 `_summary_cutoff` 的内部辅助逻辑。"""
     conversation_indices = [
         index
         for index, item in enumerate(blocks)
@@ -347,6 +354,7 @@ def _replace_covered_prefix(
     covered_raw_messages: Sequence[Message],
     state: ConversationSummaryState,
 ) -> tuple[Message, ...]:
+    """替换 `covered_prefix` 对应的数据或流程。"""
     removable_ids = {
         id(message)
         for message in covered_raw_messages

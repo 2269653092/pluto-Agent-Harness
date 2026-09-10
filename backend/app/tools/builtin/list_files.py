@@ -16,10 +16,12 @@ MAX_LISTED_FILES = 200
 
 class ListFilesTool(BaseTool):
     def __init__(self, workspace_root: str | Path | None = None) -> None:
+        """初始化 `ListFilesTool` 实例及其依赖。"""
         self._workspace_root = workspace_root_path(workspace_root)
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="list_files",
             description="List files recursively inside the local workspace.",
@@ -40,6 +42,7 @@ class ListFilesTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`ListFilesTool`的相关流程。"""
         directory = arguments.get("directory", ".")
         if not isinstance(directory, str):
             raise ValueError("'directory' must be a string")
@@ -63,6 +66,7 @@ class ListFilesTool(BaseTool):
 
 
 def _list_workspace_files(workspace_root: Path, directory: Path) -> list[str]:
+    """列出 `workspace_files` 对应的数据或流程。"""
     if not directory.is_dir():
         raise ValueError("directory does not exist or is not a directory")
 

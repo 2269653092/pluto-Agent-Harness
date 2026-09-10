@@ -31,10 +31,12 @@ class ComputerObserveTool(BaseTool):
     """抓取一次屏幕观察。先观察，再操作。"""
 
     def __init__(self, runtime: ComputerRuntime) -> None:
+        """初始化 `ComputerObserveTool` 实例及其依赖。"""
         self._runtime = runtime
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="computer_observe",
             description=(
@@ -59,6 +61,7 @@ class ComputerObserveTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> Any:
+        """执行`ComputerObserveTool`的相关流程。"""
         return await self._execute(arguments)
 
     async def execute_with_context(
@@ -66,9 +69,11 @@ class ComputerObserveTool(BaseTool):
         arguments: dict[str, Any],
         context: Any,
     ) -> Any:
+        """执行 `with_context` 对应的数据或流程。"""
         return await self._execute(arguments)
 
     async def _execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`ComputerObserveTool`的相关流程。"""
         include_screenshot = arguments.get("include_screenshot", True)
         if not isinstance(include_screenshot, bool):
             raise ValueError("'include_screenshot' must be a boolean")
@@ -82,10 +87,12 @@ class ComputerClickTool(BaseTool):
     """对元素或截图坐标执行点击（HUMAN_APPROVAL）。"""
 
     def __init__(self, runtime: ComputerRuntime) -> None:
+        """初始化 `ComputerClickTool` 实例及其依赖。"""
         self._runtime = runtime
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="computer_click",
             description=(
@@ -122,6 +129,7 @@ class ComputerClickTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> Any:
+        """执行`ComputerClickTool`的相关流程。"""
         return await self._execute(arguments)
 
     async def execute_with_context(
@@ -129,9 +137,11 @@ class ComputerClickTool(BaseTool):
         arguments: dict[str, Any],
         context: Any,
     ) -> Any:
+        """执行 `with_context` 对应的数据或流程。"""
         return await self._execute(arguments)
 
     async def _execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`ComputerClickTool`的相关流程。"""
         target = _parse_click_target(arguments)
         result = await self._runtime.click(target)
         return result.model_dump(mode="json")
@@ -141,10 +151,12 @@ class ComputerTypeTool(BaseTool):
     """向明确的可编辑元素输入文本（HUMAN_APPROVAL）。"""
 
     def __init__(self, runtime: ComputerRuntime) -> None:
+        """初始化 `ComputerTypeTool` 实例及其依赖。"""
         self._runtime = runtime
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="computer_type",
             description=(
@@ -178,6 +190,7 @@ class ComputerTypeTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> Any:
+        """执行`ComputerTypeTool`的相关流程。"""
         return await self._execute(arguments)
 
     async def execute_with_context(
@@ -185,9 +198,11 @@ class ComputerTypeTool(BaseTool):
         arguments: dict[str, Any],
         context: Any,
     ) -> Any:
+        """执行 `with_context` 对应的数据或流程。"""
         return await self._execute(arguments)
 
     async def _execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`ComputerTypeTool`的相关流程。"""
         text = arguments.get("text")
         if not isinstance(text, str):
             raise ValueError("'text' must be a string")
@@ -205,10 +220,12 @@ class ComputerKeyTool(BaseTool):
     """发送按键（HUMAN_APPROVAL）。"""
 
     def __init__(self, runtime: ComputerRuntime) -> None:
+        """初始化 `ComputerKeyTool` 实例及其依赖。"""
         self._runtime = runtime
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="computer_key",
             description=(
@@ -245,6 +262,7 @@ class ComputerKeyTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> Any:
+        """执行`ComputerKeyTool`的相关流程。"""
         return await self._execute(arguments)
 
     async def execute_with_context(
@@ -252,9 +270,11 @@ class ComputerKeyTool(BaseTool):
         arguments: dict[str, Any],
         context: Any,
     ) -> Any:
+        """执行 `with_context` 对应的数据或流程。"""
         return await self._execute(arguments)
 
     async def _execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`ComputerKeyTool`的相关流程。"""
         key = arguments.get("key")
         if not isinstance(key, str) or not key.strip():
             raise ValueError("'key' must be a non-empty string")
@@ -276,10 +296,12 @@ class ComputerScrollTool(BaseTool):
     """滚动（低风险，自动允许）。"""
 
     def __init__(self, runtime: ComputerRuntime) -> None:
+        """初始化 `ComputerScrollTool` 实例及其依赖。"""
         self._runtime = runtime
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="computer_scroll",
             description="滚动。delta_x / delta_y 至少一个非 0。",
@@ -303,6 +325,7 @@ class ComputerScrollTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> Any:
+        """执行`ComputerScrollTool`的相关流程。"""
         return await self._execute(arguments)
 
     async def execute_with_context(
@@ -310,9 +333,11 @@ class ComputerScrollTool(BaseTool):
         arguments: dict[str, Any],
         context: Any,
     ) -> Any:
+        """执行 `with_context` 对应的数据或流程。"""
         return await self._execute(arguments)
 
     async def _execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`ComputerScrollTool`的相关流程。"""
         delta_x = arguments.get("delta_x", 0)
         delta_y = arguments.get("delta_y", 0)
         if not isinstance(delta_x, int) or isinstance(delta_x, bool):
@@ -329,10 +354,12 @@ class ComputerOpenAppTool(BaseTool):
     """打开应用（低风险，自动允许）。"""
 
     def __init__(self, runtime: ComputerRuntime) -> None:
+        """初始化 `ComputerOpenAppTool` 实例及其依赖。"""
         self._runtime = runtime
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="computer_open_app",
             description="打开一个应用。",
@@ -353,6 +380,7 @@ class ComputerOpenAppTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> Any:
+        """执行`ComputerOpenAppTool`的相关流程。"""
         return await self._execute(arguments)
 
     async def execute_with_context(
@@ -360,9 +388,11 @@ class ComputerOpenAppTool(BaseTool):
         arguments: dict[str, Any],
         context: Any,
     ) -> Any:
+        """执行 `with_context` 对应的数据或流程。"""
         return await self._execute(arguments)
 
     async def _execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`ComputerOpenAppTool`的相关流程。"""
         app = arguments.get("app")
         if not isinstance(app, str) or not app.strip():
             raise ValueError("'app' must be a non-empty string")
@@ -374,10 +404,12 @@ class ComputerFocusWindowTool(BaseTool):
     """聚焦窗口（低风险，自动允许）。"""
 
     def __init__(self, runtime: ComputerRuntime) -> None:
+        """初始化 `ComputerFocusWindowTool` 实例及其依赖。"""
         self._runtime = runtime
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="computer_focus_window",
             description="聚焦某个窗口（window_ref 来自 Observation.windows）。",
@@ -398,6 +430,7 @@ class ComputerFocusWindowTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> Any:
+        """执行`ComputerFocusWindowTool`的相关流程。"""
         return await self._execute(arguments)
 
     async def execute_with_context(
@@ -405,9 +438,11 @@ class ComputerFocusWindowTool(BaseTool):
         arguments: dict[str, Any],
         context: Any,
     ) -> Any:
+        """执行 `with_context` 对应的数据或流程。"""
         return await self._execute(arguments)
 
     async def _execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`ComputerFocusWindowTool`的相关流程。"""
         window_ref = arguments.get("window_ref")
         if not isinstance(window_ref, str) or not window_ref.strip():
             raise ValueError("'window_ref' must be a non-empty string")

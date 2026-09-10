@@ -5,6 +5,7 @@ import type { ReactElement } from 'react'
 import type { Task } from '../api/types'
 import { Icon } from './Icon'
 
+/** 渲染 `PlanCard` React 组件。 */
 export default function PlanCard({
   task,
   busy = false,

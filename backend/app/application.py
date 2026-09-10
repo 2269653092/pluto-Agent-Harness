@@ -248,6 +248,7 @@ class Application:
         computer_host_status: ComputerHostStatus | None = None,
         workspace_root: str | Path | None = None,
     ) -> None:
+        """初始化 `Application` 实例及其依赖。"""
         self.database = Path(database).expanduser().resolve()
         self.tasks_dir = Path(tasks_dir).expanduser().resolve()
         self.workspace_root = workspace_root_path(workspace_root)

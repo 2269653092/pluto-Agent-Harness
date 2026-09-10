@@ -26,6 +26,7 @@ class EvidenceRecorder:
         *,
         attribution_resolver: ToolOutputAttributionResolver | None = None,
     ) -> None:
+        """初始化 `EvidenceRecorder` 实例及其依赖。"""
         self._store = store
         self._attribution_resolver = attribution_resolver
 
@@ -34,6 +35,7 @@ class EvidenceRecorder:
         context: ToolExecutionContext,
         content: str,
     ) -> RecordedToolOutput | None:
+        """记录`EvidenceRecorder`的相关流程。"""
         if not context.run_id or not context.conversation_id:
             return None
         tool_name = context.tool_call.name

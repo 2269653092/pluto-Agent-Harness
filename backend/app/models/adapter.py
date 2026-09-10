@@ -11,14 +11,17 @@ from .types import ModelRequest, ModelResponse
 
 class ModelAdapter(ABC):
     def __init__(self, config: ProviderConfig) -> None:
+        """初始化 `ModelAdapter` 实例及其依赖。"""
         self.config = config
 
     @property
     def provider(self) -> str:
+        """执行 `provider` 对应的业务逻辑。"""
         return self.config.provider
 
     @property
     def default_model(self) -> str:
+        """执行 `default_model` 对应的业务逻辑。"""
         return self.config.model
 
     @abstractmethod

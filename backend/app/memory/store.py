@@ -45,6 +45,7 @@ class MemoryStore:
         *,
         max_active: int = 25,
     ) -> None:
+        """初始化 `MemoryStore` 实例及其依赖。"""
         self.memory_dir = Path(memory_dir).expanduser().resolve()
         self.active_dir = self.memory_dir / "active"
         self.archive_dir = self.memory_dir / "archive"
@@ -208,9 +209,11 @@ class MemoryStore:
         )
 
     async def count_active(self) -> int:
+        """统计 `active` 对应的数据或流程。"""
         return len(await self.list_active())
 
     async def _all_ids(self) -> set[str]:
+        """处理 `_all_ids` 的内部辅助逻辑。"""
         ids: set[str] = set()
         for directory in (self.active_dir, self.archive_dir):
             for path in directory.glob("M*.md"):
@@ -220,6 +223,7 @@ class MemoryStore:
         return ids
 
     async def _resolve_path(self, memory_id: str) -> Path | None:
+        """解析或确定 `path` 对应的数据或流程。"""
         for directory in (self.active_dir, self.archive_dir):
             path = directory / f"{memory_id}.md"
             if await asyncio.to_thread(path.is_file) and not await asyncio.to_thread(
@@ -229,12 +233,14 @@ class MemoryStore:
         return None
 
     async def _write(self, record: MemoryRecord) -> None:
+        """写入`MemoryStore`的相关流程。"""
         if record.status is not MemoryStatus.ACTIVE:
             raise ValueError("inactive memory cannot be written to active directory")
         target = self.active_dir / f"{record.id}.md"
         await asyncio.to_thread(self._write_bytes, record.render_markdown(), target)
 
     def _write_bytes(self, content: str, target: Path) -> None:
+        """写入 `bytes` 对应的数据或流程。"""
         encoded = content.encode("utf-8")
         if len(encoded) > _MAX_MEMORY_FILE_BYTES:
             raise ValueError(
@@ -267,6 +273,7 @@ class MemoryStore:
 
 
 def _read_record(path: Path) -> MemoryRecord:
+    """读取 `record` 对应的数据或流程。"""
     if path.stat().st_size > _MAX_MEMORY_FILE_BYTES:
         raise ValueError(f"memory file too large: {path.name}")
     text = path.read_text(encoding="utf-8")

@@ -22,6 +22,7 @@ export interface RpcNotificationMessage {
 
 export type RpcIncomingMessage = RpcResponseMessage | RpcNotificationMessage
 
+/** 编码 `request` 对应的数据或流程。 */
 export function encodeRequest(
   id: number,
   method: string,
@@ -35,6 +36,7 @@ export function encodeRequest(
   })
 }
 
+/** 解析 `message` 对应的数据或流程。 */
 export function parseMessage(text: string): RpcIncomingMessage {
   return JSON.parse(text) as RpcIncomingMessage
 }

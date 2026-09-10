@@ -42,6 +42,7 @@ class MemoryMaintenanceReflector:
         default_provider: str | None = None,
         default_model: str | None = None,
     ) -> None:
+        """初始化 `MemoryMaintenanceReflector` 实例及其依赖。"""
         self._registry = registry
         self.config = config or MemoryMaintenanceConfig()
         self._default_provider = default_provider
@@ -49,14 +50,17 @@ class MemoryMaintenanceReflector:
 
     @property
     def enabled(self) -> bool:
+        """执行 `enabled` 对应的业务逻辑。"""
         return self.config.enabled
 
     @property
     def provider_hint(self) -> str | None:
+        """执行 `provider_hint` 对应的业务逻辑。"""
         return self.config.provider or self._default_provider
 
     @property
     def model_hint(self) -> str | None:
+        """执行 `model_hint` 对应的业务逻辑。"""
         if self.config.model is not None:
             return self.config.model
         if self.config.provider is None:
@@ -129,6 +133,7 @@ class MemoryMaintenanceReflector:
 
 
 def _strip_code_fence(content: str) -> str:
+    """处理 `_strip_code_fence` 的内部辅助逻辑。"""
     stripped = content.strip()
     if stripped.startswith("```") and stripped.endswith("```"):
         lines = stripped.splitlines()

@@ -12,6 +12,7 @@ import type { ReactElement } from 'react'
 
 import { formatDuration } from '../agent/turnPresentation'
 
+/** 执行 `AssistantReasoning` 对应的界面或业务逻辑。 */
 export default function AssistantReasoning({
   text,
   autoExpand = false,

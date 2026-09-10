@@ -71,6 +71,7 @@ class MemoryRecord(BaseModel):
     @field_validator("title")
     @classmethod
     def validate_title_length(cls, value: str) -> str:
+        """校验 `title_length` 对应的数据或流程。"""
         if len(value) > _MAX_TITLE_CHARS:
             raise ValueError(f"memory title exceeds {_MAX_TITLE_CHARS} characters")
         return value
@@ -78,6 +79,7 @@ class MemoryRecord(BaseModel):
     @field_validator("summary")
     @classmethod
     def validate_summary_length(cls, value: str) -> str:
+        """校验 `summary_length` 对应的数据或流程。"""
         if len(value) > _MAX_SUMMARY_CHARS:
             raise ValueError(
                 f"memory summary exceeds {_MAX_SUMMARY_CHARS} characters"
@@ -87,6 +89,7 @@ class MemoryRecord(BaseModel):
     @field_validator("content", mode="before")
     @classmethod
     def normalize_content(cls, value: object) -> str:
+        """标准化 `content` 对应的数据或流程。"""
         if not isinstance(value, str):
             raise TypeError("memory content must be a string")
         normalized = value.strip()
@@ -101,6 +104,7 @@ class MemoryRecord(BaseModel):
     @field_validator("last_update_reason", "archive_reason", mode="before")
     @classmethod
     def normalize_reason(cls, value: object) -> str | None:
+        """标准化 `reason` 对应的数据或流程。"""
         if value is None:
             return None
         if not isinstance(value, str):
@@ -239,10 +243,12 @@ def _extract_memory_section(body: str) -> str:
 
 
 def _iso(value: datetime) -> str:
+    """处理 `_iso` 的内部辅助逻辑。"""
     return value.astimezone(UTC).isoformat(timespec="seconds")
 
 
 def _parse_iso(value: str) -> datetime:
+    """解析 `iso` 对应的数据或流程。"""
     parsed = datetime.fromisoformat(value)
     if parsed.tzinfo is None:
         raise ValueError("memory datetimes must include timezone information")

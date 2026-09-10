@@ -39,6 +39,7 @@ const STOP_REASON_LABEL: Record<string, string> = {
   interrupted: '执行已中断',
 }
 
+/** 执行 `RunStatusBar` 对应的界面或业务逻辑。 */
 export default function RunStatusBar({
   title,
   conversationSidebarOpen,
@@ -99,6 +100,7 @@ export default function RunStatusBar({
       setElapsed(durationMs ?? null)
       return
     }
+    /** 执行 `tick` 对应的界面或业务逻辑。 */
     const tick = (): void => {
       if (startedAt !== null && startedAt !== undefined) {
         setElapsed(Date.now() - startedAt)

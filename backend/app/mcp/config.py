@@ -40,6 +40,7 @@ class MCPConfigurationStore:
     """MCP JSON 配置存储：统一校验、去重并原子写入。"""
 
     def __init__(self, path: str | Path = DEFAULT_MCP_CONFIG_PATH) -> None:
+        """初始化 `MCPConfigurationStore` 实例及其依赖。"""
         self.path = Path(path).expanduser().resolve()
         self._lock = asyncio.Lock()
         self._restart_required: set[str] = set()
@@ -121,6 +122,7 @@ class MCPConfigurationStore:
         return bool(self._restart_required)
 
     def _write(self, settings: MCPSettings) -> None:
+        """写入`MCPConfigurationStore`的相关流程。"""
         self.path.parent.mkdir(parents=True, exist_ok=True)
         payload = json.dumps(
             settings.model_dump(mode="json"),

@@ -41,6 +41,7 @@ class PermissionRule(BaseModel):
     @field_validator("scope")
     @classmethod
     def validate_persisted_scope(cls, value: ApprovalScope) -> ApprovalScope:
+        """校验 `persisted_scope` 对应的数据或流程。"""
         if value is ApprovalScope.ONCE:
             raise ValueError("ONCE approval cannot be stored as a permission rule")
         return value
@@ -48,6 +49,7 @@ class PermissionRule(BaseModel):
     @field_validator("created_at")
     @classmethod
     def normalize_created_at(cls, value: datetime) -> datetime:
+        """标准化 `created_at` 对应的数据或流程。"""
         if value.tzinfo is None or value.utcoffset() is None:
             return value.replace(tzinfo=UTC)
         return value.astimezone(UTC)

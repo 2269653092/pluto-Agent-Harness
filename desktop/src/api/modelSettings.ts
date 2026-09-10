@@ -67,20 +67,24 @@ export interface ModelConnectionResult {
   duration_ms: number
 }
 
+/** 获取 `model_settings` 对应的数据或流程。 */
 export function getModelSettings(): Promise<ModelSettingsView> {
   return rpcClient.call(RpcMethods.modelSettingsGet, {})
 }
 
+/** 更新 `model_settings` 对应的数据或流程。 */
 export function updateModelSettings(input: ModelSettingsUpdate): Promise<ModelSettingsView> {
   return rpcClient.call(RpcMethods.modelSettingsUpdate, { ...input })
 }
 
+/** 执行 `testModelConnection` 对应的界面或业务逻辑。 */
 export function testModelConnection(
   input: ProviderModelSettingsUpdate,
 ): Promise<ModelConnectionResult> {
   return rpcClient.call(RpcMethods.modelSettingsTest, { ...input })
 }
 
+/** 执行 `restartHost` 对应的界面或业务逻辑。 */
 export function restartHost(): Promise<{ accepted: boolean }> {
   return rpcClient.call(RpcMethods.systemRestart, {})
 }

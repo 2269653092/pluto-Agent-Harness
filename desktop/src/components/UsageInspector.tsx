@@ -4,14 +4,17 @@ import type { ModelUsage, RunUsageSummary } from '../api/types'
 import { formatTokens } from '../agent/turnPresentation'
 import { EmptyState } from './ui'
 
+/** 执行 `optionalTokens` 对应的界面或业务逻辑。 */
 function optionalTokens(value: number | null | undefined): string {
   return value === null || value === undefined ? 'Unavailable' : formatTokens(value)
 }
 
+/** 判断是否包含 `usage` 对应的数据或流程。 */
 function hasUsage(usage: ModelUsage): boolean {
   return usage.total_tokens > 0 || (usage.model_calls ?? 0) > 0
 }
 
+/** 执行 `PostRunRow` 对应的界面或业务逻辑。 */
 function PostRunRow({
   label,
   usage,
@@ -30,6 +33,7 @@ function PostRunRow({
   )
 }
 
+/** 渲染 `UsageInspector` React 组件。 */
 export default function UsageInspector({
   summary,
 }: {

@@ -55,6 +55,7 @@ class SkillStore:
         *,
         settings: SkillSettings | None = None,
     ) -> None:
+        """初始化 `SkillStore` 实例及其依赖。"""
         self.user_dir = Path(user_dir).expanduser().resolve()
         self.project_dir = Path(project_dir).expanduser().resolve()
         self.settings = settings or SkillSettings()
@@ -74,6 +75,7 @@ class SkillStore:
         return self.discovery.discover()
 
     def diagnostics(self) -> tuple[SkillDiagnostic, ...]:
+        """执行 `diagnostics` 对应的业务逻辑。"""
         return self.discovery.diagnostics()
 
     async def load(self, name: str) -> Skill | None:
@@ -331,6 +333,7 @@ class SkillStore:
         shutil.rmtree(source)
 
     def _root(self, scope: SkillScope) -> Path:
+        """处理 `_root` 的内部辅助逻辑。"""
         return self.project_dir if scope is SkillScope.PROJECT else self.user_dir
 
     def _scope_catalog(
@@ -338,6 +341,7 @@ class SkillStore:
         root: Path,
         scope: SkillScope,
     ) -> tuple[SkillMetadata, ...]:
+        """处理 `_scope_catalog` 的内部辅助逻辑。"""
         empty = root.parent / f".management-empty-{scope.value}"
         discovery = SkillDiscovery(
             project_dir=root if scope is SkillScope.PROJECT else empty,
@@ -350,6 +354,7 @@ class SkillStore:
         skill_dir: Path,
         scope: SkillScope,
     ) -> SkillMetadata | None:
+        """读取 `metadata_at` 对应的数据或流程。"""
         catalog = self._scope_catalog(skill_dir.parent, scope)
         return next(
             (
@@ -361,6 +366,7 @@ class SkillStore:
         )
 
     def _load_metadata(self, metadata: SkillMetadata) -> Skill | None:
+        """加载 `metadata` 对应的数据或流程。"""
         skill_dir = metadata.location.parent
         skill_file = safe_skill_file(skill_dir)
         if skill_file is None:
@@ -378,6 +384,7 @@ class SkillStore:
         )
 
     def _discover_resources(self, skill_dir: Path) -> SkillResources:
+        """发现 `resources` 对应的数据或流程。"""
         return SkillResources(
             scripts=_list_resource_dir(skill_dir, "scripts"),
             references=_list_resource_dir(skill_dir, "references"),
@@ -401,6 +408,7 @@ def _render_skill_document(
 
 
 def _list_resource_dir(skill_dir: Path, subdir: str) -> tuple[str, ...]:
+    """列出 `resource_dir` 对应的数据或流程。"""
     directory = skill_dir / subdir
     if not directory.is_dir() or directory.is_symlink():
         return ()

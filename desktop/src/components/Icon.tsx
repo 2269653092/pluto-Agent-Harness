@@ -95,6 +95,7 @@ export interface IconProps extends Omit<LucideProps, 'name'> {
   size?: number
 }
 
+/** 执行 `Icon` 对应的界面或业务逻辑。 */
 export function Icon({ name, size = 16, ...rest }: IconProps): ReactElement {
   const Component = ICONS[name]
   return <Component size={size} strokeWidth={1.8} aria-hidden="true" {...rest} />

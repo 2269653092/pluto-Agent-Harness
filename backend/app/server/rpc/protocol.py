@@ -40,12 +40,14 @@ class JsonRpcError(Exception):
         message: str,
         data: Any = None,
     ) -> None:
+        """初始化 `JsonRpcError` 实例及其依赖。"""
         super().__init__(message)
         self.code = int(code)
         self.message = message
         self.data = data
 
     def to_body(self) -> dict[str, Any]:
+        """转换 `body` 对应的数据或流程。"""
         body: dict[str, Any] = {"code": self.code, "message": self.message}
         if self.data is not None:
             body["data"] = self.data
@@ -151,6 +153,7 @@ def parse_message(text: str) -> ParsedMessage:
 
 
 def _id_or_none(value: object) -> str | int | None:
+    """处理 `_id_or_none` 的内部辅助逻辑。"""
     if isinstance(value, bool):
         return None
     if isinstance(value, (str, int)):

@@ -166,6 +166,7 @@ class Task(BaseModel):
     @field_validator("title")
     @classmethod
     def title_required(cls, value: str | None) -> str:
+        """执行 `title_required` 对应的业务逻辑。"""
         if not value:
             raise ValueError("task title cannot be empty")
         return value
@@ -173,6 +174,7 @@ class Task(BaseModel):
     @field_validator("id", mode="before")
     @classmethod
     def id_required(cls, value: object) -> str:
+        """执行 `id_required` 对应的业务逻辑。"""
         if not isinstance(value, str):
             raise TypeError("task id must be a string")
         normalized = value.strip().lower()
@@ -264,11 +266,13 @@ class TaskPatch(BaseModel):
     @field_validator("goal", "step_note", mode="before")
     @classmethod
     def normalize_optional_text(cls, value: object) -> str | None:
+        """标准化 `optional_text` 对应的数据或流程。"""
         return _normalize_optional_text(value)
 
     @field_validator("step_id", "run_id", mode="before")
     @classmethod
     def normalize_optional_identifier(cls, value: object) -> str | None:
+        """标准化 `optional_identifier` 对应的数据或流程。"""
         normalized = _normalize_optional_text(value)
         return normalized
 
@@ -280,12 +284,14 @@ class TaskPatch(BaseModel):
     )
     @classmethod
     def normalize_patch_entries(cls, value: object) -> tuple[str, ...] | None:
+        """标准化 `patch_entries` 对应的数据或流程。"""
         if value is None:
             return None
         return _normalize_entries(value)
 
     @model_validator(mode="after")
     def validate_step_update(self) -> TaskPatch:
+        """校验 `step_update` 对应的数据或流程。"""
         if (self.step_id is None) != (self.step_status is None):
             raise ValueError("step_id and step_status must be provided together")
         if self.step_note is not None and self.step_id is None:
@@ -315,10 +321,12 @@ class TaskPatch(BaseModel):
 
 
 def _normalize_text(value: str) -> str:
+    """标准化 `text` 对应的数据或流程。"""
     return " ".join(value.split()).strip()
 
 
 def _normalize_optional_text(value: object) -> str | None:
+    """标准化 `optional_text` 对应的数据或流程。"""
     if value is None:
         return None
     if not isinstance(value, str):
@@ -328,6 +336,7 @@ def _normalize_optional_text(value: object) -> str | None:
 
 
 def _normalize_entries(value: object) -> tuple[str, ...]:
+    """标准化 `entries` 对应的数据或流程。"""
     if value is None:
         return ()
     values: Iterable[object] = (value,) if isinstance(value, str) else value

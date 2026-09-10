@@ -43,6 +43,7 @@ class TokenEstimator:
         default_encoding: str = DEFAULT_ENCODING,
         factors: dict[str, float] | None = None,
     ) -> None:
+        """初始化 `TokenEstimator` 实例及其依赖。"""
         self._default_encoding = default_encoding
         self._factors = {**DEFAULT_FAMILY_FACTORS, **(factors or {})}
         self._cache: dict[str, Encoding] = {}
@@ -54,6 +55,7 @@ class TokenEstimator:
         model: str | None = None,
         provider: str | None = None,
     ) -> int:
+        """估算 `text` 对应的数据或流程。"""
         if not text:
             return 0
         base = len(self._encoding(model).encode(text, disallowed_special=()))
@@ -69,6 +71,7 @@ class TokenEstimator:
         model: str | None = None,
         provider: str | None = None,
     ) -> int:
+        """估算 `messages` 对应的数据或流程。"""
         total = 0
         for message in messages:
             # 每条消息的角色 / 格式开销
@@ -125,6 +128,7 @@ class TokenEstimator:
         model: str | None = None,
         provider: str | None = None,
     ) -> int:
+        """估算 `tools` 对应的数据或流程。"""
         total = 0
         for tool in tools:
             total += 5  # 工具定义结构开销
@@ -172,12 +176,14 @@ class TokenEstimator:
         return self._factors.get(family, self._factors["other"])
 
     def _encoding(self, model: str | None) -> Encoding:
+        """处理 `_encoding` 的内部辅助逻辑。"""
         cache_key = model or self._default_encoding
         if cache_key not in self._cache:
             self._cache[cache_key] = self._encoding_for(model)
         return self._cache[cache_key]
 
     def _encoding_for(self, model: str | None) -> Encoding:
+        """处理 `_encoding_for` 的内部辅助逻辑。"""
         if model:
             try:
                 return tiktoken.encoding_for_model(model)

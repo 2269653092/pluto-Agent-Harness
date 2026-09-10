@@ -21,6 +21,7 @@ from ..protocol import (
 
 
 async def approval_list(params: dict[str, Any], ctx: RpcContext) -> dict[str, Any]:
+    """执行 `approval_list` 对应的业务逻辑。"""
     status = params.get("status")
     if status is not None:
         try:
@@ -39,6 +40,7 @@ async def approval_list(params: dict[str, Any], ctx: RpcContext) -> dict[str, An
 
 
 async def approval_get(params: dict[str, Any], ctx: RpcContext) -> dict[str, Any]:
+    """执行 `approval_get` 对应的业务逻辑。"""
     approval_id = _require_str(params, "approval_id")
     approval = await ctx.application.approval_store.get(approval_id)
     if approval is None:
@@ -47,6 +49,7 @@ async def approval_get(params: dict[str, Any], ctx: RpcContext) -> dict[str, Any
 
 
 async def approval_approve(params: dict[str, Any], ctx: RpcContext) -> dict[str, Any]:
+    """执行 `approval_approve` 对应的业务逻辑。"""
     gate = _require_gate(ctx)
     approval_id = _require_str(params, "approval_id")
     try:
@@ -57,6 +60,7 @@ async def approval_approve(params: dict[str, Any], ctx: RpcContext) -> dict[str,
 
 
 async def approval_deny(params: dict[str, Any], ctx: RpcContext) -> dict[str, Any]:
+    """执行 `approval_deny` 对应的业务逻辑。"""
     gate = _require_gate(ctx)
     approval_id = _require_str(params, "approval_id")
     try:
@@ -67,6 +71,7 @@ async def approval_deny(params: dict[str, Any], ctx: RpcContext) -> dict[str, An
 
 
 def _require_gate(ctx: RpcContext) -> Any:
+    """读取并校验 `gate` 对应的数据或流程。"""
     gate = ctx.application.desktop_approval_gate
     if gate is None:
         raise JsonRpcError(INVALID_STATE, "desktop approval gate not available")
@@ -74,6 +79,7 @@ def _require_gate(ctx: RpcContext) -> Any:
 
 
 def _require_str(params: dict[str, Any], key: str) -> str:
+    """读取并校验 `str` 对应的数据或流程。"""
     value = params.get(key)
     if not isinstance(value, str) or not value:
         raise JsonRpcError(RpcErrorCode.INVALID_PARAMS, f"{key} is required")
@@ -81,6 +87,7 @@ def _require_str(params: dict[str, Any], key: str) -> str:
 
 
 def _positive_int(params: dict[str, Any], key: str, *, default: int) -> int:
+    """处理 `_positive_int` 的内部辅助逻辑。"""
     value = params.get(key, default)
     if not isinstance(value, int) or isinstance(value, bool) or value < 1:
         raise JsonRpcError(
@@ -91,6 +98,7 @@ def _positive_int(params: dict[str, Any], key: str, *, default: int) -> int:
 
 
 def register(dispatcher: RpcDispatcher) -> None:
+    """注册当前对象的相关流程。"""
     dispatcher.register("approval.list", approval_list)
     dispatcher.register("approval.get", approval_get)
     dispatcher.register("approval.approve", approval_approve)

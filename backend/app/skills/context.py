@@ -38,6 +38,7 @@ class SkillContextProvider:
         max_active: int,
         catalog_max_tokens: int = _DEFAULT_CATALOG_MAX_TOKENS,
     ) -> None:
+        """初始化 `SkillContextProvider` 实例及其依赖。"""
         self.max_tokens = max_tokens
         self.max_active = max_active
         self.catalog_max_tokens = catalog_max_tokens
@@ -76,6 +77,7 @@ class SkillContextProvider:
         self,
         metadata: Sequence[SkillMetadata],
     ) -> Message | None:
+        """执行 `catalog_message` 对应的业务逻辑。"""
         text = self.render_catalog(metadata)
         return Message(
             role=MessageRole.SYSTEM,
@@ -84,6 +86,7 @@ class SkillContextProvider:
         )
 
     def catalog_tokens(self, metadata: Sequence[SkillMetadata]) -> int:
+        """执行 `catalog_tokens` 对应的业务逻辑。"""
         return self._estimator.estimate_text(self.render_catalog(metadata))
 
     # ------------------------------------------------------------------
@@ -112,6 +115,7 @@ class SkillContextProvider:
         return tuple(messages)
 
     def active_tokens(self, skills: Sequence[Skill]) -> int:
+        """执行 `active_tokens` 对应的业务逻辑。"""
         total = 0
         for message in self.active_messages(skills):
             total += self._estimator.estimate_text(message.content or "")

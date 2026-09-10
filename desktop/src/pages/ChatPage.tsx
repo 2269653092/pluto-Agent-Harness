@@ -12,8 +12,13 @@ import {
   sendMessage,
 } from '../api/conversations'
 import { cancelRun, interruptRun, listRuns, recoverRun } from '../api/runs'
+import {
+  acceptSkillCandidate,
+  generateSkillFromTask,
+  rejectSkillCandidate,
+} from '../api/skillLearning'
 import { getTask, listTasks, planAccept, planReject } from '../api/tasks'
-import type { AgentMode, Message, Task } from '../api/types'
+import type { AgentMode, Message, SkillCandidate, Task } from '../api/types'
 import { latestRunId } from '../agent/runAnalysis'
 import { buildTurnView } from '../agent/turnPresentation'
 import { chatShouldShowApproval } from '../approval/computerApproval'
@@ -22,6 +27,7 @@ import ChatEmptyState from '../components/ChatEmptyState'
 import RunStatusBar from '../components/RunStatusBar'
 import Composer from '../components/Composer'
 import type { ComposerCommand } from '../components/Composer'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import ConversationList from '../components/ConversationList'
 import CurrentTaskPanel from '../components/CurrentTaskPanel'
 import LiveAgentTurn from '../components/LiveAgentTurn'
@@ -34,6 +40,7 @@ import { SectionHeader } from '../components/ui'
 import { useEventsStore } from '../stores/events'
 import type { PageKey } from '../App'
 
+/** 渲染 `ChatPage` React 组件。 */
 export default function ChatPage({
   onNavigate,
   onOpenRun,
@@ -64,16 +71,21 @@ export default function ChatPage({
     message: Message
   } | null>(null)
   const [sendError, setSendError] = useState<string | null>(null)
+  const [skillNotice, setSkillNotice] = useState<string | null>(null)
+  const [skillCandidate, setSkillCandidate] = useState<SkillCandidate | null>(null)
   // Persistent AgentTurn：完成后仍保留为本轮 Work Record。
   const [liveTurnActive, setLiveTurnActive] = useState(false)
 
   const selectConversation = useCallback((conversationId: string | null): void => {
     setSelectedId(conversationId)
+    setSkillCandidate(null)
+    setSkillNotice(null)
     onConversationChange?.(conversationId)
   }, [onConversationChange])
 
   const conversationsQuery = useQuery({
     queryKey: ['conversations'],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () => listConversations(),
   })
   const conversations = conversationsQuery.data ?? []
@@ -92,6 +104,7 @@ export default function ChatPage({
 
   const conversationQuery = useQuery({
     queryKey: ['conversation', selectedId],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () => (selectedId ? getConversation(selectedId) : Promise.resolve(null)),
     enabled: selectedId !== null,
   })
@@ -117,11 +130,15 @@ export default function ChatPage({
 
   const tasksQuery = useQuery({
     queryKey: ['tasks', selectedId],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () => listTasks(selectedId!),
     enabled: selectedId !== null,
     refetchInterval: isRunning ? 1500 : 5000,
   })
   const conversationTasks = tasksQuery.data ?? []
+  const currentSkillSourceTask = conversationTasks.find(
+    (task) => task.run_ids.length > 0,
+  ) ?? null
 
   // 实时 Run 一旦出现就记住 id；终态通知可能早于 conversation.send 返回，
   // 不能因 running → completed 让 Persistent AgentTurn 短暂丢失事件。
@@ -179,6 +196,7 @@ export default function ChatPage({
 
   const approvalsQuery = useQuery({
     queryKey: ['chat-approvals', activeRunId],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () => listApprovals('pending'),
     refetchInterval: 2000,
     enabled: activeRunId !== null,
@@ -191,6 +209,7 @@ export default function ChatPage({
 
   const artifactsQuery = useQuery({
     queryKey: ['chat-artifacts', activeRunId],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () =>
       activeRunId ? listArtifacts({ runId: activeRunId }) : Promise.resolve([]),
     refetchInterval: 3000,
@@ -199,10 +218,12 @@ export default function ChatPage({
   const artifacts = artifactsQuery.data ?? []
 
   const resolveApprovalMutation = useMutation({
+    /** 执行 `mutationFn` 对应的界面或业务逻辑。 */
     mutationFn: (action: { id: string; decision: 'approve' | 'deny' }) =>
       action.decision === 'approve'
         ? approveApproval(action.id)
         : denyApproval(action.id),
+    /** 响应 `onSettled` 对应的事件。 */
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: ['chat-approvals'] })
       void queryClient.invalidateQueries({ queryKey: ['approvals'] })
@@ -210,7 +231,9 @@ export default function ChatPage({
   })
 
   const newConversationMutation = useMutation({
+    /** 执行 `mutationFn` 对应的界面或业务逻辑。 */
     mutationFn: () => createConversation(),
+    /** 响应 `onSuccess` 对应的事件。 */
     onSuccess: (conversation) => {
       selectConversation(conversation.id)
       setLastRunId(null)
@@ -253,6 +276,7 @@ export default function ChatPage({
   }
 
   const sendMutation = useMutation({
+    /** 执行 `mutationFn` 对应的界面或业务逻辑。 */
     mutationFn: ({
       conversationId,
       content,
@@ -262,6 +286,7 @@ export default function ChatPage({
       content: string
       sendMode: AgentMode
     }) => sendMessage(conversationId, content, sendMode),
+    /** 响应 `onSuccess` 对应的事件。 */
     onSuccess: async (data) => {
       setLastRunId(data.run.id)
       setPlanResolved(null)
@@ -282,10 +307,61 @@ export default function ChatPage({
         queryClient.invalidateQueries({ queryKey: ['tasks', selectedId] }),
       ])
     },
+    /** 响应 `onError` 对应的事件。 */
     onError: (error: unknown) => {
       setSendError(error instanceof Error ? error.message : String(error))
     },
+    /** 响应 `onSettled` 对应的事件。 */
     onSettled: () => setOptimisticMessage(null),
+  })
+
+  const generateSkillMutation = useMutation({
+    /** 从当前会话最近完成的任务生成待审核 Skill。 */
+    mutationFn: (taskId: string) => generateSkillFromTask(taskId),
+    /** 展示候选详情；已接受的重复候选只提示结果。 */
+    onSuccess: (data) => {
+      setSkillNotice(data.message)
+      if (data.candidate?.status === 'pending') {
+        setSkillCandidate(data.candidate)
+      } else {
+        setSkillCandidate(null)
+      }
+    },
+    /** 将模型提炼或任务状态错误显示在聊天区。 */
+    onError: (error: unknown) => {
+      setSkillCandidate(null)
+      setSendError(error instanceof Error ? error.message : String(error))
+    },
+  })
+
+  const reviewSkillMutation = useMutation({
+    /** 根据弹窗操作接受或拒绝 Skill Candidate。 */
+    mutationFn: ({
+      candidateId,
+      decision,
+    }: {
+      candidateId: string
+      decision: 'accept' | 'reject'
+    }) => (
+      decision === 'accept'
+        ? acceptSkillCandidate(candidateId)
+        : rejectSkillCandidate(candidateId)
+    ),
+    /** 审核完成后关闭弹窗并刷新 Skill 管理列表。 */
+    onSuccess: (_data, variables) => {
+      const name = skillCandidate?.proposed_name ?? 'Skill'
+      setSkillNotice(
+        variables.decision === 'accept'
+          ? `${name} 已保存为正式 Skill`
+          : `${name} 候选已拒绝`,
+      )
+      setSkillCandidate(null)
+      void queryClient.invalidateQueries({ queryKey: ['extensions'] })
+    },
+    /** 保留候选弹窗，让用户可以重试审核。 */
+    onError: (error: unknown) => {
+      setSendError(error instanceof Error ? error.message : String(error))
+    },
   })
 
   // 断线重连兜底：若发送请求在断线期间未 settle（异常路径，正常断线 rpcClient
@@ -301,20 +377,24 @@ export default function ChatPage({
   }, [connected, sendMutation])
 
   const resolvePlanMutation = useMutation({
+    /** 执行 `mutationFn` 对应的界面或业务逻辑。 */
     mutationFn: (action: { taskId: string; decision: 'accept' | 'reject' }) =>
       action.decision === 'accept'
         ? planAccept(action.taskId)
         : planReject(action.taskId),
+    /** 响应 `onSuccess` 对应的事件。 */
     onSuccess: (_task, variables) => {
       setPlanResolved(variables.decision === 'accept' ? 'Plan accepted' : 'Plan rejected')
       setPlanTask(null)
       void queryClient.invalidateQueries({ queryKey: ['tasks'] })
     },
+    /** 响应 `onError` 对应的事件。 */
     onError: (error: unknown) => {
       setPlanResolved(error instanceof Error ? error.message : String(error))
     },
   })
 
+  /** 停止 `run` 对应的数据或流程。 */
   const stopRun = async (): Promise<void> => {
     if (!activeRunId) return
     try {
@@ -340,6 +420,7 @@ export default function ChatPage({
     }
   }
 
+  /** 恢复 `run_action` 对应的数据或流程。 */
   const recoverRunAction = async (): Promise<void> => {
     if (!activeRunId) return
     try {
@@ -379,25 +460,27 @@ export default function ChatPage({
 
   // Command palette（⌘K）：轻量能力入口，不做永久按钮墙。
   const composerCommands: ComposerCommand[] = [
-    { id: 'new', label: '新建会话', icon: 'plus', onSelect: () => newConversationMutation.mutate() },
+    { id: 'new', label: '新建会话', icon: 'plus', /** 响应 `onSelect` 对应的事件。 */ onSelect: () => newConversationMutation.mutate() },
     {
       id: 'plan',
       label: mode === 'plan' ? '切换到普通模式' : '切换到规划模式',
       icon: 'check',
+      /** 响应 `onSelect` 对应的事件。 */
       onSelect: () => setMode((m) => (m === 'plan' ? 'normal' : 'plan')),
     },
-    { id: 'computer', label: '打开电脑控制', icon: 'computer', onSelect: () => onNavigate?.('computer') },
+    { id: 'computer', label: '打开电脑控制', icon: 'computer', /** 响应 `onSelect` 对应的事件。 */ onSelect: () => onNavigate?.('computer') },
     {
       id: 'runs',
       label: '查看当前运行',
       icon: 'runs',
+      /** 响应 `onSelect` 对应的事件。 */
       onSelect: () => {
         if (activeRunId) onOpenRun?.(activeRunId)
       },
     },
-    { id: 'stop', label: '停止运行', icon: 'close', onSelect: () => void stopRun() },
-    { id: 'artifacts', label: '查看产物', icon: 'artifacts', onSelect: () => onNavigate?.('artifacts') },
-    { id: 'settings', label: '打开设置', icon: 'settings', onSelect: () => onNavigate?.('settings') },
+    { id: 'stop', label: '停止运行', icon: 'close', /** 响应 `onSelect` 对应的事件。 */ onSelect: () => void stopRun() },
+    { id: 'artifacts', label: '查看产物', icon: 'artifacts', /** 响应 `onSelect` 对应的事件。 */ onSelect: () => onNavigate?.('artifacts') },
+    { id: 'settings', label: '打开设置', icon: 'settings', /** 响应 `onSelect` 对应的事件。 */ onSelect: () => onNavigate?.('settings') },
   ]
 
   const storedMessages = conversationQuery.data?.messages ?? []
@@ -447,6 +530,7 @@ export default function ChatPage({
   const stickToBottomRef = useRef(true)
   const scrollFrameRef = useRef<number | null>(null)
 
+  /** 处理 `handleConversationScroll` 对应的用户操作或事件。 */
   const handleConversationScroll = (): void => {
     const el = conversationScrollRef.current
     if (!el) return
@@ -454,6 +538,7 @@ export default function ChatPage({
       el.scrollHeight - el.scrollTop - el.clientHeight < 120
   }
 
+  /** 执行 `scheduleScroll` 对应的界面或业务逻辑。 */
   const scheduleScroll = (): void => {
     if (scrollFrameRef.current !== null) return
     scrollFrameRef.current = requestAnimationFrame(() => {
@@ -574,6 +659,7 @@ export default function ChatPage({
             {sendError ? (
               <div className="inline-notice inline-notice--error">{sendError}</div>
             ) : null}
+            {skillNotice ? <div className="inline-notice">{skillNotice}</div> : null}
 
             {planTask ? (
               <PlanCard
@@ -618,6 +704,14 @@ export default function ChatPage({
           onStop={() => void pauseRun()}
           mode={mode}
           onModeChange={setMode}
+          canGenerateSkill={currentSkillSourceTask !== null && !isRunning}
+          generatingSkill={generateSkillMutation.isPending}
+          onGenerateSkill={() => {
+            if (!currentSkillSourceTask) return
+            setSendError(null)
+            setSkillNotice(null)
+            generateSkillMutation.mutate(currentSkillSourceTask.id)
+          }}
           value={draft}
           onValueChange={setDraft}
           commands={composerCommands}
@@ -657,6 +751,51 @@ export default function ChatPage({
             </div>
           ) : null}
       </div>
+      <ConfirmDialog
+        open={skillCandidate !== null}
+        title={
+          skillCandidate?.action === 'update'
+            ? '确认更新 Skill'
+            : '确认生成 Skill'
+        }
+        confirmLabel="保存为正式 Skill"
+        cancelLabel="拒绝候选"
+        tone="primary"
+        busy={reviewSkillMutation.isPending}
+        message={skillCandidate ? (
+          <div className="skill-review">
+            <p><strong>{skillCandidate.proposed_name}</strong></p>
+            <p>{skillCandidate.description}</p>
+            <p className="skill-review__reason">{skillCandidate.reason}</p>
+            <h4>执行步骤</h4>
+            <ol>
+              {skillCandidate.procedure.map((step) => <li key={step}>{step}</li>)}
+            </ol>
+            {skillCandidate.verification.length > 0 ? (
+              <>
+                <h4>验证方法</h4>
+                <ul>
+                  {skillCandidate.verification.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+              </>
+            ) : null}
+          </div>
+        ) : null}
+        onConfirm={() => {
+          if (!skillCandidate) return
+          reviewSkillMutation.mutate({
+            candidateId: skillCandidate.id,
+            decision: 'accept',
+          })
+        }}
+        onCancel={() => {
+          if (!skillCandidate) return
+          reviewSkillMutation.mutate({
+            candidateId: skillCandidate.id,
+            decision: 'reject',
+          })
+        }}
+      />
       </div>
     </div>
   )

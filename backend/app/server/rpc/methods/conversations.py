@@ -20,6 +20,7 @@ async def conversation_list(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `conversation_list` 对应的业务逻辑。"""
     limit = _positive_int(params, "limit", default=50)
     conversations = await ctx.application.conversation_store.list(limit=limit)
     return {"conversations": conversations, "count": len(conversations)}
@@ -29,6 +30,7 @@ async def conversation_get(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `conversation_get` 对应的业务逻辑。"""
     conversation_id = _require_str(params, "conversation_id")
     application = ctx.application
     conversation = await application.conversation_store.get(conversation_id)
@@ -42,6 +44,7 @@ async def conversation_create(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `conversation_create` 对应的业务逻辑。"""
     title = params.get("title")
     if title is not None and (not isinstance(title, str) or not title.strip()):
         raise JsonRpcError(RpcErrorCode.INVALID_PARAMS, "title must be a string")
@@ -55,6 +58,7 @@ async def conversation_send(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `conversation_send` 对应的业务逻辑。"""
     conversation_id = _require_str(params, "conversation_id")
     content = _require_str(params, "content")
     if not content.strip():
@@ -104,6 +108,7 @@ async def conversation_rename(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `conversation_rename` 对应的业务逻辑。"""
     conversation_id = _require_str(params, "conversation_id")
     title = _require_str(params, "title")
     try:
@@ -119,6 +124,7 @@ async def conversation_delete(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `conversation_delete` 对应的业务逻辑。"""
     conversation_id = _require_str(params, "conversation_id")
     deleted = await ctx.application.conversation_store.delete(conversation_id)
     if not deleted:
@@ -127,6 +133,7 @@ async def conversation_delete(
 
 
 def _require_str(params: dict[str, Any], key: str) -> str:
+    """读取并校验 `str` 对应的数据或流程。"""
     value = params.get(key)
     if not isinstance(value, str) or not value:
         raise JsonRpcError(RpcErrorCode.INVALID_PARAMS, f"{key} is required")
@@ -134,6 +141,7 @@ def _require_str(params: dict[str, Any], key: str) -> str:
 
 
 def _positive_int(params: dict[str, Any], key: str, *, default: int) -> int:
+    """处理 `_positive_int` 的内部辅助逻辑。"""
     value = params.get(key, default)
     if not isinstance(value, int) or isinstance(value, bool) or value < 1:
         raise JsonRpcError(
@@ -144,6 +152,7 @@ def _positive_int(params: dict[str, Any], key: str, *, default: int) -> int:
 
 
 def register(dispatcher: RpcDispatcher) -> None:
+    """注册当前对象的相关流程。"""
     dispatcher.register("conversation.list", conversation_list)
     dispatcher.register("conversation.get", conversation_get)
     dispatcher.register("conversation.create", conversation_create)

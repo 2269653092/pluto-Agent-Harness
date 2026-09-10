@@ -14,10 +14,12 @@ from ..protocol import INVALID_STATE, JsonRpcError, RpcErrorCode
 
 
 def _invalid_params(exc: ValueError) -> JsonRpcError:
+    """处理 `_invalid_params` 的内部辅助逻辑。"""
     return JsonRpcError(RpcErrorCode.INVALID_PARAMS, str(exc))
 
 
 def _view(application: Any) -> dict[str, Any]:
+    """处理 `_view` 的内部辅助逻辑。"""
     result = application.model_settings_service.view(
         active_provider=application.provider,
         active_model=application.model,
@@ -40,6 +42,7 @@ def _view(application: Any) -> dict[str, Any]:
 async def model_settings_get(
     params: dict[str, Any], ctx: RpcContext
 ) -> dict[str, Any]:
+    """执行 `model_settings_get` 对应的业务逻辑。"""
     application = ctx.application
     return _view(application)
 
@@ -47,6 +50,7 @@ async def model_settings_get(
 async def model_settings_update(
     params: dict[str, Any], ctx: RpcContext
 ) -> dict[str, Any]:
+    """执行 `model_settings_update` 对应的业务逻辑。"""
     try:
         update = ModelSettingsUpdate.model_validate(params)
         ctx.application.model_settings_service.save(update)
@@ -60,6 +64,7 @@ async def model_settings_update(
 async def model_settings_test(
     params: dict[str, Any], ctx: RpcContext
 ) -> dict[str, Any]:
+    """执行 `model_settings_test` 对应的业务逻辑。"""
     try:
         provider = ProviderSettingsUpdate.model_validate(params)
         return await ctx.application.model_settings_service.test(provider)
@@ -70,6 +75,7 @@ async def model_settings_test(
 
 
 def register(dispatcher: RpcDispatcher) -> None:
+    """注册当前对象的相关流程。"""
     dispatcher.register("model_settings.get", model_settings_get)
     dispatcher.register("model_settings.update", model_settings_update)
     dispatcher.register("model_settings.test", model_settings_test)

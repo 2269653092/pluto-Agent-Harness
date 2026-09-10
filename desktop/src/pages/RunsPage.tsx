@@ -14,6 +14,7 @@ import { useEventsStore } from '../stores/events'
 
 type RunFilter = 'all' | 'running' | 'attention'
 
+/** 渲染 `RunsPage` React 组件。 */
 export default function RunsPage({
   openRun,
 }: {
@@ -23,6 +24,7 @@ export default function RunsPage({
   const runStatuses = useEventsStore((state) => state.runStatuses)
   const query = useQuery({
     queryKey: ['runs'],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () => listRuns({ limit: 100 }),
     refetchInterval: 4000,
   })
@@ -99,6 +101,7 @@ export default function RunsPage({
   )
 }
 
+/** 执行 `relativeTime` 对应的界面或业务逻辑。 */
 function relativeTime(iso: string): string {
   const time = new Date(iso).getTime()
   if (Number.isNaN(time)) return iso

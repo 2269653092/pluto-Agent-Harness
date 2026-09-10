@@ -166,6 +166,33 @@ export interface Task {
   revision: number
 }
 
+export interface SkillCandidate {
+  id: string
+  origin: 'pattern_mining' | 'agent_proposal' | 'manual_task'
+  action: 'create' | 'update'
+  proposed_name: string
+  description: string
+  reason: string
+  procedure: string[]
+  pitfalls: string[]
+  verification: string[]
+  source_task_ids: string[]
+  source_run_ids: string[]
+  source_conversation_id: string | null
+  source_tool_call_id: string | null
+  existing_skill_name: string | null
+  status: 'pending' | 'accepted' | 'rejected'
+  created_at: string
+  reviewed_at: string | null
+  evidence_summary: string
+}
+
+export interface GenerateSkillResponse {
+  candidate: SkillCandidate | null
+  created: boolean
+  message: string
+}
+
 export interface AgentRunTrace {
   run_id: string
   conversation_id: string | null

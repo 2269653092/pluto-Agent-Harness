@@ -36,14 +36,17 @@ class SearchService:
         primary: SearchProvider,
         fallback: SearchProvider | None = None,
     ) -> None:
+        """初始化 `SearchService` 实例及其依赖。"""
         self._primary = primary
         self._fallback = fallback
 
     @property
     def primary_provider(self) -> str:
+        """执行 `primary_provider` 对应的业务逻辑。"""
         return self._primary.name
 
     async def search(self, request: SearchRequest) -> SearchResponse:
+        """搜索`SearchService`的相关流程。"""
         try:
             return _normalize_response(await self._primary.search(request), request)
         except SearchAuthenticationError:
@@ -102,6 +105,7 @@ def _normalize_response(
     response: SearchResponse,
     request: SearchRequest,
 ) -> SearchResponse:
+    """标准化 `response` 对应的数据或流程。"""
     results: list[SearchResult] = []
     seen_urls: set[str] = set()
     for result in response.results:
@@ -139,6 +143,7 @@ def _normalize_response(
 
 
 def _normalize_url(value: str) -> str:
+    """标准化 `url` 对应的数据或流程。"""
     parsed = urlsplit(value.strip())
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
         return ""

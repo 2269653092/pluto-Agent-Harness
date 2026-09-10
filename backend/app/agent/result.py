@@ -86,4 +86,5 @@ class AgentResult(BaseModel):
 
     @property
     def role(self) -> str:
+        """执行 `role` 对应的业务逻辑。"""
         return self.final_message.role.value

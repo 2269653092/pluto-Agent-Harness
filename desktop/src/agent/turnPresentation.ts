@@ -84,6 +84,7 @@ function argValue(args: unknown, key: string): string | null {
   return null
 }
 
+/** 格式化 `key_shortcut` 对应的数据或流程。 */
 function formatKeyShortcut(args: unknown): string {
   const key = argValue(args, 'key') ?? argValue(args, 'keycode')
   if (!key) return 'a key'
@@ -149,6 +150,7 @@ export function toolActiveLabel(name: string, args: unknown): string {
   }
 }
 
+/** 执行 `toolDoneLabel` 对应的界面或业务逻辑。 */
 export function toolDoneLabel(name: string, args: unknown, ok: boolean): string {
   if (!ok) {
     switch (name) {
@@ -193,10 +195,12 @@ export function toolDoneLabel(name: string, args: unknown, ok: boolean): string 
   }
 }
 
+/** 执行 `humanizeToolName` 对应的界面或业务逻辑。 */
 export function humanizeToolName(name: string): string {
   return name.replace(/^mcp__[^_]+__/, '').replaceAll('_', ' ')
 }
 
+/** 执行 `detailsText` 对应的界面或业务逻辑。 */
 function detailsText(args: unknown): string {
   if (!args) return ''
   if (typeof args === 'string') return args
@@ -207,6 +211,7 @@ function detailsText(args: unknown): string {
   }
 }
 
+/** 解析 `object` 对应的数据或流程。 */
 function parseObject(value: string | null): Record<string, unknown> | null {
   if (!value) return null
   try {
@@ -219,6 +224,7 @@ function parseObject(value: string | null): Record<string, unknown> | null {
   }
 }
 
+/** 执行 `targetFromOutput` 对应的界面或业务逻辑。 */
 function targetFromOutput(output: string | null): string | null {
   const parsed = parseObject(output)
   if (!parsed) return null
@@ -234,6 +240,7 @@ function targetFromOutput(output: string | null): string | null {
   return null
 }
 
+/** 执行 `capabilityForTool` 对应的界面或业务逻辑。 */
 function capabilityForTool(name: string): TurnView['capability'] {
   if (COMPUTER_TOOLS.has(name)) return 'Computer'
   if (name.includes('artifact')) return 'Artifact'
@@ -244,6 +251,7 @@ function capabilityForTool(name: string): TurnView['capability'] {
   return null
 }
 
+/** 执行 `humanizeRunError` 对应的界面或业务逻辑。 */
 export function humanizeRunError(
   stopReason: string | null,
   rawError: string | null = null,
@@ -309,6 +317,7 @@ export function parseVerificationStatus(output: string | null): 'verified' | 'un
   return null
 }
 
+/** 构建 `turn_view` 对应的数据或流程。 */
 export function buildTurnView(
   events: AgentEvent[],
   opts: { now?: number } = {},
@@ -328,6 +337,7 @@ export function buildTurnView(
   let rawError: string | null = null
   const modelSteps = new Set<number>()
 
+  /** 执行 `upsertTool` 对应的界面或业务逻辑。 */
   const upsertTool = (
     id: string,
     name: string,
@@ -562,6 +572,7 @@ export function buildTurnView(
   }
 }
 
+/** 执行 `sumOptionalUsage` 对应的界面或业务逻辑。 */
 function sumOptionalUsage(
   usages: ModelUsage[],
   field: 'cached_input_tokens',
@@ -572,6 +583,7 @@ function sumOptionalUsage(
   return usages.reduce((sum, usage) => sum + (usage[field] ?? 0), 0)
 }
 
+/** 执行 `cacheHitRate` 对应的界面或业务逻辑。 */
 function cacheHitRate(cachedInputTokens: number | null, inputTokens: number): number | null {
   if (cachedInputTokens === null || inputTokens <= 0) return null
   return Math.min(100, Math.max(0, (cachedInputTokens / inputTokens) * 100))
@@ -584,6 +596,7 @@ export function formatCacheHitRate(rate: number | null): string {
   return `${Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)}%`
 }
 
+/** 构建 `computer_context` 对应的数据或流程。 */
 export function buildComputerContext(
   events: AgentEvent[],
   observation: ComputerObservation | null,

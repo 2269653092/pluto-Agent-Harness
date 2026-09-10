@@ -21,11 +21,13 @@ const AUTO_DISMISS_MS = 4000
 
 export const useToastsStore = create<ToastsState>((set, get) => ({
   toasts: [],
+  /** 执行 `push` 对应的界面或业务逻辑。 */
   push: (tone, message) => {
     const id = `toast-${++nextId}`
     set((state) => ({ toasts: [...state.toasts, { id, tone, message }] }))
     globalThis.setTimeout(() => get().dismiss(id), AUTO_DISMISS_MS)
   },
+  /** 执行 `dismiss` 对应的界面或业务逻辑。 */
   dismiss: (id) => {
     set((state) => ({ toasts: state.toasts.filter((item) => item.id !== id) }))
   },
@@ -33,10 +35,13 @@ export const useToastsStore = create<ToastsState>((set, get) => ({
 
 /** 便捷调用：toast.success('已批准') / toast.error('失败') / toast.info(...)。 */
 export const toast = {
+  /** 执行 `success` 对应的界面或业务逻辑。 */
   success: (message: string): void =>
     useToastsStore.getState().push('success', message),
+  /** 执行 `error` 对应的界面或业务逻辑。 */
   error: (message: string): void =>
     useToastsStore.getState().push('error', message),
+  /** 执行 `info` 对应的界面或业务逻辑。 */
   info: (message: string): void =>
     useToastsStore.getState().push('info', message),
 }

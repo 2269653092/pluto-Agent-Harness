@@ -111,6 +111,7 @@ const NAMED_KEYS: Record<string, string> = {
   right: '→',
 }
 
+/** 格式化 `key_name` 对应的数据或流程。 */
 function formatKeyName(key: string): string {
   const named = NAMED_KEYS[key]
   if (named) return named

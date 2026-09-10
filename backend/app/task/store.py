@@ -51,6 +51,7 @@ class FileTaskStore:
     """任务的 CRUD、状态推进与关联管理（本地 JSON 文件存储）。"""
 
     def __init__(self, tasks_dir: str | Path = DEFAULT_TASKS_DIR) -> None:
+        """初始化 `FileTaskStore` 实例及其依赖。"""
         self.tasks_dir = Path(tasks_dir).expanduser().resolve()
         self._locks: dict[str, asyncio.Lock] = {}
 
@@ -370,6 +371,7 @@ class FileTaskStore:
         return tasks[0] if tasks else None
 
     async def _require(self, task_id: str) -> Task:
+        """读取并校验`FileTaskStore`的相关流程。"""
         task = await self.get(task_id)
         if task is None:
             raise KeyError(f"任务不存在：{task_id}")
@@ -380,6 +382,7 @@ class FileTaskStore:
         task_id: str,
         patch: TaskPatch,
     ) -> Task:
+        """更新`FileTaskStore`的相关流程。"""
         return await self.apply_patch(task_id, patch)
 
     async def _all_tasks(self) -> list[Task]:
@@ -388,12 +391,14 @@ class FileTaskStore:
         return await asyncio.to_thread(_scan_tasks, self.tasks_dir)
 
     async def _write(self, task: Task) -> None:
+        """写入`FileTaskStore`的相关流程。"""
         path = self._path(task.id)
         if await asyncio.to_thread(path.is_symlink):
             raise ValueError("task path cannot be a symbolic link")
         await asyncio.to_thread(_write_task, path, task)
 
     def _path(self, task_id: str) -> Path:
+        """处理 `_path` 的内部辅助逻辑。"""
         normalized = _validate_task_id(task_id)
         path = self.tasks_dir / f"{normalized}.json"
         if path.parent.resolve() != self.tasks_dir:
@@ -401,6 +406,7 @@ class FileTaskStore:
         return path
 
     def _lock_for(self, task_id: str) -> asyncio.Lock:
+        """处理 `_lock_for` 的内部辅助逻辑。"""
         lock = self._locks.get(task_id)
         if lock is None:
             lock = asyncio.Lock()
@@ -409,6 +415,7 @@ class FileTaskStore:
 
 
 def _scan_tasks(tasks_dir: Path) -> list[Task]:
+    """处理 `_scan_tasks` 的内部辅助逻辑。"""
     if not tasks_dir.is_dir():
         return []
     tasks: list[Task] = []
@@ -435,6 +442,7 @@ def _scan_tasks(tasks_dir: Path) -> list[Task]:
 
 
 def _read_task(path: Path) -> Task:
+    """读取 `task` 对应的数据或流程。"""
     if path.stat().st_size > MAX_TASK_FILE_BYTES:
         raise ValueError(
             f"task file exceeds {MAX_TASK_FILE_BYTES} byte safety limit"
@@ -466,6 +474,7 @@ def _read_task(path: Path) -> Task:
 
 
 def _write_task(path: Path, task: Task) -> None:
+    """写入 `task` 对应的数据或流程。"""
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(
         task.model_dump(mode="json"),
@@ -577,6 +586,7 @@ def _merge_entries(
     existing: Sequence[str],
     new: Sequence[str],
 ) -> tuple[str, ...]:
+    """合并 `entries` 对应的数据或流程。"""
     merged: list[str] = []
     seen: set[str] = set()
     for entry in (*existing, *new):
@@ -588,6 +598,7 @@ def _merge_entries(
 
 
 def _validate_task_id(task_id: str) -> str:
+    """校验 `task_id` 对应的数据或流程。"""
     if not isinstance(task_id, str):
         raise TypeError("task_id must be a string")
     normalized = task_id.strip().lower()
@@ -597,6 +608,7 @@ def _validate_task_id(task_id: str) -> str:
 
 
 def _validate_task_prefix(identifier: str) -> str:
+    """校验 `task_prefix` 对应的数据或流程。"""
     if not _TASK_PREFIX_RE.fullmatch(identifier):
         raise ValueError(
             "task identifier must be a 4-32 character hexadecimal prefix"
@@ -605,6 +617,7 @@ def _validate_task_prefix(identifier: str) -> str:
 
 
 def _normalize_required_entry(value: str, *, field_name: str) -> str:
+    """标准化 `required_entry` 对应的数据或流程。"""
     if not isinstance(value, str):
         raise TypeError(f"{field_name} must be a string")
     normalized = " ".join(value.split()).strip()

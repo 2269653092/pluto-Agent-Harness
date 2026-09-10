@@ -29,10 +29,12 @@ class MemoryReadTool(BaseTool):
     """读取一条完整长期记忆。"""
 
     def __init__(self, manager: MemoryManager) -> None:
+        """初始化 `MemoryReadTool` 实例及其依赖。"""
         self._manager = manager
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="memory_read",
             record_output=False,
@@ -55,6 +57,7 @@ class MemoryReadTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`MemoryReadTool`的相关流程。"""
         memory_id = arguments.get("memory_id")
         if not isinstance(memory_id, str) or not memory_id.strip():
             raise ValueError("'memory_id' must be a non-empty string")
@@ -74,10 +77,12 @@ class MemorySearchTool(BaseTool):
     """Hybrid（FTS5 + 向量）检索当前 active 长期记忆。"""
 
     def __init__(self, manager: MemoryManager) -> None:
+        """初始化 `MemorySearchTool` 实例及其依赖。"""
         self._manager = manager
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="memory_search",
             record_output=False,
@@ -108,6 +113,7 @@ class MemorySearchTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`MemorySearchTool`的相关流程。"""
         query = arguments.get("query")
         if not isinstance(query, str) or not query.strip():
             raise ValueError("'query' must be a non-empty string")
@@ -151,10 +157,12 @@ class MemoryListTool(BaseTool):
     """列出当前 active 长期记忆的简要信息。"""
 
     def __init__(self, manager: MemoryManager) -> None:
+        """初始化 `MemoryListTool` 实例及其依赖。"""
         self._manager = manager
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="memory_list",
             record_output=False,
@@ -171,6 +179,7 @@ class MemoryListTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`MemoryListTool`的相关流程。"""
         records = await self._manager.list()
         return {
             "memories": [
@@ -188,10 +197,12 @@ class MemoryCreateTool(BaseTool):
     """创建一条普通长期记忆。"""
 
     def __init__(self, manager: MemoryManager) -> None:
+        """初始化 `MemoryCreateTool` 实例及其依赖。"""
         self._manager = manager
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="memory_create",
             record_output=False,
@@ -223,6 +234,7 @@ class MemoryCreateTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`MemoryCreateTool`的相关流程。"""
         title = arguments.get("title")
         summary = arguments.get("summary")
         content = arguments.get("content")
@@ -252,10 +264,12 @@ class MemoryUpdateTool(BaseTool):
     """修正已有长期记忆。"""
 
     def __init__(self, manager: MemoryManager) -> None:
+        """初始化 `MemoryUpdateTool` 实例及其依赖。"""
         self._manager = manager
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="memory_update",
             record_output=False,
@@ -306,6 +320,7 @@ class MemoryUpdateTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`MemoryUpdateTool`的相关流程。"""
         memory_id = arguments.get("memory_id")
         title = arguments.get("title")
         summary = arguments.get("summary")
@@ -345,10 +360,12 @@ class MemoryArchiveTool(BaseTool):
     """把过时长期记忆归档。"""
 
     def __init__(self, manager: MemoryManager) -> None:
+        """初始化 `MemoryArchiveTool` 实例及其依赖。"""
         self._manager = manager
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="memory_archive",
             record_output=False,
@@ -375,6 +392,7 @@ class MemoryArchiveTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`MemoryArchiveTool`的相关流程。"""
         memory_id = arguments.get("memory_id")
         reason = arguments.get("reason")
         if not isinstance(memory_id, str) or not memory_id.strip():
@@ -389,10 +407,12 @@ class CoreMemoryUpdateTool(BaseTool):
     """根据当前用户的明确长期陈述，按 key 创建或更新 Core Memory。"""
 
     def __init__(self, manager: MemoryManager) -> None:
+        """初始化 `CoreMemoryUpdateTool` 实例及其依赖。"""
         self._manager = manager
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="core_memory_update",
             record_output=False,
@@ -439,6 +459,7 @@ class CoreMemoryUpdateTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`CoreMemoryUpdateTool`的相关流程。"""
         raise ValueError("core_memory_update requires the current user message")
 
     async def execute_with_context(
@@ -446,6 +467,7 @@ class CoreMemoryUpdateTool(BaseTool):
         arguments: dict[str, Any],
         context: ToolExecutionContext,
     ) -> dict[str, Any]:
+        """执行 `with_context` 对应的数据或流程。"""
         key = _required_string(arguments, "key")
         value = _required_string(arguments, "value")
         reason = _required_string(arguments, "reason")
@@ -474,10 +496,12 @@ class CoreMemoryRemoveTool(BaseTool):
     """根据当前用户明确要求移除一个按 key 管理的 Core 条目。"""
 
     def __init__(self, manager: MemoryManager) -> None:
+        """初始化 `CoreMemoryRemoveTool` 实例及其依赖。"""
         self._manager = manager
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="core_memory_remove",
             record_output=False,
@@ -510,6 +534,7 @@ class CoreMemoryRemoveTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`CoreMemoryRemoveTool`的相关流程。"""
         raise ValueError("core_memory_remove requires the current user message")
 
     async def execute_with_context(
@@ -517,6 +542,7 @@ class CoreMemoryRemoveTool(BaseTool):
         arguments: dict[str, Any],
         context: ToolExecutionContext,
     ) -> dict[str, Any]:
+        """执行 `with_context` 对应的数据或流程。"""
         key = _required_string(arguments, "key")
         _required_string(arguments, "reason")
         statement = _required_string(arguments, "explicit_user_statement")
@@ -559,6 +585,7 @@ def register_memory_write_tools(
 
 
 def _required_string(arguments: dict[str, Any], name: str) -> str:
+    """处理 `_required_string` 的内部辅助逻辑。"""
     value = arguments.get(name)
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"'{name}' must be a non-empty string")

@@ -25,6 +25,7 @@ class RollingConversationSummary(BaseModel):
     @field_validator("current_objective", mode="before")
     @classmethod
     def normalize_objective(cls, value: object) -> str | None:
+        """标准化 `objective` 对应的数据或流程。"""
         if value is None:
             return None
         if not isinstance(value, str):
@@ -43,6 +44,7 @@ class RollingConversationSummary(BaseModel):
     )
     @classmethod
     def normalize_entries(cls, value: object) -> tuple[str, ...]:
+        """标准化 `entries` 对应的数据或流程。"""
         if value is None:
             return ()
         values = (value,) if isinstance(value, str) else value
@@ -112,6 +114,7 @@ class SummaryGenerationResult(BaseModel):
 
 
 def _normalize_text(value: str) -> str:
+    """标准化 `text` 对应的数据或流程。"""
     return " ".join(value.split()).strip()
 
 

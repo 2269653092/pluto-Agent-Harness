@@ -32,6 +32,7 @@ class RpcContext:
         application: Application,
         connection: RpcConnection,
     ) -> None:
+        """初始化 `RpcContext` 实例及其依赖。"""
         self.application = application
         self.connection = connection
 
@@ -40,9 +41,11 @@ class RpcDispatcher:
     """显式 method 注册表。"""
 
     def __init__(self) -> None:
+        """初始化 `RpcDispatcher` 实例及其依赖。"""
         self._methods: dict[str, Handler] = {}
 
     def register(self, method: str, handler: Handler) -> None:
+        """注册`RpcDispatcher`的相关流程。"""
         if not method or not method.strip():
             raise ValueError("rpc method name cannot be empty")
         if method in self._methods:
@@ -50,10 +53,12 @@ class RpcDispatcher:
         self._methods[method] = handler
 
     def register_many(self, handlers: dict[str, Handler]) -> None:
+        """注册 `many` 对应的数据或流程。"""
         for name, handler in handlers.items():
             self.register(name, handler)
 
     def has_method(self, method: str) -> bool:
+        """判断是否包含 `method` 对应的数据或流程。"""
         return method in self._methods
 
     async def dispatch(
@@ -86,6 +91,7 @@ def rpc_method(name: str) -> Callable[[Handler], Handler]:
     """装饰器式注册标记：配合 ``register_all_decorated`` 使用。"""
 
     def decorate(fn: Handler) -> Handler:
+        """执行 `decorate` 对应的业务逻辑。"""
         fn._rpc_name = name  # type: ignore[attr-defined]
         return fn
 

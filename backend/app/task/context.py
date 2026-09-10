@@ -24,6 +24,7 @@ class TaskContextProvider:
         max_list_entries: int = 12,
         max_pending_steps: int = 12,
     ) -> None:
+        """初始化 `TaskContextProvider` 实例及其依赖。"""
         if recent_done_steps < 0:
             raise ValueError("recent_done_steps cannot be negative")
         if max_entry_chars <= 0:
@@ -207,6 +208,7 @@ def _visible_steps(
     recent_done_steps: int,
     max_pending_steps: int,
 ) -> tuple[tuple[TaskStep, ...], int, int]:
+    """处理 `_visible_steps` 的内部辅助逻辑。"""
     done = [step for step in steps if step.status is TaskStepStatus.DONE]
     retained_done_ids = {
         step.id for step in (done[-recent_done_steps:] if recent_done_steps else ())
@@ -223,6 +225,7 @@ def _visible_steps(
 
 
 def _compact(value: str | None, max_chars: int) -> str | None:
+    """处理 `_compact` 的内部辅助逻辑。"""
     if value is None or len(value) <= max_chars:
         return value
     return f"{value[:max_chars]}…"

@@ -45,6 +45,7 @@ class MemoryMaintenanceConfig(BaseSettings):
     @field_validator("provider", "model", mode="before")
     @classmethod
     def normalize_optional_text(cls, value: object) -> str | None:
+        """标准化 `optional_text` 对应的数据或流程。"""
         if value is None:
             return None
         if not isinstance(value, str):
@@ -69,6 +70,7 @@ class MemoryMaintenanceCandidate(BaseModel):
     @field_validator("id", mode="before")
     @classmethod
     def normalize_id(cls, value: object) -> str:
+        """标准化 `id` 对应的数据或流程。"""
         if not isinstance(value, str):
             raise TypeError("maintenance candidate ID must be a string")
         normalized = value.strip().upper()
@@ -100,6 +102,7 @@ class MemoryMaintenanceDecision(BaseModel):
     @field_validator("memory_id", mode="before")
     @classmethod
     def normalize_optional_id(cls, value: object) -> str | None:
+        """标准化 `optional_id` 对应的数据或流程。"""
         if value is None:
             return None
         if not isinstance(value, str):
@@ -112,6 +115,7 @@ class MemoryMaintenanceDecision(BaseModel):
     @field_validator("reason", mode="before")
     @classmethod
     def normalize_reason(cls, value: object) -> str:
+        """标准化 `reason` 对应的数据或流程。"""
         if not isinstance(value, str):
             raise TypeError("maintenance reason must be a string")
         normalized = " ".join(value.split())
@@ -121,6 +125,7 @@ class MemoryMaintenanceDecision(BaseModel):
 
     @model_validator(mode="after")
     def validate_action_fields(self) -> MemoryMaintenanceDecision:
+        """校验 `action_fields` 对应的数据或流程。"""
         if self.action is MaintenanceAction.ARCHIVE and self.memory_id is None:
             raise ValueError("archive decision requires memory_id")
         if self.action is MaintenanceAction.DEFER and self.memory_id is not None:

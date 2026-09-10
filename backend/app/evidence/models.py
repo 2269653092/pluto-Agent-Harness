@@ -28,6 +28,7 @@ class EvidenceRecord(BaseModel):
     @field_validator("created_at")
     @classmethod
     def normalize_created_at(cls, value: datetime) -> datetime:
+        """标准化 `created_at` 对应的数据或流程。"""
         if value.tzinfo is None or value.utcoffset() is None:
             raise ValueError("evidence created_at must include timezone")
         return value.astimezone(UTC)

@@ -18,6 +18,7 @@ class MemoryMaintenance:
     """容量检查与 Retention 候选选择。"""
 
     def __init__(self, *, max_active: int = 25) -> None:
+        """初始化 `MemoryMaintenance` 实例及其依赖。"""
         if max_active <= 0:
             raise ValueError("max_active must be greater than zero")
         self.max_active = max_active
@@ -50,6 +51,7 @@ class MemoryMaintenance:
 
 
 def _retention_score(record: MemoryRecord, now: datetime) -> float:
+    """处理 `_retention_score` 的内部辅助逻辑。"""
     hours_since_accessed = max(
         0.0, (now - record.last_accessed_at).total_seconds() / 3600
     )

@@ -706,6 +706,103 @@ async def test_accept_creates_skill_and_reject_does_not(
     assert any(item.name == "accepted-skill" for item in catalog)
 
 
+@pytest.mark.asyncio
+async def test_manual_completed_task_generates_reviewable_candidate(
+    tmp_path: Path,
+) -> None:
+    env, root = await _make_env(tmp_path)
+    task_id = await _create_completed(
+        env["task_store"],
+        title="修复 Windows 桌面端启动",
+        goal="定位端口冲突并验证应用启动",
+        steps=("检查端口", "终止遗留进程", "重新启动", "验证页面"),
+    )
+    response = json.dumps(
+        {
+            "action": "create",
+            "proposed_name": "windows-desktop-startup",
+            "description": "排查并恢复 Windows 桌面端启动",
+            "reason": "任务包含经过验证的多步骤排查流程",
+            "procedure": ["检查端口", "终止遗留进程", "重新启动"],
+            "pitfalls": ["不要只关闭窗口而忽略遗留进程"],
+            "verification": ["确认桌面页面可访问"],
+        },
+        ensure_ascii=False,
+    )
+    registry, adapter = _fake_registry([_model_response(response)])
+    service = SkillLearningService(
+        env["task_store"],
+        env["trace_store"],
+        env["skill_store"],
+        env["candidate_store"],
+        registry,
+        settings=_settings(root),
+        default_provider="fake",
+    )
+
+    candidate, created, message = await service.generate_for_task(task_id)
+
+    assert created is True
+    assert candidate is not None
+    assert candidate.origin is SkillCandidateOrigin.MANUAL_TASK
+    assert candidate.source_task_ids == (task_id,)
+    assert candidate.source_conversation_id == "conv"
+    assert candidate.status is SkillCandidateStatus.PENDING
+    assert "确认" in message
+    assert len(adapter.requests) == 1
+
+    replayed, created_again, _ = await service.generate_for_task(task_id)
+    assert replayed is not None and replayed.id == candidate.id
+    assert created_again is False
+    assert len(adapter.requests) == 1
+
+
+@pytest.mark.asyncio
+async def test_manual_skill_generation_can_decline_unfinished_task(
+    tmp_path: Path,
+) -> None:
+    env, root = await _make_env(tmp_path)
+    task = await env["task_store"].create(
+        title="仍在执行的任务",
+        owner_conversation_id="conv",
+        run_ids=("run-active",),
+    )
+    registry, adapter = _fake_registry(
+        [
+            _model_response(
+                json.dumps(
+                    {
+                        "action": "none",
+                        "proposed_name": None,
+                        "description": None,
+                        "reason": "任务尚未产生足够的已验证执行证据",
+                        "procedure": [],
+                        "pitfalls": [],
+                        "verification": [],
+                        "existing_skill_name": None,
+                    },
+                    ensure_ascii=False,
+                )
+            )
+        ]
+    )
+    service = SkillLearningService(
+        env["task_store"],
+        env["trace_store"],
+        env["skill_store"],
+        env["candidate_store"],
+        registry,
+        settings=_settings(root),
+        default_provider="fake",
+    )
+
+    candidate, created, message = await service.generate_for_task(task.id)
+    assert candidate is None
+    assert created is False
+    assert "证据" in message
+    assert len(adapter.requests) == 1
+
+
 # ---------------------------------------------------------------------------
 # 7. P0：Evidence 对齐真实 task_update 参数（具体内容，不只是"发生了 change"）
 # ---------------------------------------------------------------------------

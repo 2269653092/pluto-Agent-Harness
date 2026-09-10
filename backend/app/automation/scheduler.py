@@ -54,6 +54,7 @@ class AutomationScheduler:
         *,
         timezone: str = "UTC",
     ) -> None:
+        """初始化 `AutomationScheduler` 实例及其依赖。"""
         self._store = store
         self._conversation_service = conversation_service
         self._timezone = ZoneInfo(timezone)
@@ -97,6 +98,7 @@ class AutomationScheduler:
         schedule: Schedule,
         next_run_at: datetime,
     ) -> Automation:
+        """创建 `automation` 对应的数据或流程。"""
         automation = await self._store.create(
             title=title,
             prompt=prompt,
@@ -108,6 +110,7 @@ class AutomationScheduler:
         return automation
 
     async def get(self, automation_id: str) -> Automation | None:
+        """获取`AutomationScheduler`的相关流程。"""
         return await self._store.get(automation_id)
 
     async def resolve(self, identifier: str) -> Automation | None:
@@ -122,6 +125,7 @@ class AutomationScheduler:
         conversation_id: str | None = None,
         limit: int = 50,
     ) -> tuple[Automation, ...]:
+        """列出`AutomationScheduler`的相关流程。"""
         return await self._store.list(
             status=status,
             conversation_id=conversation_id,
@@ -129,6 +133,7 @@ class AutomationScheduler:
         )
 
     async def cancel(self, automation_id: str) -> Automation:
+        """取消`AutomationScheduler`的相关流程。"""
         automation = await self._store.require(automation_id)
         if automation.status is AutomationStatus.CANCELLED:
             return automation
@@ -140,6 +145,7 @@ class AutomationScheduler:
         return updated
 
     async def pause(self, automation_id: str) -> Automation:
+        """执行 `pause` 对应的业务逻辑。"""
         automation = await self._store.require(automation_id)
         if automation.status is not AutomationStatus.ACTIVE:
             raise ValueError(
@@ -154,6 +160,7 @@ class AutomationScheduler:
         return updated
 
     async def resume(self, automation_id: str) -> Automation:
+        """执行 `resume` 对应的业务逻辑。"""
         automation = await self._store.require(automation_id)
         if automation.status is not AutomationStatus.PAUSED:
             raise ValueError(
@@ -237,6 +244,7 @@ class AutomationScheduler:
         self._job_ids[automation.id] = job.id
 
     def _remove_job(self, automation_id: str) -> None:
+        """移除 `job` 对应的数据或流程。"""
         job_id = self._job_ids.pop(automation_id, None)
         if job_id is None:
             return
@@ -246,7 +254,9 @@ class AutomationScheduler:
             pass
 
     def _job_func(self, automation_id: str) -> Any:
+        """处理 `_job_func` 的内部辅助逻辑。"""
         async def _run() -> None:
+            """运行`AutomationScheduler`的相关流程。"""
             try:
                 await self._trigger(automation_id)
             except Exception:  # noqa: BLE001
@@ -345,6 +355,7 @@ class AutomationScheduler:
         """
 
         async def _record(run_id: str) -> None:
+            """记录`AutomationScheduler`的相关流程。"""
             await self._store.mark_triggered(
                 automation_id,
                 last_run_id=run_id,
@@ -359,6 +370,7 @@ class AutomationScheduler:
     # ------------------------------------------------------------------
 
     def _build_trigger(self, schedule: Schedule):
+        """构建 `trigger` 对应的数据或流程。"""
         tz = ZoneInfo(schedule.timezone)
         if schedule.kind is ScheduleKind.INTERVAL:
             return IntervalTrigger(

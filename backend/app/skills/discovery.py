@@ -40,6 +40,7 @@ class SkillDiagnostic:
     reason: str
 
     def render(self) -> str:
+        """渲染`SkillDiagnostic`的相关流程。"""
         return (
             f"skill[{self.scope.value}] {self.name} at {self.location} "
             f"skipped: {self.reason}"
@@ -54,11 +55,13 @@ class SkillDiscovery:
         user_dir: str | Path = DEFAULT_USER_SKILLS_DIR,
         project_dir: str | Path = DEFAULT_PROJECT_SKILLS_DIR,
     ) -> None:
+        """初始化 `SkillDiscovery` 实例及其依赖。"""
         self.user_dir = Path(user_dir).expanduser().resolve()
         self.project_dir = Path(project_dir).expanduser().resolve()
         self._diagnostics: list[SkillDiagnostic] = []
 
     def diagnostics(self) -> tuple[SkillDiagnostic, ...]:
+        """执行 `diagnostics` 对应的业务逻辑。"""
         return tuple(self._diagnostics)
 
     def discover(self) -> tuple[SkillMetadata, ...]:
@@ -79,6 +82,7 @@ class SkillDiscovery:
         root: Path,
         scope: SkillScope,
     ) -> tuple[SkillMetadata, ...]:
+        """发现 `scope` 对应的数据或流程。"""
         if not root.is_dir():
             return ()
         found: list[SkillMetadata] = []
@@ -114,6 +118,7 @@ class SkillDiscovery:
         skill_dir: Path,
         scope: SkillScope,
     ) -> SkillMetadata | None:
+        """读取 `metadata` 对应的数据或流程。"""
         name = skill_dir.name
         skill_file = safe_skill_file(skill_dir)
         if skill_file is None:
@@ -155,6 +160,7 @@ class SkillDiscovery:
         location: str,
         reason: str,
     ) -> None:
+        """记录`SkillDiscovery`的相关流程。"""
         diagnostic = SkillDiagnostic(
             scope=scope,
             name=name,
@@ -219,6 +225,7 @@ def safe_skill_resource(skill_dir: Path, relative: str) -> Path | None:
 
 
 def _is_within(root: Path, target: Path) -> bool:
+    """判断 `within` 对应的数据或流程。"""
     try:
         target.relative_to(root)
         return True

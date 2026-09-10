@@ -61,6 +61,7 @@ class ModelSettingsService:
         secrets: ModelSecretStore | None = None,
         base_settings: ModelSettings | None = None,
     ) -> None:
+        """初始化 `ModelSettingsService` 实例及其依赖。"""
         self.store = store or ModelSettingsStore()
         self.secrets = secrets or default_secret_store()
         self.base_settings = base_settings or ModelSettings()
@@ -72,6 +73,7 @@ class ModelSettingsService:
         active_model: str,
         active_roles: dict[str, dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
+        """执行 `view` 对应的业务逻辑。"""
         base = self.base_settings
         stored = self.store.load() or _defaults(base)
         providers = []
@@ -115,6 +117,7 @@ class ModelSettingsService:
         }
 
     def save(self, update: ModelSettingsUpdate) -> StoredModelSettings:
+        """保存`ModelSettingsService`的相关流程。"""
         base = self.base_settings
         existing_keys = {
             provider: bool(self.secrets.get(provider.value))
@@ -156,6 +159,7 @@ class ModelSettingsService:
         return stored
 
     async def test(self, item: ProviderSettingsUpdate) -> dict[str, Any]:
+        """执行 `test` 对应的业务逻辑。"""
         _validate_connection_test_endpoint(item)
         key = item.api_key or self.secrets.get(item.provider.value)
         if not key:
@@ -246,6 +250,7 @@ def load_effective_model_configuration(
 
 
 def _defaults(settings: ModelSettings) -> StoredModelSettings:
+    """处理 `_defaults` 的内部辅助逻辑。"""
     providers = {}
     for provider in ModelProvider:
         prefix = provider.value
@@ -269,6 +274,7 @@ def _defaults(settings: ModelSettings) -> StoredModelSettings:
 
 
 def _reflection_config(role: ModelRoleSettings) -> MemoryReflectionConfig:
+    """处理 `_reflection_config` 的内部辅助逻辑。"""
     return MemoryReflectionConfig(
         enabled=role.enabled,
         provider=None if role.inherit_main else role.provider.value,
@@ -277,6 +283,7 @@ def _reflection_config(role: ModelRoleSettings) -> MemoryReflectionConfig:
 
 
 def _maintenance_config(role: ModelRoleSettings) -> MemoryMaintenanceConfig:
+    """处理 `_maintenance_config` 的内部辅助逻辑。"""
     return MemoryMaintenanceConfig(
         enabled=role.enabled,
         provider=None if role.inherit_main else role.provider.value,
@@ -285,6 +292,7 @@ def _maintenance_config(role: ModelRoleSettings) -> MemoryMaintenanceConfig:
 
 
 def _summary_config(role: ModelRoleSettings) -> ContextSummaryModelConfig:
+    """处理 `_summary_config` 的内部辅助逻辑。"""
     return ContextSummaryModelConfig(
         enabled=role.enabled,
         provider=None if role.inherit_main else role.provider.value,
@@ -295,10 +303,12 @@ def _summary_config(role: ModelRoleSettings) -> ContextSummaryModelConfig:
 def _resolved_saved_roles(
     stored: StoredModelSettings,
 ) -> dict[str, dict[str, Any]]:
+    """处理 `_resolved_saved_roles` 的内部辅助逻辑。"""
     main_provider = stored.default_provider
     main_model = stored.providers[main_provider.value].model
 
     def resolve(role: ModelRoleSettings) -> dict[str, Any]:
+        """解析或确定当前对象的相关流程。"""
         return {
             "enabled": role.enabled,
             "provider": (
@@ -320,6 +330,7 @@ def _resolved_saved_roles(
 
 
 def _secret_value(secret: SecretStr | None) -> str | None:
+    """处理 `_secret_value` 的内部辅助逻辑。"""
     if secret is None:
         return None
     return secret.get_secret_value().strip() or None

@@ -36,6 +36,7 @@ class ToolAvailabilityPolicy:
         *,
         plan_allowed_tools: Collection[str] = PLAN_MODE_ALLOWED_TOOLS,
     ) -> None:
+        """初始化 `ToolAvailabilityPolicy` 实例及其依赖。"""
         self._plan_allowed_tools = frozenset(plan_allowed_tools)
 
     def allowed_names(
@@ -44,6 +45,7 @@ class ToolAvailabilityPolicy:
         *,
         registered_names: Collection[str],
     ) -> frozenset[str]:
+        """执行 `allowed_names` 对应的业务逻辑。"""
         if mode is AgentMode.PLAN:
             return self._plan_allowed_tools
         return frozenset(registered_names)

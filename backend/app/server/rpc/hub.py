@@ -29,15 +29,18 @@ class RpcHub:
     """进程内维护已连接的 RPC 连接并广播 notification。"""
 
     def __init__(self) -> None:
+        """初始化 `RpcHub` 实例及其依赖。"""
         self._connections: set[RpcConnection] = set()
         self._lock = asyncio.Lock()
 
     async def register(self, connection: RpcConnection) -> None:
+        """注册`RpcHub`的相关流程。"""
         async with self._lock:
             self._connections.add(connection)
         logger.debug("rpc connection registered (%d)", len(self._connections))
 
     async def unregister(self, connection: RpcConnection) -> None:
+        """注销`RpcHub`的相关流程。"""
         async with self._lock:
             self._connections.discard(connection)
         logger.debug("rpc connection unregistered (%d)", len(self._connections))
@@ -52,6 +55,7 @@ class RpcHub:
 
     @property
     def connection_count(self) -> int:
+        """执行 `connection_count` 对应的业务逻辑。"""
         return len(self._connections)
 
 
@@ -64,9 +68,11 @@ class RpcBroadcastEventHandler(AgentEventHandler):
     """
 
     def __init__(self, hub: RpcHub) -> None:
+        """初始化 `RpcBroadcastEventHandler` 实例及其依赖。"""
         self._hub = hub
 
     async def emit(self, event: AgentEvent) -> None:
+        """发送`RpcBroadcastEventHandler`的相关流程。"""
         await self._hub.broadcast("agent.event", event.model_dump(mode="json"))
         status = _derived_run_status(event)
         if status is not None:

@@ -82,12 +82,14 @@ class ToolHookRunner:
     """依次调用 Hook，并按关键程度处理单个 Hook 的异常。"""
 
     def __init__(self, *hooks: ToolHook) -> None:
+        """初始化 `ToolHookRunner` 实例及其依赖。"""
         self._hooks = hooks
 
     async def before_execute(
         self,
         context: ToolExecutionContext,
     ) -> ToolHookDecision | None:
+        """执行 `before_execute` 对应的业务逻辑。"""
         decision: ToolHookDecision | None = None
         for hook in self._hooks:
             try:
@@ -114,6 +116,7 @@ class ToolHookRunner:
         context: ToolExecutionContext,
         request: ApprovalRequest,
     ) -> None:
+        """执行 `on_approval_required` 对应的业务逻辑。"""
         for hook in self._hooks:
             try:
                 await hook.on_approval_required(context, request)
@@ -127,6 +130,7 @@ class ToolHookRunner:
         decision: ApprovalDecision,
         rule: PermissionRule | None = None,
     ) -> None:
+        """执行 `on_approval_completed` 对应的业务逻辑。"""
         for hook in self._hooks:
             try:
                 await hook.on_approval_completed(context, request, decision, rule)
@@ -138,6 +142,7 @@ class ToolHookRunner:
         context: ToolExecutionContext,
         result: ToolResult,
     ) -> None:
+        """执行 `after_execute` 对应的业务逻辑。"""
         for hook in self._hooks:
             try:
                 await hook.after_execute(context, result)

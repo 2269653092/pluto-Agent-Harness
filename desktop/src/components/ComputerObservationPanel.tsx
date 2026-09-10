@@ -6,6 +6,7 @@ import type { ComputerObservation } from '../api/computer'
 
 const MAX_ELEMENTS = 100
 
+/** 执行 `Screenshot` 对应的界面或业务逻辑。 */
 function Screenshot({
   observationId,
   serverUrl,
@@ -25,6 +26,7 @@ function Screenshot({
   )
 }
 
+/** 渲染 `ComputerObservationPanel` React 组件。 */
 export default function ComputerObservationPanel({
   observation,
   runId,

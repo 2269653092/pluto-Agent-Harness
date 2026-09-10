@@ -17,6 +17,7 @@ const FILTERS: Array<{ id: TraceFilter; label: string }> = [
   { id: 'memory', label: 'Memory' },
 ]
 
+/** 执行 `matches` 对应的界面或业务逻辑。 */
 function matches(event: AgentEvent, filter: TraceFilter): boolean {
   if (filter === 'all') return true
   if (filter === 'model') return event.type.startsWith('model_')
@@ -25,6 +26,7 @@ function matches(event: AgentEvent, filter: TraceFilter): boolean {
   return event.type.startsWith('memory_')
 }
 
+/** 执行 `time` 对应的界面或业务逻辑。 */
 function time(iso: string): string {
   const value = new Date(iso)
   return Number.isNaN(value.getTime())
@@ -32,6 +34,7 @@ function time(iso: string): string {
     : value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 }
 
+/** 执行 `eventMeta` 对应的界面或业务逻辑。 */
 function eventMeta(event: AgentEvent): string {
   const parts: string[] = []
   if (event.tool_call?.name) parts.push(event.tool_call.name)
@@ -46,6 +49,7 @@ function eventMeta(event: AgentEvent): string {
   return parts.join(' · ')
 }
 
+/** 执行 `ExecutionTrace` 对应的界面或业务逻辑。 */
 export default function ExecutionTrace({ events }: { events: AgentEvent[] }): React.JSX.Element {
   const [filter, setFilter] = useState<TraceFilter>('all')
   const filtered = useMemo(() => events.filter((event) => matches(event, filter)), [events, filter])

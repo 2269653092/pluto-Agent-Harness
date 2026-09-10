@@ -50,10 +50,12 @@ class MCPStatusTool(BaseTool):
         *,
         configuration_error: str | None = None,
     ) -> None:
+        """初始化 `MCPStatusTool` 实例及其依赖。"""
         self._manager = manager
         self._configuration_error = configuration_error
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`MCPStatusTool`的相关流程。"""
         server = arguments.get("server")
         if server is not None and (
             not isinstance(server, str) or not server.strip()

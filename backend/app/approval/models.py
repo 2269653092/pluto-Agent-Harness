@@ -50,6 +50,7 @@ class ApprovalRequest(BaseModel):
     @field_validator("run_id", "conversation_id")
     @classmethod
     def normalize_identifier(cls, value: str | None) -> str | None:
+        """标准化 `identifier` 对应的数据或流程。"""
         if value is None:
             return None
         normalized = value.strip()
@@ -60,6 +61,7 @@ class ApprovalRequest(BaseModel):
     @field_validator("created_at", "resolved_at")
     @classmethod
     def normalize_datetime(cls, value: datetime | None) -> datetime | None:
+        """标准化 `datetime` 对应的数据或流程。"""
         if value is None:
             return None
         if value.tzinfo is None or value.utcoffset() is None:

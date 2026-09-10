@@ -15,11 +15,13 @@ interface CoreMemoryDisplayItem {
   content: string
 }
 
+/** 格式化 `time` 对应的数据或流程。 */
 function formatTime(value: string): string {
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString('zh-CN')
 }
 
+/** 执行 `coreCategory` 对应的界面或业务逻辑。 */
 function coreCategory(key: string): string {
   const normalized = key.toLowerCase()
   if (normalized.includes('preference')) return '偏好'
@@ -30,6 +32,7 @@ function coreCategory(key: string): string {
   return '核心信息'
 }
 
+/** 执行 `cleanCoreLine` 对应的界面或业务逻辑。 */
 function cleanCoreLine(line: string): string {
   return line
     .replace(/^\s*[-*+]\s+/, '')
@@ -44,6 +47,7 @@ export function parseCoreMemory(content: string): CoreMemoryDisplayItem[] {
   let key: string | null = null
   let values: string[] = []
 
+  /** 执行 `flush` 对应的界面或业务逻辑。 */
   const flush = (): void => {
     const value = values.map(cleanCoreLine).filter(Boolean).join('\n')
     if (key && value) items.push({ label: coreCategory(key), content: value })
@@ -74,6 +78,7 @@ export function parseCoreMemory(content: string): CoreMemoryDisplayItem[] {
   return items
 }
 
+/** 渲染 `CoreMemoryView` React 组件。 */
 export function CoreMemoryView({ content }: { content: string }): React.JSX.Element {
   const items = parseCoreMemory(content)
   return (
@@ -97,6 +102,7 @@ export function CoreMemoryView({ content }: { content: string }): React.JSX.Elem
   )
 }
 
+/** 渲染 `MemoryCard` React 组件。 */
 export function MemoryCard({ memory }: { memory: LongTermMemory }): React.JSX.Element {
   return (
     <article className={`memory-card memory-card--${memory.status}`}>
@@ -128,6 +134,7 @@ export function MemoryCard({ memory }: { memory: LongTermMemory }): React.JSX.El
   )
 }
 
+/** 渲染 `MemoryPage` React 组件。 */
 export default function MemoryPage(): React.JSX.Element {
   const [view, setView] = useState<MemoryView>('active')
   const query = useQuery({

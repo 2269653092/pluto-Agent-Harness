@@ -7,6 +7,7 @@ class ModelAdapterError(RuntimeError):
 
 class ProviderNotConfiguredError(ModelAdapterError):
     def __init__(self, provider: str, environment_variable: str) -> None:
+        """初始化 `ProviderNotConfiguredError` 实例及其依赖。"""
         super().__init__(
             f"Provider '{provider}' is not configured. "
             f"Set {environment_variable} in the environment."
@@ -15,6 +16,7 @@ class ProviderNotConfiguredError(ModelAdapterError):
 
 class UnsupportedProviderError(ModelAdapterError):
     def __init__(self, provider: str) -> None:
+        """初始化 `UnsupportedProviderError` 实例及其依赖。"""
         super().__init__(f"No model adapter is registered for provider '{provider}'.")
 
 

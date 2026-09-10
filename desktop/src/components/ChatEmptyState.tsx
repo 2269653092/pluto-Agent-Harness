@@ -43,6 +43,7 @@ const STARTERS: ReadonlyArray<{
   },
 ]
 
+/** 渲染 `ChatEmptyState` React 组件。 */
 export default function ChatEmptyState({
   onSelectPrompt,
 }: {

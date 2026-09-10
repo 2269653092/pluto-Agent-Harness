@@ -83,6 +83,7 @@ class SummaryGenerationError(ValueError):
     """摘要响应不合格，并携带该次响应已经产生的 Token 用量。"""
 
     def __init__(self, message: str, *, usage: ModelUsage) -> None:
+        """初始化 `SummaryGenerationError` 实例及其依赖。"""
         super().__init__(message)
         self.usage = usage
 
@@ -99,6 +100,7 @@ class ModelContextSummarizer(ContextSummarizer):
         max_output_tokens: int = 1_024,
         disable_reasoning: bool | None = None,
     ) -> None:
+        """初始化 `ModelContextSummarizer` 实例及其依赖。"""
         if max_output_tokens <= 0:
             raise ValueError("max_output_tokens must be greater than zero")
         self._registry = registry
@@ -127,6 +129,7 @@ class ModelContextSummarizer(ContextSummarizer):
         *,
         max_output_tokens: int | None = None,
     ) -> SummaryGenerationResult:
+        """执行 `summarize` 对应的业务逻辑。"""
         return await self._summarize(
             previous_summary,
             messages,
@@ -159,6 +162,7 @@ class ModelContextSummarizer(ContextSummarizer):
         retry_reason: str | None,
         max_output_tokens: int | None = None,
     ) -> SummaryGenerationResult:
+        """处理 `_summarize` 的内部辅助逻辑。"""
         if not messages:
             raise ValueError("summary messages cannot be empty")
         adapter = self._registry.get(self._provider)
@@ -260,6 +264,7 @@ def _disable_reasoning(
 
 
 def _parse_json_object(content: str) -> dict[str, Any]:
+    """解析 `json_object` 对应的数据或流程。"""
     text = content.strip()
     if text.startswith("```"):
         lines = text.splitlines()

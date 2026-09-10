@@ -17,6 +17,7 @@ export interface ApprovalCardProps {
   onDeny: (id: string) => void
 }
 
+/** 执行 `sandboxApprovalLabel` 对应的界面或业务逻辑。 */
 function sandboxApprovalLabel(approval: ApprovalRequest): string {
   if (['run_shell_command', 'run_command'].includes(approval.tool_name)) {
     return '执行终端命令'
@@ -25,6 +26,7 @@ function sandboxApprovalLabel(approval: ApprovalRequest): string {
   return '执行敏感操作'
 }
 
+/** 执行 `sandboxApprovalDescription` 对应的界面或业务逻辑。 */
 function sandboxApprovalDescription(approval: ApprovalRequest): string {
   if (['run_shell_command', 'run_command'].includes(approval.tool_name)) {
     return 'Pluto 需要在本地终端执行以下命令。请确认命令内容和影响后再允许。'
@@ -35,6 +37,7 @@ function sandboxApprovalDescription(approval: ApprovalRequest): string {
   return '这项操作可能修改本地环境或访问外部资源，请确认后再继续。'
 }
 
+/** 执行 `commandPreview` 对应的界面或业务逻辑。 */
 function commandPreview(approval: ApprovalRequest): string | null {
   if (!['run_shell_command', 'run_command'].includes(approval.tool_name)) {
     return null
@@ -43,6 +46,7 @@ function commandPreview(approval: ApprovalRequest): string | null {
   return typeof command === 'string' && command.trim() ? command.trim() : null
 }
 
+/** 渲染 `ApprovalCard` React 组件。 */
 export default function ApprovalCard({
   approval,
   busy = false,

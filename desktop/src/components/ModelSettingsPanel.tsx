@@ -28,6 +28,7 @@ type ProviderDraft = ProviderModelSettingsUpdate & {
   keySource: 'credential_store' | 'environment' | 'none'
 }
 
+/** 渲染 `ModelSettingsPanel` React 组件。 */
 export default function ModelSettingsPanel(): React.JSX.Element {
   const queryClient = useQueryClient()
   const query = useQuery({
@@ -68,13 +69,16 @@ export default function ModelSettingsPanel(): React.JSX.Element {
   )
 
   const saveMutation = useMutation({
+    /** 执行 `mutationFn` 对应的界面或业务逻辑。 */
     mutationFn: (input: ModelSettingsUpdate) => updateModelSettings(input),
+    /** 响应 `onSuccess` 对应的事件。 */
     onSuccess: (data) => {
       queryClient.setQueryData(['model-settings'], data)
       setProviders((items) => items.map((item) => ({ ...item, api_key: undefined })))
       setError(null)
       setNotice('设置已安全保存。请重启 Pluto Host，让新模型配置生效。')
     },
+    /** 响应 `onError` 对应的事件。 */
     onError: (reason) => {
       setNotice(null)
       setError(errorMessage(reason))
@@ -82,11 +86,14 @@ export default function ModelSettingsPanel(): React.JSX.Element {
   })
 
   const testMutation = useMutation({
+    /** 执行 `mutationFn` 对应的界面或业务逻辑。 */
     mutationFn: (input: ProviderModelSettingsUpdate) => testModelConnection(input),
+    /** 响应 `onSuccess` 对应的事件。 */
     onSuccess: (result) => {
       setError(null)
       setNotice(`连接成功 · ${result.model} · ${Math.round(result.duration_ms)} ms`)
     },
+    /** 响应 `onError` 对应的事件。 */
     onError: (reason) => {
       setNotice(null)
       setError(errorMessage(reason))
@@ -95,10 +102,12 @@ export default function ModelSettingsPanel(): React.JSX.Element {
 
   const restartMutation = useMutation({
     mutationFn: restartHost,
+    /** 响应 `onSuccess` 对应的事件。 */
     onSuccess: () => {
       setError(null)
       setNotice('Pluto Host 正在安全重启，连接恢复后新配置会自动生效。')
     },
+    /** 响应 `onError` 对应的事件。 */
     onError: (reason) => {
       setNotice(null)
       setError(errorMessage(reason))
@@ -112,6 +121,7 @@ export default function ModelSettingsPanel(): React.JSX.Element {
     return <ErrorState message="无法读取模型设置" onRetry={() => void query.refetch()} />
   }
 
+  /** 更新 `current` 对应的数据或流程。 */
   const updateCurrent = (changes: Partial<ProviderDraft>): void => {
     setProviders((items) => items.map((item) => (
       item.provider === selected ? { ...item, ...changes } : item
@@ -119,6 +129,7 @@ export default function ModelSettingsPanel(): React.JSX.Element {
     setNotice(null)
   }
 
+  /** 保存当前对象的相关流程。 */
   const save = (): void => {
     setError(null)
     saveMutation.mutate({
@@ -266,6 +277,7 @@ export default function ModelSettingsPanel(): React.JSX.Element {
   )
 }
 
+/** 执行 `RoleEditor` 对应的界面或业务逻辑。 */
 function RoleEditor({
   title,
   value,
@@ -313,18 +325,22 @@ function RoleEditor({
   )
 }
 
+/** 执行 `defaultRole` 对应的界面或业务逻辑。 */
 function defaultRole(): ModelRoleSettings {
   return { enabled: true, inherit_main: true, provider: null, model: null }
 }
 
+/** 执行 `normalizedRole` 对应的界面或业务逻辑。 */
 function normalizedRole(role: ModelRoleSettings): ModelRoleSettings {
   return role.inherit_main ? { ...role, provider: null, model: null } : role
 }
 
+/** 执行 `stripDraft` 对应的界面或业务逻辑。 */
 function stripDraft({ configured: _configured, keySource: _keySource, ...item }: ProviderDraft): ProviderModelSettingsUpdate {
   return item
 }
 
+/** 执行 `keySourceLabel` 对应的界面或业务逻辑。 */
 function keySourceLabel(source: ProviderDraft['keySource']): string {
   return source === 'credential_store'
     ? '系统凭据'
@@ -333,6 +349,7 @@ function keySourceLabel(source: ProviderDraft['keySource']): string {
       : '未设置'
 }
 
+/** 执行 `errorMessage` 对应的界面或业务逻辑。 */
 function errorMessage(reason: unknown): string {
   return reason instanceof Error ? reason.message : '操作失败，请检查配置后重试。'
 }

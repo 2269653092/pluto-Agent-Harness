@@ -3,6 +3,7 @@
 import type { Artifact } from '../api/artifacts'
 import ResultCard from './ResultCard'
 
+/** 执行 `dayLabel` 对应的界面或业务逻辑。 */
 function dayLabel(iso: string): string {
   const date = new Date(iso)
   if (Number.isNaN(date.getTime())) return '更早'
@@ -11,6 +12,7 @@ function dayLabel(iso: string): string {
   return date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', year: 'numeric' })
 }
 
+/** 渲染 `ArtifactList` React 组件。 */
 export default function ArtifactList({
   artifacts,
   compact = false,
@@ -50,6 +52,7 @@ export default function ArtifactList({
   )
 }
 
+/** 格式化 `size` 对应的数据或流程。 */
 export function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`

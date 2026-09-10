@@ -53,10 +53,12 @@ class GitHubSkillSource:
 
     @property
     def slug(self) -> str:
+        """执行 `slug` 对应的业务逻辑。"""
         return f"{self.owner}/{self.repository}"
 
     @property
     def url(self) -> str:
+        """执行 `url` 对应的业务逻辑。"""
         return f"https://github.com/{self.slug}"
 
 
@@ -71,6 +73,7 @@ class ExtensionImportPlan:
     warnings: tuple[str, ...]
 
     def public_dict(self) -> dict[str, Any]:
+        """执行 `public_dict` 对应的业务逻辑。"""
         items: list[dict[str, Any]] = []
         actions: list[str] = []
         for source in self.skill_sources:
@@ -242,6 +245,7 @@ async def apply_import_plan(
 
 
 def _try_json(value: str) -> dict[str, Any] | None:
+    """处理 `_try_json` 的内部辅助逻辑。"""
     try:
         payload = json.loads(value)
     except json.JSONDecodeError:
@@ -254,6 +258,7 @@ def _try_json(value: str) -> dict[str, Any] | None:
 def _external_servers(
     payload: dict[str, Any],
 ) -> list[tuple[str, dict[str, Any]]]:
+    """处理 `_external_servers` 的内部辅助逻辑。"""
     if "mcpServers" in payload:
         servers = payload["mcpServers"]
         if not isinstance(servers, dict) or not servers:
@@ -281,6 +286,7 @@ def _external_servers(
 
 
 def _command_and_args(config: dict[str, Any]) -> tuple[str, tuple[str, ...]]:
+    """处理 `_command_and_args` 的内部辅助逻辑。"""
     command = config.get("command")
     args = config.get("args", [])
     if not isinstance(command, str) or not command.strip():
@@ -294,6 +300,7 @@ def _parse_skill_source_or_command(
     value: str,
     scope: SkillScope,
 ) -> GitHubSkillSource:
+    """解析 `skill_source_or_command` 对应的数据或流程。"""
     try:
         parts = shlex.split(value)
     except ValueError as exc:
@@ -306,6 +313,7 @@ def _parse_skill_source_or_command(
 
 
 def _skill_add_source(command: str, args: tuple[str, ...]) -> str | None:
+    """处理 `_skill_add_source` 的内部辅助逻辑。"""
     executable = PurePosixPath(command).name.lower()
     if executable not in {"npx", "npm", "pnpm", "yarn", "bunx"}:
         return None
@@ -317,6 +325,7 @@ def _skill_add_source(command: str, args: tuple[str, ...]) -> str | None:
 
 
 def _parse_github_source(value: str, scope: SkillScope) -> GitHubSkillSource:
+    """解析 `github_source` 对应的数据或流程。"""
     match = _GITHUB_REPOSITORY_RE.fullmatch(value.strip())
     if match is None:
         raise ExtensionImportError(
@@ -330,6 +339,7 @@ def _parse_github_source(value: str, scope: SkillScope) -> GitHubSkillSource:
 
 
 def _normalize_mcp_name(value: str) -> str:
+    """标准化 `mcp_name` 对应的数据或流程。"""
     normalized = re.sub(r"[^A-Za-z0-9_]", "_", value.strip())
     normalized = re.sub(r"_+", "_", normalized).strip("_")
     if not normalized or _MCP_NAME_RE.fullmatch(normalized) is None:
@@ -338,6 +348,7 @@ def _normalize_mcp_name(value: str) -> str:
 
 
 def _string_mapping(value: object, label: str) -> dict[str, str]:
+    """处理 `_string_mapping` 的内部辅助逻辑。"""
     if not isinstance(value, dict):
         raise ExtensionImportError(f"{label} 必须是对象")
     if not all(
@@ -349,6 +360,7 @@ def _string_mapping(value: object, label: str) -> dict[str, str]:
 
 
 def _is_env_reference(value: str) -> bool:
+    """判断 `env_reference` 对应的数据或流程。"""
     return re.fullmatch(r"\$\{[A-Za-z_][A-Za-z0-9_]*\}", value) is not None
 
 
@@ -356,6 +368,7 @@ def _ensure_unique(
     skill_sources: list[GitHubSkillSource],
     mcp_servers: list[MCPServerConfig],
 ) -> None:
+    """确保 `unique` 对应的数据或流程。"""
     skill_slugs = [item.slug.lower() for item in skill_sources]
     server_names = [item.name for item in mcp_servers]
     if len(skill_slugs) != len(set(skill_slugs)):
@@ -367,11 +380,13 @@ def _ensure_unique(
 
 
 def _fingerprint(raw: str, scope: SkillScope, permission: str) -> str:
+    """处理 `_fingerprint` 的内部辅助逻辑。"""
     material = f"v1\0{scope.value}\0{permission}\0{raw}".encode()
     return hashlib.sha256(material).hexdigest()
 
 
 async def _download_github_archive(source: GitHubSkillSource) -> bytes:
+    """处理 `_download_github_archive` 的内部辅助逻辑。"""
     url = f"https://api.github.com/repos/{source.slug}/zipball"
     headers = {"Accept": "application/vnd.github+json", "User-Agent": "Pluto"}
     try:
@@ -407,6 +422,7 @@ async def _download_github_archive(source: GitHubSkillSource) -> bytes:
 
 
 def _skill_packages_from_archive(archive: bytes) -> list[dict[str, bytes]]:
+    """处理 `_skill_packages_from_archive` 的内部辅助逻辑。"""
     try:
         bundle = zipfile.ZipFile(io.BytesIO(archive))
     except (OSError, zipfile.BadZipFile) as exc:

@@ -49,6 +49,7 @@ class MCPServerConfig(BaseModel):
     @field_validator("name")
     @classmethod
     def validate_name(cls, value: str) -> str:
+        """校验 `name` 对应的数据或流程。"""
         if not _SERVER_NAME_RE.fullmatch(value):
             raise ValueError("name 只能包含字母、数字和下划线")
         return value
@@ -67,6 +68,7 @@ class MCPSettings(BaseModel):
         cls,
         value: tuple[MCPServerConfig, ...],
     ) -> tuple[MCPServerConfig, ...]:
+        """执行 `reject_duplicate_names` 对应的业务逻辑。"""
         names = [server.name for server in value]
         if len(names) != len(set(names)):
             raise ValueError("MCP Server 名称不能重复")

@@ -15,6 +15,7 @@ interface RenderedTurn {
   content: string
 }
 
+/** 构建 `thread` 对应的数据或流程。 */
 function buildThread(messages: Message[]): RenderedTurn[] {
   const out: RenderedTurn[] = []
   let assistantOpen = false
@@ -67,7 +68,7 @@ function buildThread(messages: Message[]): RenderedTurn[] {
 }
 
 /** memo：messages 引用未变时跳过整棵树渲染，避免流式事件导致历史消息反复 markdown 解析。 */
-export default memo(function MessageList({
+export default memo(/** 渲染 `MessageList` React 组件。 */ function MessageList({
   messages,
 }: {
   messages: Message[]

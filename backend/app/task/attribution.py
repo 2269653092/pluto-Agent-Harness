@@ -12,9 +12,11 @@ class TaskToolOutputAttributionResolver:
     """读取当前活动 Task 与唯一执行中 Step，不依赖 Evidence 领域。"""
 
     def __init__(self, store: FileTaskStore) -> None:
+        """初始化 `TaskToolOutputAttributionResolver` 实例及其依赖。"""
         self._store = store
 
     async def resolve(self, conversation_id: str) -> ToolOutputAttribution:
+        """解析或确定`TaskToolOutputAttributionResolver`的相关流程。"""
         task = await self._store.active_for_conversation(conversation_id)
         if task is None:
             return ToolOutputAttribution()

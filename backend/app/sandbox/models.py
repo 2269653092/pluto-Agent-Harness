@@ -38,6 +38,7 @@ class SandboxConfig(BaseModel):
     @field_validator("readable_roots", "writable_roots", "allowed_domains")
     @classmethod
     def reject_empty_values(cls, values: tuple[str, ...]) -> tuple[str, ...]:
+        """执行 `reject_empty_values` 对应的业务逻辑。"""
         normalized = tuple(value.strip() for value in values)
         if any(not value for value in normalized):
             raise ValueError("sandbox list values cannot be empty")

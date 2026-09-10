@@ -50,6 +50,7 @@ class ToolRoundExecutor:
         executor: ToolExecutor,
         checkpoint_store: SQLiteCheckpointStore | None,
     ) -> None:
+        """初始化 `ToolRoundExecutor` 实例及其依赖。"""
         self._registry = registry
         self._executor = executor
         self._checkpoint_store = checkpoint_store
@@ -258,6 +259,7 @@ class ToolRoundExecutor:
         activated_tools: set[str],
         computer_halted: bool,
     ) -> str | None:
+        """处理 `_rejection_reason` 的内部辅助逻辑。"""
         if computer_halted and tool_call.name.startswith("computer_"):
             return (
                 "computer_attempts_halted: repeated failures without desktop "
@@ -292,6 +294,7 @@ class ToolRoundExecutor:
 
     @staticmethod
     def _result_message(result: ToolResult) -> Message:
+        """处理 `_result_message` 的内部辅助逻辑。"""
         return Message(
             role=MessageRole.TOOL,
             name=result.tool_name,

@@ -194,6 +194,7 @@ class NullEventHandler(AgentEventHandler):
     """忽略全部事件的默认处理器。"""
 
     async def emit(self, event: AgentEvent) -> None:
+        """发送`NullEventHandler`的相关流程。"""
         pass
 
 
@@ -201,16 +202,20 @@ class InMemoryEventHandler(AgentEventHandler):
     """在内存中按发射顺序保存事件，主要用于测试和调试。"""
 
     def __init__(self) -> None:
+        """初始化 `InMemoryEventHandler` 实例及其依赖。"""
         self._events: list[AgentEvent] = []
 
     async def emit(self, event: AgentEvent) -> None:
+        """发送`InMemoryEventHandler`的相关流程。"""
         self._events.append(event)
 
     @property
     def events(self) -> tuple[AgentEvent, ...]:
+        """执行 `events` 对应的业务逻辑。"""
         return tuple(self._events)
 
     def clear(self) -> None:
+        """清理`InMemoryEventHandler`的相关流程。"""
         self._events.clear()
 
 
@@ -218,9 +223,11 @@ class CompositeEventHandler(AgentEventHandler):
     """把同一个事件依次发送给多个相互隔离的处理器。"""
 
     def __init__(self, *handlers: AgentEventHandler) -> None:
+        """初始化 `CompositeEventHandler` 实例及其依赖。"""
         self._handlers = handlers
 
     async def emit(self, event: AgentEvent) -> None:
+        """发送`CompositeEventHandler`的相关流程。"""
         for handler in self._handlers:
             try:
                 await handler.emit(event)

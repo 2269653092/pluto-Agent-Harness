@@ -195,6 +195,7 @@ export function buildActivityEntries(events: AgentEvent[]): ActivityEntry[] {
   return entries
 }
 
+/** 格式化 `event_time` 对应的数据或流程。 */
 function formatEventTime(iso: string): string {
   const date = new Date(iso)
   return Number.isNaN(date.getTime())
@@ -202,6 +203,7 @@ function formatEventTime(iso: string): string {
     : date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 }
 
+/** 执行 `rawDetail` 对应的界面或业务逻辑。 */
 function rawDetail(event: AgentEvent): string {
   const parts = [`#${event.sequence}`, event.type]
   if (event.step != null) parts.push(`step ${event.step}`)
@@ -209,6 +211,7 @@ function rawDetail(event: AgentEvent): string {
   return parts.join(' · ')
 }
 
+/** 执行 `ActivityTechnicalDetails` 对应的界面或业务逻辑。 */
 export function ActivityTechnicalDetails({
   events,
 }: {
@@ -235,6 +238,7 @@ export function ActivityTechnicalDetails({
   )
 }
 
+/** 执行 `ActivityItems` 对应的界面或业务逻辑。 */
 export function ActivityItems({
   events,
   limit,
@@ -288,6 +292,7 @@ const STATUS_LABEL: Record<string, string> = {
   interrupted: '已中断',
 }
 
+/** 执行 `RunInspectorOverview` 对应的界面或业务逻辑。 */
 export function RunInspectorOverview({
   events,
   artifactCount = 0,
@@ -383,6 +388,7 @@ export function RunInspectorOverview({
   )
 }
 
+/** 执行 `RunActivity` 对应的界面或业务逻辑。 */
 export default function RunActivity({
   runId,
   onClose,
@@ -403,8 +409,10 @@ export default function RunActivity({
   const running = liveStatus === 'running' || liveStatus === 'pending'
   const runQuery = useQuery({
     queryKey: ['run', runId],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () => getRun(runId!),
     enabled: runId !== null,
+    /** 执行 `refetchInterval` 对应的界面或业务逻辑。 */
     refetchInterval: (query) => {
       const current = query.state.data as Run | undefined
       return running || current?.status === 'running' || current?.status === 'pending'
@@ -415,12 +423,14 @@ export default function RunActivity({
   const durableRunning = runQuery.data?.status === 'running' || runQuery.data?.status === 'pending'
   const traceQuery = useQuery({
     queryKey: ['run-trace', runId],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () => getRunTrace(runId!),
     enabled: runId !== null,
     refetchInterval: running || durableRunning ? 2500 : false,
   })
   const artifactsQuery = useQuery({
     queryKey: ['artifacts', 'run', runId],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () => listArtifacts({ runId: runId!, limit: 100 }),
     enabled: runId !== null,
     refetchInterval: running || durableRunning ? 3000 : false,

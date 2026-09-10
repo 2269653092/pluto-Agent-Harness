@@ -6,6 +6,7 @@ import { Icon } from './Icon'
 import type { IconName } from './Icon'
 import { Button } from './ui'
 
+/** 渲染 `LoadingState` React 组件。 */
 export function LoadingState({ label = 'Loading…' }: { label?: string }): ReactElement {
   return (
     <div className="page-state">
@@ -15,6 +16,7 @@ export function LoadingState({ label = 'Loading…' }: { label?: string }): Reac
   )
 }
 
+/** 渲染 `EmptyState` React 组件。 */
 export function EmptyState({
   title,
   hint,
@@ -38,6 +40,7 @@ export function EmptyState({
   )
 }
 
+/** 渲染 `ErrorState` React 组件。 */
 export function ErrorState({
   message,
   hint,

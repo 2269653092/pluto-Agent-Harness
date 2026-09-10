@@ -33,9 +33,11 @@ class MessageBlock:
 
     @property
     def block_type(self) -> BlockType:
+        """执行 `block_type` 对应的业务逻辑。"""
         raise NotImplementedError
 
     def __len__(self) -> int:
+        """返回当前对象包含的元素数量。"""
         return len(self.messages)
 
 
@@ -45,6 +47,7 @@ class SystemBlock(MessageBlock):
 
     @property
     def block_type(self) -> BlockType:
+        """执行 `block_type` 对应的业务逻辑。"""
         return BlockType.SYSTEM
 
 
@@ -54,6 +57,7 @@ class ConversationBlock(MessageBlock):
 
     @property
     def block_type(self) -> BlockType:
+        """执行 `block_type` 对应的业务逻辑。"""
         return BlockType.CONVERSATION
 
 
@@ -62,6 +66,7 @@ class ToolRoundBlock(MessageBlock):
     """一轮完整且 ID 对应关系合法的工具调用块。"""
 
     def __post_init__(self) -> None:
+        """处理 `__post_init__` 的内部辅助逻辑。"""
         if not self.messages:
             raise ValueError("ToolRoundBlock messages cannot be empty")
         assistant = self.messages[0]
@@ -89,6 +94,7 @@ class ToolRoundBlock(MessageBlock):
 
     @property
     def block_type(self) -> BlockType:
+        """执行 `block_type` 对应的业务逻辑。"""
         return BlockType.TOOL_ROUND
 
 
@@ -100,6 +106,7 @@ class MalformedToolBlock(MessageBlock):
 
     @property
     def block_type(self) -> BlockType:
+        """执行 `block_type` 对应的业务逻辑。"""
         return BlockType.MALFORMED_TOOL
 
 
@@ -120,6 +127,7 @@ def partition_messages(
     conversation: list[Message] = []
 
     def flush_conversation() -> None:
+        """执行 `flush_conversation` 对应的业务逻辑。"""
         nonlocal conversation
         if conversation:
             blocks.append(ConversationBlock(tuple(conversation)))

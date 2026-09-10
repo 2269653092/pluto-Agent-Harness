@@ -10,6 +10,7 @@ from typing import Any
 
 
 def _parser() -> argparse.ArgumentParser:
+    """处理 `_parser` 的内部辅助逻辑。"""
     parser = argparse.ArgumentParser(
         description="Run the Pluto Host (FastAPI + JSON-RPC WebSocket)."
     )
@@ -65,6 +66,7 @@ async def _serve(args: argparse.Namespace) -> int:
         server: Any = None
 
         def request_restart() -> None:
+            """请求 `restart` 对应的数据或流程。"""
             nonlocal restart_requested
             restart_requested = True
             if server is not None:
@@ -97,6 +99,7 @@ async def _serve(args: argparse.Namespace) -> int:
 
 
 def main() -> int:
+    """执行 `main` 对应的业务逻辑。"""
     args = _parser().parse_args()
 
     logging.basicConfig(

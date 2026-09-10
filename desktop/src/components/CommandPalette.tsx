@@ -38,6 +38,7 @@ export function nextEnabledCommandIndex(
   return Math.max(0, Math.min(current, commands.length - 1))
 }
 
+/** 执行 `CommandPalette` 对应的界面或业务逻辑。 */
 export default function CommandPalette({
   open,
   commands,
@@ -69,6 +70,7 @@ export default function CommandPalette({
 
   if (!open) return null
 
+  /** 执行 `execute` 对应的界面或业务逻辑。 */
   const execute = (index: number): void => {
     const command = filtered[index]
     if (!command || command.disabled) return

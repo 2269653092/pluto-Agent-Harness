@@ -34,10 +34,12 @@ class SkillReadTool(BaseTool):
     """
 
     def __init__(self, store: SkillStore) -> None:
+        """初始化 `SkillReadTool` 实例及其依赖。"""
         self._store = store
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="skill_read",
             record_output=False,
@@ -63,6 +65,7 @@ class SkillReadTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`SkillReadTool`的相关流程。"""
         name = arguments.get("name")
         if not isinstance(name, str) or not name.strip():
             raise ValueError("'name' must be a non-empty string")
@@ -86,10 +89,12 @@ class SkillResourceReadTool(BaseTool):
     """
 
     def __init__(self, store: SkillStore) -> None:
+        """初始化 `SkillResourceReadTool` 实例及其依赖。"""
         self._store = store
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="skill_resource_read",
             record_output=False,
@@ -144,6 +149,7 @@ class SkillResourceReadTool(BaseTool):
         return await self._read_resource(arguments)
 
     async def _read_resource(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """读取 `resource` 对应的数据或流程。"""
         name = arguments.get("name")
         resource_path = arguments.get("path")
         if not isinstance(name, str) or not name.strip():

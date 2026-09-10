@@ -47,9 +47,11 @@ class SQLiteCheckpointStore:
     """持久化 Run 的最后确认边界，并提供中断恢复查询。"""
 
     def __init__(self, database_path: str | Path = DEFAULT_DATABASE_PATH) -> None:
+        """初始化 `SQLiteCheckpointStore` 实例及其依赖。"""
         self.database_path = Path(database_path).expanduser().resolve()
 
     async def initialize(self) -> None:
+        """初始化`SQLiteCheckpointStore`的相关流程。"""
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
         async with self._connect() as database:
             await database.executescript(_SCHEMA)
@@ -162,6 +164,7 @@ class SQLiteCheckpointStore:
         *,
         stop_reason: AgentStopReason,
     ) -> RunCheckpoint:
+        """执行 `complete` 对应的业务逻辑。"""
         return await self._finish(
             run_id,
             status=CheckpointStatus.COMPLETED,
@@ -175,6 +178,7 @@ class SQLiteCheckpointStore:
         stop_reason: AgentStopReason,
         error: str | None,
     ) -> RunCheckpoint:
+        """执行 `fail` 对应的业务逻辑。"""
         return await self._finish(
             run_id,
             status=CheckpointStatus.FAILED,
@@ -298,6 +302,7 @@ class SQLiteCheckpointStore:
         return await self._require(interrupted_run_id)
 
     async def get(self, run_id: str) -> RunCheckpoint | None:
+        """获取`SQLiteCheckpointStore`的相关流程。"""
         async with self._connect() as database:
             cursor = await database.execute(
                 "SELECT * FROM run_checkpoints WHERE run_id = ?",
@@ -312,6 +317,7 @@ class SQLiteCheckpointStore:
         conversation_id: str | None = None,
         limit: int = 20,
     ) -> tuple[RunCheckpoint, ...]:
+        """列出`SQLiteCheckpointStore`的相关流程。"""
         if limit < 1:
             raise ValueError("limit must be at least 1")
         query = "SELECT * FROM run_checkpoints"
@@ -334,6 +340,7 @@ class SQLiteCheckpointStore:
         step: int,
         pending_tool_calls: Sequence[ToolCall],
     ) -> RunCheckpoint:
+        """更新 `running` 对应的数据或流程。"""
         if step < 1:
             raise ValueError("checkpoint step must be at least 1")
         async with self._connect() as database:
@@ -364,6 +371,7 @@ class SQLiteCheckpointStore:
         error: str | None = None,
         preserve_phase: bool = False,
     ) -> RunCheckpoint:
+        """处理 `_finish` 的内部辅助逻辑。"""
         async with self._connect() as database:
             await database.execute("BEGIN IMMEDIATE")
             checkpoint = await _require_row(database, run_id)
@@ -401,6 +409,7 @@ class SQLiteCheckpointStore:
         return await self._require(run_id)
 
     async def _require(self, run_id: str) -> RunCheckpoint:
+        """读取并校验`SQLiteCheckpointStore`的相关流程。"""
         checkpoint = await self.get(run_id)
         if checkpoint is None:
             raise KeyError(f"Checkpoint 不存在：{run_id}")
@@ -408,6 +417,7 @@ class SQLiteCheckpointStore:
 
     @asynccontextmanager
     async def _connect(self) -> AsyncIterator[aiosqlite.Connection]:
+        """建立连接`SQLiteCheckpointStore`的相关流程。"""
         database = await aiosqlite.connect(self.database_path)
         database.row_factory = aiosqlite.Row
         try:
@@ -420,6 +430,7 @@ async def _require_row(
     database: aiosqlite.Connection,
     run_id: str,
 ) -> RunCheckpoint:
+    """读取并校验 `row` 对应的数据或流程。"""
     cursor = await database.execute(
         "SELECT * FROM run_checkpoints WHERE run_id = ?",
         (_required_identifier(run_id, "run_id"),),
@@ -439,6 +450,7 @@ async def _write_progress(
     pending_tool_calls: Sequence[ToolCall],
     completed_tool_results: Sequence[ToolResult],
 ) -> None:
+    """写入 `progress` 对应的数据或流程。"""
     await database.execute(
         """
         UPDATE run_checkpoints
@@ -459,6 +471,7 @@ async def _write_progress(
 
 
 def _require_running(checkpoint: RunCheckpoint) -> None:
+    """读取并校验 `running` 对应的数据或流程。"""
     if checkpoint.status is not CheckpointStatus.RUNNING:
         raise ValueError(
             f"Checkpoint 已结束，不能继续更新：{checkpoint.run_id}"
@@ -466,6 +479,7 @@ def _require_running(checkpoint: RunCheckpoint) -> None:
 
 
 def _checkpoint_from_row(row: aiosqlite.Row) -> RunCheckpoint:
+    """处理 `_checkpoint_from_row` 的内部辅助逻辑。"""
     return RunCheckpoint(
         run_id=row["run_id"],
         conversation_id=row["conversation_id"],
@@ -496,6 +510,7 @@ def _checkpoint_from_row(row: aiosqlite.Row) -> RunCheckpoint:
 
 
 def _dump_models(models: Sequence[ToolCall] | Sequence[ToolResult]) -> str:
+    """处理 `_dump_models` 的内部辅助逻辑。"""
     return json.dumps(
         [model.model_dump(mode="json") for model in models],
         ensure_ascii=False,
@@ -504,6 +519,7 @@ def _dump_models(models: Sequence[ToolCall] | Sequence[ToolResult]) -> str:
 
 
 def _required_identifier(value: str, field_name: str) -> str:
+    """处理 `_required_identifier` 的内部辅助逻辑。"""
     if not isinstance(value, str):
         raise TypeError(f"{field_name} must be a string")
     normalized = value.strip()
@@ -513,6 +529,7 @@ def _required_identifier(value: str, field_name: str) -> str:
 
 
 def _optional_identifier(value: str | None) -> str | None:
+    """处理 `_optional_identifier` 的内部辅助逻辑。"""
     if value is None:
         return None
     return _required_identifier(value, "conversation_id")

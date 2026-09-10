@@ -17,6 +17,7 @@ class ModelAdapterRegistry:
     """获取已配置的适配器，同时避免向调用方暴露提供商 SDK。"""
 
     def __init__(self, settings: ModelSettings | None = None) -> None:
+        """初始化 `ModelAdapterRegistry` 实例及其依赖。"""
         self.settings = settings or ModelSettings()
         self._factories: dict[str, AdapterFactory] = {
             ModelProvider.OPENAI.value: OpenAICompatibleAdapter,
@@ -51,6 +52,7 @@ class ModelAdapterRegistry:
         self,
         provider: ModelProvider | str | None = None,
     ) -> ModelAdapter:
+        """获取`ModelAdapterRegistry`的相关流程。"""
         name = (
             provider.value
             if isinstance(provider, ModelProvider)
@@ -76,6 +78,7 @@ class ModelAdapterRegistry:
         return adapter
 
     async def close(self) -> None:
+        """关闭`ModelAdapterRegistry`的相关流程。"""
         for adapter in tuple(self._instances.values()):
             await adapter.close()
         self._instances.clear()

@@ -55,18 +55,24 @@ export function useComputerApprovalQueue(): ApprovalQueueState {
   useEffect(() => {
     let cancelled = false
     const disconnect = connectComputerApprovalStream(rpcClient, {
+      /** 执行 `syncPending` 对应的界面或业务逻辑。 */
       syncPending: async () => {
         const approvals = await listApprovals('pending')
         if (cancelled) return
         dispatch({ type: 'sync_pending', approvals })
       },
+      /** 响应 `onRequired` 对应的事件。 */
       onRequired: (approval) =>
         dispatch({ type: 'approval_required', approval }),
+      /** 响应 `onResolved` 对应的事件。 */
       onResolved: (approval) =>
         dispatch({ type: 'approval_resolved', approval }),
+      /** 响应 `onAgentEvent` 对应的事件。 */
       onAgentEvent: (event) => dispatch({ type: 'agent_event', event }),
+      /** 响应 `onRunStatus` 对应的事件。 */
       onRunStatus: (runId, status) =>
         dispatch({ type: 'run_status', runId, status }),
+      /** 响应 `onConnectionError` 对应的事件。 */
       onConnectionError: () => {
         // RpcClient 自动重连；恢复后再次同步，不弹出没有审批内容的错误空窗。
       },
@@ -271,6 +277,7 @@ export function floatingApprovalPresentation(
   }
 }
 
+/** 执行 `friendlyFloatingError` 对应的界面或业务逻辑。 */
 function friendlyFloatingError(
   error: string | null,
   fallback: string,

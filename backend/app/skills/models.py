@@ -96,6 +96,7 @@ class SkillResources(BaseModel):
     assets: tuple[str, ...] = ()
 
     def as_dict(self) -> dict[str, tuple[str, ...]]:
+        """执行 `as_dict` 对应的业务逻辑。"""
         return {
             "references": self.references,
             "scripts": self.scripts,
@@ -103,6 +104,7 @@ class SkillResources(BaseModel):
         }
 
     def is_empty(self) -> bool:
+        """判断 `empty` 对应的数据或流程。"""
         return not (self.scripts or self.references or self.assets)
 
 

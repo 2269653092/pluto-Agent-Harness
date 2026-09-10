@@ -14,6 +14,10 @@ export interface ComposerProps {
   onStop?: () => void
   mode?: AgentMode
   onModeChange?: (mode: AgentMode) => void
+  /** 为当前任务生成待审核 Skill。 */
+  onGenerateSkill?: () => void
+  canGenerateSkill?: boolean
+  generatingSkill?: boolean
   onSend: (content: string) => Promise<void>
   value?: string
   onValueChange?: (value: string) => void
@@ -21,6 +25,7 @@ export interface ComposerProps {
   commands?: ComposerCommand[]
 }
 
+/** 执行 `Composer` 对应的界面或业务逻辑。 */
 export default function Composer({
   disabled,
   sending = false,
@@ -28,6 +33,9 @@ export default function Composer({
   onStop,
   mode = 'normal',
   onModeChange,
+  onGenerateSkill,
+  canGenerateSkill = false,
+  generatingSkill = false,
   onSend,
   value,
   onValueChange,
@@ -37,10 +45,11 @@ export default function Composer({
   const [commandOpen, setCommandOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const draft = value ?? internalValue
-  const busy = disabled || sending
+  const busy = disabled || sending || generatingSkill
   const canSend = draft.trim() !== '' && !busy
 
   useEffect(() => {
+    /** 响应 `onKey` 对应的事件。 */
     const onKey = (event: KeyboardEvent): void => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault()
@@ -51,6 +60,7 @@ export default function Composer({
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  /** 设置 `draft` 对应的数据或流程。 */
   const setDraft = (next: string): void => {
     if (value === undefined) setInternalValue(next)
     onValueChange?.(next)
@@ -63,6 +73,7 @@ export default function Composer({
     textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`
   }, [draft])
 
+  /** 执行 `submit` 对应的界面或业务逻辑。 */
   const submit = async (): Promise<void> => {
     const content = draft.trim()
     if (!content || busy) return
@@ -113,6 +124,20 @@ export default function Composer({
                 {item === 'normal' ? '普通' : '规划'}
               </button>
             ))}
+            <button
+              type="button"
+              className="mode-switch__item"
+              onClick={() => onGenerateSkill?.()}
+              disabled={busy || running || !canGenerateSkill || !onGenerateSkill}
+              aria-label="为当前任务生成 Skill"
+              title={
+                canGenerateSkill
+                  ? '从当前任务已有的执行证据中提炼 Skill，确认后保存。'
+                  : '当前会话还没有包含执行记录的任务。'
+              }
+            >
+              {generatingSkill ? '生成中…' : '生成 Skill'}
+            </button>
           </div>
           {running ? (
             <button

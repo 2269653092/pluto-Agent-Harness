@@ -38,6 +38,7 @@ class ToolReducer:
         tool_result_head_chars: int = 4_000,
         tool_result_tail_chars: int = 2_000,
     ) -> None:
+        """初始化 `ToolReducer` 实例及其依赖。"""
         if keep_recent_tool_rounds < 0:
             raise ValueError("keep_recent_tool_rounds cannot be negative")
         if max_tool_result_chars <= 0:
@@ -157,6 +158,7 @@ class ToolReducer:
         compacted_results: int,
         removed_rounds: int,
     ) -> ToolReductionResult:
+        """处理 `_projection_result` 的内部辅助逻辑。"""
         messages = _flatten(working, ())
         return ToolReductionResult(
             messages=messages,
@@ -261,6 +263,7 @@ class ToolReducer:
         )
 
     def _compact_tool_result(self, message: Message) -> Message:
+        """处理 `_compact_tool_result` 的内部辅助逻辑。"""
         if message.role is not MessageRole.TOOL:
             return message
         content = message.content or ""
@@ -370,6 +373,7 @@ class ToolReducer:
         removed_rounds: int,
         target_tokens: int,
     ) -> ToolReductionResult:
+        """处理 `_result` 的内部辅助逻辑。"""
         return ToolReductionResult(
             messages=_flatten(working, current_messages),
             estimated_input_tokens=estimated,
@@ -383,6 +387,7 @@ def _flatten(
     blocks: Sequence[MessageBlock | None],
     current_messages: Sequence[Message],
 ) -> tuple[Message, ...]:
+    """处理 `_flatten` 的内部辅助逻辑。"""
     return (
         *(
             message
@@ -401,6 +406,7 @@ def _estimate_tool_messages(
     blocks: Sequence[MessageBlock | None],
     estimate: TokenCounter,
 ) -> int:
+    """估算 `tool_messages` 对应的数据或流程。"""
     tool_messages = tuple(
         message
         for block in blocks

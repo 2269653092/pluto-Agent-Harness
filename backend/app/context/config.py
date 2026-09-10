@@ -106,6 +106,7 @@ class ContextSummaryModelConfig(BaseSettings):
     @field_validator("provider", "model", mode="before")
     @classmethod
     def normalize_optional_text(cls, value: object) -> str | None:
+        """标准化 `optional_text` 对应的数据或流程。"""
         if value is None:
             return None
         if not isinstance(value, str):

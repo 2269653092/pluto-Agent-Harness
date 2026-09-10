@@ -23,6 +23,7 @@ class MCPToolAdapter(BaseTool):
         client: MCPClientProtocol,
         permission: ToolPermission,
     ) -> None:
+        """初始化 `MCPToolAdapter` 实例及其依赖。"""
         self.server_name = server_name
         self.remote_name = remote_tool.name
         self._client = client
@@ -39,9 +40,11 @@ class MCPToolAdapter(BaseTool):
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return self._definition
 
     async def execute(self, arguments: dict[str, Any]) -> str:
+        """执行`MCPToolAdapter`的相关流程。"""
         return await self._client.call_tool(self.remote_name, arguments)
 
 

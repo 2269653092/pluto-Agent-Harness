@@ -18,6 +18,7 @@ class EventEmitter:
         run_id: str,
         conversation_id: str | None,
     ) -> None:
+        """初始化 `EventEmitter` 实例及其依赖。"""
         self._handler = handler
         self._run_id = run_id
         self._conversation_id = conversation_id
@@ -28,6 +29,7 @@ class EventEmitter:
         event_type: AgentEventType,
         **payload: Any,
     ) -> None:
+        """发送`EventEmitter`的相关流程。"""
         event = AgentEvent(
             run_id=self._run_id,
             conversation_id=self._conversation_id,
@@ -50,15 +52,19 @@ class QueueEventHandler(AgentEventHandler):
     """把 Runtime 回调事件转交给异步迭代器。"""
 
     def __init__(self) -> None:
+        """初始化 `QueueEventHandler` 实例及其依赖。"""
         self._queue: asyncio.Queue[AgentEvent | object] = asyncio.Queue(maxsize=100)
 
     async def emit(self, event: AgentEvent) -> None:
+        """发送`QueueEventHandler`的相关流程。"""
         await self._queue.put(event)
 
     async def finish(self) -> None:
+        """执行 `finish` 对应的业务逻辑。"""
         await self._queue.put(STREAM_FINISHED)
 
     async def next(self) -> AgentEvent | object:
+        """执行 `next` 对应的业务逻辑。"""
         return await self._queue.get()
 
 

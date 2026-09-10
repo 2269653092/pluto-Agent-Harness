@@ -58,6 +58,7 @@ export class RpcClient {
   private readonly openTimeoutMs: number
   private readonly socketFactory: () => WebSocket
 
+  /** 初始化 `RpcClient` 实例及其依赖。 */
   constructor(options: RpcClientOptions) {
     this.url = options.url
     this.reconnectDelayMs = options.reconnectDelayMs ?? 2000
@@ -66,6 +67,7 @@ export class RpcClient {
     this.socketFactory = options.socketFactory ?? (() => new WebSocket(this.url))
   }
 
+  /** 执行 `connected` 对应的界面或业务逻辑。 */
   get connected(): boolean {
     return this.socket !== null && this.socket.readyState === WS_OPEN
   }
@@ -83,6 +85,7 @@ export class RpcClient {
     void this.openSocket()
   }
 
+  /** 断开当前连接并清理等待状态。 */
   disconnect(): void {
     this.shouldReconnect = false
     if (this.reconnectTimer !== null) {
@@ -108,6 +111,7 @@ export class RpcClient {
     this.emitStatus(false)
   }
 
+  /** 打开 `socket` 对应的数据或流程。 */
   private async openSocket(): Promise<void> {
     const token = ++this.connectToken
     const socket = this.socketFactory()
@@ -140,6 +144,7 @@ export class RpcClient {
     })()
   }
 
+  /** 处理 `handleClose` 对应的用户操作或事件。 */
   private handleClose(socket: WebSocket): void {
     if (this.socket !== socket) return // 过期 socket（重连后旧实例）
     this.socket = null
@@ -178,6 +183,7 @@ export class RpcClient {
     return this.sendRequest<T>(method, params, options?.timeoutMs)
   }
 
+  /** 等待 `for_open` 对应的数据或流程。 */
   private waitForOpen(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       const timer = setTimeout(() => {
@@ -187,10 +193,12 @@ export class RpcClient {
         )
       }, this.openTimeoutMs)
       this.openWaiters.push({
+        /** 解析或确定当前对象的相关流程。 */
         resolve: () => {
           clearTimeout(timer)
           resolve()
         },
+        /** 拒绝当前对象的相关流程。 */
         reject: (error) => {
           clearTimeout(timer)
           reject(error)
@@ -200,6 +208,7 @@ export class RpcClient {
     })
   }
 
+  /** 发送 `request` 对应的数据或流程。 */
   private sendRequest<T>(
     method: string,
     params?: Record<string, unknown>,
@@ -229,6 +238,7 @@ export class RpcClient {
     })
   }
 
+  /** 处理 `handleMessage` 对应的用户操作或事件。 */
   private handleMessage(text: string): void {
     let message: {
       id?: number
@@ -286,6 +296,7 @@ export class RpcClient {
     return () => this.off(method, handler)
   }
 
+  /** 执行 `off` 对应的界面或业务逻辑。 */
   off(method: string, handler: NotificationHandler): void {
     const set = this.handlers.get(method)
     if (!set) return
@@ -293,6 +304,7 @@ export class RpcClient {
     if (set.size === 0) this.handlers.delete(method)
   }
 
+  /** 设置 `status_listener` 对应的数据或流程。 */
   setStatusListener(listener: StatusListener): () => void {
     this.statusListeners.add(listener)
     return () => this.statusListeners.delete(listener)
@@ -311,6 +323,7 @@ export class RpcClient {
     }
   }
 
+  /** 拒绝 `open_waiters` 对应的数据或流程。 */
   private rejectOpenWaiters(error: RpcError): void {
     const waiters = this.openWaiters
     this.openWaiters = []
@@ -320,6 +333,7 @@ export class RpcClient {
     }
   }
 
+  /** 拒绝 `all_pending` 对应的数据或流程。 */
   private rejectAllPending(error: RpcError): void {
     const entries = [...this.pending.values()]
     this.pending.clear()
@@ -329,6 +343,7 @@ export class RpcClient {
     }
   }
 
+  /** 发送 `status` 对应的数据或流程。 */
   private emitStatus(connected: boolean): void {
     for (const listener of this.statusListeners) {
       try {

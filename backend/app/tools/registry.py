@@ -18,6 +18,7 @@ class ToolRegistry:
         *,
         availability_policy: ToolAvailabilityPolicy | None = None,
     ) -> None:
+        """初始化 `ToolRegistry` 实例及其依赖。"""
         self._tools: dict[str, BaseTool] = {}
         self._deferred_names: set[str] = set()
         self._availability_policy = (
@@ -51,12 +52,14 @@ class ToolRegistry:
         return tool
 
     def get(self, name: str) -> BaseTool:
+        """获取`ToolRegistry`的相关流程。"""
         try:
             return self._tools[name]
         except KeyError:
             raise KeyError(f"Tool '{name}' is not registered.") from None
 
     def names(self) -> tuple[str, ...]:
+        """执行 `names` 对应的业务逻辑。"""
         return tuple(self._tools)
 
     def restricted(self, names: Collection[str]) -> ToolRegistry:
@@ -80,6 +83,7 @@ class ToolRegistry:
         return tuple(sorted(self._deferred_names))
 
     def is_deferred(self, name: str) -> bool:
+        """判断 `deferred` 对应的数据或流程。"""
         return name in self._deferred_names
 
     def is_available_for_mode(

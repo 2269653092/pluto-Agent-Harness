@@ -9,11 +9,13 @@ import ModelSettingsPanel from '../components/ModelSettingsPanel'
 import { ErrorState } from '../components/PageStates'
 import { PageShell } from '../components/PageShell'
 
+/** 渲染 `SettingsPage` React 组件。 */
 export default function SettingsPage(): React.JSX.Element {
   const [section, setSection] = useState<'general' | 'models' | 'extensions'>('general')
 
   const infoQuery = useQuery({
     queryKey: ['system-info'],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () => getSystemInfo(),
     refetchInterval: 5000,
     retry: false,
@@ -21,6 +23,7 @@ export default function SettingsPage(): React.JSX.Element {
 
   const computerQuery = useQuery({
     queryKey: ['computer-status'],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () => getComputerStatus(),
     refetchInterval: 5000,
     retry: false,
@@ -107,6 +110,7 @@ export default function SettingsPage(): React.JSX.Element {
   )
 }
 
+/** 执行 `InfoRow` 对应的界面或业务逻辑。 */
 function InfoRow({
   label,
   value,

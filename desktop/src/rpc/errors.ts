@@ -4,6 +4,7 @@ export class RpcError extends Error {
   code: number
   data?: unknown
 
+  /** 初始化 `RpcError` 实例及其依赖。 */
   constructor(code: number, message: string, data?: unknown) {
     super(message)
     this.name = 'RpcError'

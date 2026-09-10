@@ -19,6 +19,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'sm' | 'md'
 }
 
+/** 执行 `Button` 对应的界面或业务逻辑。 */
 export function Button({
   variant = 'default',
   size = 'md',
@@ -44,6 +45,7 @@ export interface IconButtonProps
   label: string
 }
 
+/** 执行 `IconButton` 对应的界面或业务逻辑。 */
 export function IconButton({
   icon,
   label,
@@ -65,6 +67,7 @@ export function IconButton({
 
 /* ---------- Input / Textarea ---------- */
 
+/** 执行 `Input` 对应的界面或业务逻辑。 */
 export function Input({
   className = '',
   ...rest
@@ -72,6 +75,7 @@ export function Input({
   return <input className={`input ${className}`.trim()} {...rest} />
 }
 
+/** 执行 `Textarea` 对应的界面或业务逻辑。 */
 export function Textarea({
   className = '',
   ...rest
@@ -83,6 +87,7 @@ export function Textarea({
 
 export type BadgeTone = 'default' | 'success' | 'warning' | 'danger' | 'accent'
 
+/** 执行 `Badge` 对应的界面或业务逻辑。 */
 export function Badge({
   tone = 'default',
   className = '',
@@ -107,6 +112,7 @@ export type StatusTone =
   | 'failed'
   | 'offline'
 
+/** 执行 `StatusDot` 对应的界面或业务逻辑。 */
 export function StatusDot({
   tone,
   className = '',
@@ -125,6 +131,7 @@ export function StatusDot({
 
 /* ---------- Card ---------- */
 
+/** 渲染 `Card` React 组件。 */
 export function Card({
   subtle = false,
   className = '',
@@ -145,6 +152,7 @@ export function Card({
 
 /* ---------- EmptyState ---------- */
 
+/** 渲染 `EmptyState` React 组件。 */
 export function EmptyState({
   title,
   hint,
@@ -162,6 +170,7 @@ export function EmptyState({
 
 /* ---------- Spinner ---------- */
 
+/** 执行 `Spinner` 对应的界面或业务逻辑。 */
 export function Spinner({
   size = 16,
   className = '',
@@ -181,6 +190,7 @@ export function Spinner({
 
 /* ---------- SectionHeader ---------- */
 
+/** 执行 `SectionHeader` 对应的界面或业务逻辑。 */
 export function SectionHeader({
   title,
   hint,

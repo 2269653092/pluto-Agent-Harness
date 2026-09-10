@@ -28,6 +28,7 @@ class ProviderConfig(BaseModel):
     default_max_output_tokens: int = Field(default=4096, gt=0)
 
     def api_key_value(self) -> str:
+        """执行 `api_key_value` 对应的业务逻辑。"""
         return self.api_key.get_secret_value()
 
 
@@ -76,6 +77,7 @@ class ModelSettings(BaseSettings):
         self,
         provider: ModelProvider | str,
     ) -> ProviderConfig:
+        """执行 `provider_config` 对应的业务逻辑。"""
         provider_name = ModelProvider(provider)
 
         if provider_name is ModelProvider.OPENAI:
@@ -115,6 +117,7 @@ class ModelSettings(BaseSettings):
         )
 
     def configured_providers(self) -> tuple[ModelProvider, ...]:
+        """执行 `configured_providers` 对应的业务逻辑。"""
         configured: list[ModelProvider] = []
         for provider, key in (
             (ModelProvider.OPENAI, self.openai_api_key),
@@ -136,6 +139,7 @@ class ModelSettings(BaseSettings):
         base_url: str | None,
         api_style: ApiStyle,
     ) -> ProviderConfig:
+        """构建 `config` 对应的数据或流程。"""
         if api_key is None or not api_key.get_secret_value():
             raise ProviderNotConfiguredError(provider.value, key_variable)
         return ProviderConfig(

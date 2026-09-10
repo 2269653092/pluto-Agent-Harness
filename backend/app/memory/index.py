@@ -32,6 +32,7 @@ class MemoryIndex:
     """INDEX.md 的读写。"""
 
     def __init__(self, memory_dir: str | Path) -> None:
+        """初始化 `MemoryIndex` 实例及其依赖。"""
         self.path = Path(memory_dir) / "INDEX.md"
 
     def render(self, memories: Sequence[MemoryRecord]) -> str:
@@ -61,6 +62,7 @@ class MemoryIndex:
         return await asyncio.to_thread(self.path.read_text, encoding="utf-8")
 
     def _write_atomic(self, content: str) -> None:
+        """写入 `atomic` 对应的数据或流程。"""
         self.path.parent.mkdir(parents=True, exist_ok=True)
         temporary = self.path.with_name(f".{self.path.name}.tmp-{os.getpid()}")
         temporary.write_text(content, encoding="utf-8")
@@ -68,6 +70,7 @@ class MemoryIndex:
 
 
 def _single_line(text: str) -> str:
+    """处理 `_single_line` 的内部辅助逻辑。"""
     return " ".join(text.split()).strip()
 
 

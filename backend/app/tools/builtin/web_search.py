@@ -26,12 +26,14 @@ class WebSearchTool(BaseTool):
         service: SearchService | None = None,
         settings: SearchSettings | None = None,
     ) -> None:
+        """初始化 `WebSearchTool` 实例及其依赖。"""
         resolved_settings = settings or SearchSettings()
         self._service = service or build_search_service(resolved_settings)
         self._max_results = resolved_settings.search_max_results
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="web_search",
             description=(
@@ -94,6 +96,7 @@ class WebSearchTool(BaseTool):
         return self._service.primary_provider
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`WebSearchTool`的相关流程。"""
         raw_max_results = arguments.get("max_results", self._max_results)
         if isinstance(raw_max_results, bool) or not isinstance(raw_max_results, int):
             raise ValueError("'max_results' must be an integer")

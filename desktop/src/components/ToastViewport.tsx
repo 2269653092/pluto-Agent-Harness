@@ -5,6 +5,7 @@ import type { ReactElement } from 'react'
 import { useToastsStore } from '../stores/toasts'
 import { Icon } from './Icon'
 
+/** 渲染 `ToastViewport` React 组件。 */
 export function ToastViewport(): ReactElement {
   const toasts = useToastsStore((state) => state.toasts)
   const dismiss = useToastsStore((state) => state.dismiss)

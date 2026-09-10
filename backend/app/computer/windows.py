@@ -150,6 +150,7 @@ def _encode_png(width: int, height: int, rgb_rows: list[bytes]) -> bytes:
     """把 RGB 行编码成 PNG（只用标准库 zlib，避免新增 Pillow 依赖）。"""
 
     def chunk(tag: bytes, data: bytes) -> bytes:
+        """执行 `chunk` 对应的业务逻辑。"""
         return (
             len(data).to_bytes(4, "big")
             + tag
@@ -176,12 +177,14 @@ class _Win32:
     """Win32 API 的薄封装（惰性加载，非 Windows 平台导入本模块不会炸）。"""
 
     def __init__(self) -> None:
+        """初始化 `_Win32` 实例及其依赖。"""
         self.user32 = ctypes.WinDLL("user32", use_last_error=True)
         self.gdi32 = ctypes.WinDLL("gdi32", use_last_error=True)
         self.kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
         self._bind()
 
     def _bind(self) -> None:
+        """处理 `_bind` 的内部辅助逻辑。"""
         self.user32.GetSystemMetrics.argtypes = [ctypes.c_int]
         self.user32.GetSystemMetrics.restype = ctypes.c_int
         self.user32.GetDC.argtypes = [wintypes.HWND]
@@ -248,17 +251,20 @@ class _Win32:
     # -- 窗口信息 ----------------------------------------------------
 
     def window_title(self, hwnd: int) -> str:
+        """执行 `window_title` 对应的业务逻辑。"""
         length = self.user32.GetWindowTextLengthW(hwnd)
         buffer = ctypes.create_unicode_buffer(max(length + 1, 1))
         self.user32.GetWindowTextW(hwnd, buffer, len(buffer))
         return buffer.value
 
     def window_class(self, hwnd: int) -> str:
+        """执行 `window_class` 对应的业务逻辑。"""
         buffer = ctypes.create_unicode_buffer(256)
         self.user32.GetClassNameW(hwnd, buffer, len(buffer))
         return buffer.value
 
     def window_bounds(self, hwnd: int) -> Bounds | None:
+        """执行 `window_bounds` 对应的业务逻辑。"""
         rect = wintypes.RECT()
         if not self.user32.GetWindowRect(hwnd, ctypes.byref(rect)):
             return None
@@ -270,12 +276,14 @@ class _Win32:
         )
 
     def process_id(self, hwnd: int) -> int | None:
+        """处理 `id` 对应的数据或流程。"""
         pid = wintypes.DWORD()
         self.user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
         return pid.value or None
 
     def process_name(self, pid: int) -> str:
         # 0x1000 = PROCESS_QUERY_LIMITED_INFORMATION
+        """处理 `name` 对应的数据或流程。"""
         handle = self.kernel32.OpenProcess(0x1000, False, pid)
         if not handle:
             return ""
@@ -300,10 +308,12 @@ class _Win32:
     # -- 输入 --------------------------------------------------------
 
     def send_input(self, inputs: list[_INPUT]) -> int:
+        """执行 `send_input` 对应的业务逻辑。"""
         array = (_INPUT * len(inputs))(*inputs)
         return self.user32.SendInput(len(inputs), array, ctypes.sizeof(_INPUT))
 
     def key_input(self, vk: int, *, up: bool = False, scancode: bool = False) -> _INPUT:
+        """执行 `key_input` 对应的业务逻辑。"""
         flags = _KEYEVENTF_KEYUP if up else 0
         if scancode:
             flags |= _KEYEVENTF_SCANCODE
@@ -318,6 +328,7 @@ class _Win32:
         return entry
 
     def unicode_input(self, char: str, *, up: bool = False) -> _INPUT:
+        """执行 `unicode_input` 对应的业务逻辑。"""
         flags = _KEYEVENTF_UNICODE | (_KEYEVENTF_KEYUP if up else 0)
         entry = _INPUT()
         entry.type = _INPUT_KEYBOARD
@@ -335,6 +346,7 @@ class WindowsComputerRuntime:
         screenshot_dir: Path | None = None,
         session_manager: ComputerSessionManager | None = None,
     ) -> None:
+        """初始化 `WindowsComputerRuntime` 实例及其依赖。"""
         self.screenshot_dir = (
             (
                 screenshot_dir
@@ -362,6 +374,7 @@ class WindowsComputerRuntime:
         self._session_manager = manager
 
     def begin_session(self, run_id: str) -> ComputerSession:
+        """执行 `begin_session` 对应的业务逻辑。"""
         return self._session_manager.begin(run_id)
 
     async def begin_session_rpc(self, run_id: str) -> ComputerSession:
@@ -370,19 +383,24 @@ class WindowsComputerRuntime:
         return await asyncio.to_thread(self._session_manager.begin, run_id)
 
     async def end_session(self, run_id: str) -> bool:
+        """执行 `end_session` 对应的业务逻辑。"""
         return await asyncio.to_thread(self._session_manager.end, run_id)
 
     async def start(self) -> None:
+        """启动`WindowsComputerRuntime`的相关流程。"""
         return None
 
     async def close(self) -> None:
+        """关闭`WindowsComputerRuntime`的相关流程。"""
         self._window_handles.clear()
         self._element_handles.clear()
 
     def _require_session(self) -> ComputerSession:
+        """读取并校验 `session` 对应的数据或流程。"""
         return self._session_manager.require_active()
 
     def _require_fresh(self) -> tuple[str, Observation]:
+        """读取并校验 `fresh` 对应的数据或流程。"""
         session = self._require_session()
         observation = session.current_snapshot
         if observation is None:
@@ -390,6 +408,7 @@ class WindowsComputerRuntime:
         return observation.id, observation
 
     def _invalidate(self) -> None:
+        """处理 `_invalidate` 的内部辅助逻辑。"""
         session = self._session_manager.get_active()
         if session is not None:
             session.invalidate_snapshot()
@@ -400,6 +419,7 @@ class WindowsComputerRuntime:
         key: str,
         mapping: dict[str, int],
     ) -> None:
+        """处理 `_remember` 的内部辅助逻辑。"""
         store[key] = mapping
         while len(store) > _MAX_TRACKED_OBSERVATIONS:
             store.pop(next(iter(store)), None)
@@ -409,6 +429,7 @@ class WindowsComputerRuntime:
     # ------------------------------------------------------------------
 
     async def observe(self, include_screenshot: bool = True) -> Observation:
+        """执行 `observe` 对应的业务逻辑。"""
         if not isinstance(include_screenshot, bool):
             raise ValueError("'include_screenshot' must be a boolean")
         session = self._require_session()
@@ -472,6 +493,7 @@ class WindowsComputerRuntime:
 
         @ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
         def enum_top(hwnd: int, _lparam: int) -> bool:
+            """执行 `enum_top` 对应的业务逻辑。"""
             if not win.user32.IsWindowVisible(hwnd):
                 return True
             title = win.window_title(hwnd)
@@ -511,6 +533,7 @@ class WindowsComputerRuntime:
 
             @ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
             def enum_child(hwnd: int, _lparam: int) -> bool:
+                """执行 `enum_child` 对应的业务逻辑。"""
                 children.append(hwnd)
                 return True
 
@@ -660,6 +683,7 @@ class WindowsComputerRuntime:
     # ------------------------------------------------------------------
 
     async def click(self, target: ElementTarget | CoordinateTarget) -> ActionResult:
+        """执行 `click` 对应的业务逻辑。"""
         if isinstance(target, ElementTarget):
             handles = self._element_handles.get(target.observation_id)
             hwnd = handles.get(target.element_ref) if handles else None
@@ -694,6 +718,7 @@ class WindowsComputerRuntime:
         raise ValueError("unsupported click target")
 
     def _click_hwnd(self, hwnd: int) -> None:
+        """处理 `_click_hwnd` 的内部辅助逻辑。"""
         win = self._win
         win.user32.SetForegroundWindow(hwnd)
         bounds = win.window_bounds(hwnd)
@@ -705,6 +730,7 @@ class WindowsComputerRuntime:
         )
 
     def _click_coordinate(self, x: int, y: int) -> None:
+        """处理 `_click_coordinate` 的内部辅助逻辑。"""
         win = self._win
         win.user32.SetCursorPos(x, y)
         inputs = [
@@ -714,6 +740,7 @@ class WindowsComputerRuntime:
         win.send_input(inputs)
 
     def _mouse_input(self, flags: int, *, data: int = 0) -> _INPUT:
+        """处理 `_mouse_input` 的内部辅助逻辑。"""
         entry = _INPUT()
         entry.type = _INPUT_MOUSE
         entry.union.mi.dx = 0
@@ -727,6 +754,7 @@ class WindowsComputerRuntime:
         text: str,
         element_ref: str | None = None,
     ) -> ActionResult:
+        """执行 `type` 对应的业务逻辑。"""
         if not isinstance(text, str):
             raise ValueError("'text' must be a string")
         observation_id, observation = self._require_fresh()
@@ -754,6 +782,7 @@ class WindowsComputerRuntime:
         )
 
     def _send_text(self, text: str, hwnd: int | None) -> bool:
+        """处理 `_send_text` 的内部辅助逻辑。"""
         win = self._win
         if hwnd:
             win.user32.SetForegroundWindow(hwnd)
@@ -780,6 +809,7 @@ class WindowsComputerRuntime:
         modifiers: tuple[str, ...] = (),
         element_ref: str | None = None,
     ) -> ActionResult:
+        """执行 `key` 对应的业务逻辑。"""
         if not isinstance(key, str) or not key.strip():
             raise ValueError("'key' must be a non-empty string")
         if not isinstance(modifiers, tuple) or not all(
@@ -814,6 +844,7 @@ class WindowsComputerRuntime:
         modifiers: tuple[str, ...],
         hwnd: int | None,
     ) -> bool:
+        """处理 `_send_key` 的内部辅助逻辑。"""
         win = self._win
         if hwnd:
             win.user32.SetForegroundWindow(hwnd)
@@ -839,6 +870,7 @@ class WindowsComputerRuntime:
         return sent >= len(inputs)
 
     def _virtual_key_for_char(self, char: str) -> int | None:
+        """处理 `_virtual_key_for_char` 的内部辅助逻辑。"""
         if len(char) != 1:
             return None
         scan = self._win.user32.VkKeyScanW(char)
@@ -847,6 +879,7 @@ class WindowsComputerRuntime:
         return scan & 0xFF
 
     async def scroll(self, delta_x: int = 0, delta_y: int = 0) -> ActionResult:
+        """执行 `scroll` 对应的业务逻辑。"""
         for name, value in (("delta_x", delta_x), ("delta_y", delta_y)):
             if not isinstance(value, int) or isinstance(value, bool):
                 raise ValueError(f"'{name}' must be an integer")
@@ -867,6 +900,7 @@ class WindowsComputerRuntime:
 
     def _send_scroll(self, delta_y: int) -> None:
         # Windows 滚轮以 120 为一格，向上为正；工具参数约定向下为正。
+        """处理 `_send_scroll` 的内部辅助逻辑。"""
         notches = -delta_y // _WHEEL_DELTA or (-1 if delta_y > 0 else 1)
         notches = max(min(notches, 10), -10)
         entry = _INPUT()
@@ -876,6 +910,7 @@ class WindowsComputerRuntime:
         self._win.send_input([entry])
 
     async def open_app(self, app: str) -> ActionResult:
+        """执行 `open_app` 对应的业务逻辑。"""
         if not isinstance(app, str) or not app.strip():
             raise ValueError("'app' must be a non-empty string")
         session = self._require_session()
@@ -918,6 +953,7 @@ class WindowsComputerRuntime:
         return {"pid": None, "name": app}
 
     async def focus_window(self, window_ref: str) -> ActionResult:
+        """执行 `focus_window` 对应的业务逻辑。"""
         if not isinstance(window_ref, str) or not window_ref.strip():
             raise ValueError("'window_ref' must be a non-empty string")
         observation_id, _ = self._require_fresh()

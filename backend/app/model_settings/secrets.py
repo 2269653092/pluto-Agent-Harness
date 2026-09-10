@@ -11,9 +11,13 @@ from typing import Protocol
 class ModelSecretStore(Protocol):
     """测试可替换的最小密钥存储接口。"""
 
-    def get(self, provider: str) -> str | None: ...
+    def get(self, provider: str) -> str | None:
+        """获取`ModelSecretStore`的相关流程。"""
+        ...
 
-    def set(self, provider: str, value: str) -> None: ...
+    def set(self, provider: str, value: str) -> None:
+        """设置`ModelSecretStore`的相关流程。"""
+        ...
 
 
 class WindowsCredentialSecretStore:
@@ -26,6 +30,7 @@ class WindowsCredentialSecretStore:
     target_prefix = "Pluto/model-api-key/"
 
     def __init__(self) -> None:
+        """初始化 `WindowsCredentialSecretStore` 实例及其依赖。"""
         try:
             import win32cred  # noqa: PLC0415 - 仅在 Windows 需要
         except ImportError as exc:  # pragma: no cover - 依赖缺失时显式报错
@@ -38,9 +43,11 @@ class WindowsCredentialSecretStore:
         self._persist = win32cred.CRED_PERSIST_LOCAL_MACHINE
 
     def _target(self, provider: str) -> str:
+        """处理 `_target` 的内部辅助逻辑。"""
         return f"{self.target_prefix}{provider}"
 
     def get(self, provider: str) -> str | None:
+        """获取`WindowsCredentialSecretStore`的相关流程。"""
         try:
             credential = self._win32cred.CredRead(
                 self._target(provider), self._cred_type
@@ -55,6 +62,7 @@ class WindowsCredentialSecretStore:
         return blob.strip() or None
 
     def set(self, provider: str, value: str) -> None:
+        """设置`WindowsCredentialSecretStore`的相关流程。"""
         normalized = value.strip()
         if not normalized:
             raise ValueError("api key cannot be empty")
@@ -86,10 +94,12 @@ class UnavailableSecretStore:
     """没有可用系统凭据存储时的显式失败实现。"""
 
     def get(self, provider: str) -> str | None:
+        """获取`UnavailableSecretStore`的相关流程。"""
         del provider
         return None
 
     def set(self, provider: str, value: str) -> None:
+        """设置`UnavailableSecretStore`的相关流程。"""
         del provider, value
         raise RuntimeError(
             "Windows 凭据管理器不可用，请安装 pywin32 后重试，"

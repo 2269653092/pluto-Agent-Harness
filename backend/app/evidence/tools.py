@@ -16,10 +16,12 @@ class EvidenceSearchTool(BaseTool):
     """在当前会话的原始工具输出中搜索关键词。"""
 
     def __init__(self, store: SQLiteEvidenceStore) -> None:
+        """初始化 `EvidenceSearchTool` 实例及其依赖。"""
         self._store = store
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="evidence_search",
             record_output=False,
@@ -55,6 +57,7 @@ class EvidenceSearchTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> Any:
+        """执行`EvidenceSearchTool`的相关流程。"""
         raise ValueError("evidence_search requires conversation context")
 
     async def execute_with_context(
@@ -62,6 +65,7 @@ class EvidenceSearchTool(BaseTool):
         arguments: dict[str, Any],
         context: ToolExecutionContext,
     ) -> dict[str, Any]:
+        """执行 `with_context` 对应的数据或流程。"""
         conversation_id = _require_conversation(context)
         query = arguments.get("query")
         if not isinstance(query, str) or not query.strip():
@@ -96,10 +100,12 @@ class EvidenceReadTool(BaseTool):
     """按稳定 Evidence ID 分页读取完整原始输出。"""
 
     def __init__(self, store: SQLiteEvidenceStore) -> None:
+        """初始化 `EvidenceReadTool` 实例及其依赖。"""
         self._store = store
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="evidence_read",
             record_output=False,
@@ -134,6 +140,7 @@ class EvidenceReadTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> Any:
+        """执行`EvidenceReadTool`的相关流程。"""
         raise ValueError("evidence_read requires conversation context")
 
     async def execute_with_context(
@@ -141,6 +148,7 @@ class EvidenceReadTool(BaseTool):
         arguments: dict[str, Any],
         context: ToolExecutionContext,
     ) -> dict[str, Any]:
+        """执行 `with_context` 对应的数据或流程。"""
         conversation_id = _require_conversation(context)
         identifier = arguments.get("evidence_id")
         if not isinstance(identifier, str) or not identifier.strip():
@@ -182,17 +190,20 @@ def register_evidence_tools(
     registry: ToolRegistry,
     store: SQLiteEvidenceStore,
 ) -> None:
+    """注册 `evidence_tools` 对应的数据或流程。"""
     registry.register(EvidenceSearchTool(store), deferred=True)
     registry.register(EvidenceReadTool(store), deferred=True)
 
 
 def _require_conversation(context: ToolExecutionContext) -> str:
+    """读取并校验 `conversation` 对应的数据或流程。"""
     if not context.conversation_id:
         raise ValueError("evidence tool requires conversation context")
     return context.conversation_id
 
 
 def _optional_text(value: object) -> str | None:
+    """处理 `_optional_text` 的内部辅助逻辑。"""
     if value is None:
         return None
     if not isinstance(value, str):
@@ -201,6 +212,7 @@ def _optional_text(value: object) -> str | None:
 
 
 def _integer(value: object, name: str) -> int:
+    """处理 `_integer` 的内部辅助逻辑。"""
     if isinstance(value, bool) or not isinstance(value, int):
         raise TypeError(f"'{name}' must be an integer")
     return value

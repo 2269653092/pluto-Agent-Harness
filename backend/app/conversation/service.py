@@ -57,9 +57,11 @@ class _NullLock:
     """无会话（conversation_id=None）时使用的空锁：不串行化。"""
 
     async def __aenter__(self) -> _NullLock:
+        """进入异步上下文并返回可用对象。"""
         return self
 
     async def __aexit__(self, *exc: object) -> bool:
+        """退出异步上下文并释放相关资源。"""
         return False
 
 
@@ -83,6 +85,7 @@ class ConversationService:
         summary_store: SQLiteConversationSummaryStore | None = None,
         shared_event_handler: AgentEventHandler | None = None,
     ) -> None:
+        """初始化 `ConversationService` 实例及其依赖。"""
         self._conversation_store = conversation_store
         self._run_manager = run_manager
         self._trace_store = trace_store
@@ -93,6 +96,7 @@ class ConversationService:
         self._locks: dict[str, asyncio.Lock] = {}
 
     def _lock_for(self, conversation_id: str | None) -> Any:
+        """处理 `_lock_for` 的内部辅助逻辑。"""
         if conversation_id is None:
             return _NULL_LOCK
         lock = self._locks.get(conversation_id)
@@ -147,6 +151,7 @@ class ConversationService:
         mode: AgentMode,
     ) -> DispatchResult:
         # 1) 从持久化源加载“触发那一刻最新”的 history / summary。
+        """分发 `locked` 对应的数据或流程。"""
         history: tuple[Any, ...] = ()
         if conversation_id is not None:
             history = tuple(
@@ -340,6 +345,7 @@ class ConversationService:
         on_run_started: Any | None,
     ) -> DispatchResult:
         # 1) 从持久化源加载最新 history / summary（与 dispatch 一致）。
+        """恢复 `locked` 对应的数据或流程。"""
         history: tuple[Any, ...] = ()
         if conversation_id is not None:
             history = tuple(

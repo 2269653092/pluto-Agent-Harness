@@ -33,11 +33,13 @@ class ShellCommandTool(BaseTool):
         *,
         sandbox_supervisor: SandboxSupervisor | None = None,
     ) -> None:
+        """初始化 `ShellCommandTool` 实例及其依赖。"""
         self._workspace_root = workspace_root_path(workspace_root)
         self._sandbox_supervisor = sandbox_supervisor
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="run_shell_command",
             description=(
@@ -75,6 +77,7 @@ class ShellCommandTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`ShellCommandTool`的相关流程。"""
         command = arguments.get("command")
         if not isinstance(command, str) or not command.strip():
             raise ValueError("'command' must be a non-empty string")

@@ -9,6 +9,7 @@ import type {
   SendMessageResponse,
 } from './types'
 
+/** 列出 `conversations` 对应的数据或流程。 */
 export async function listConversations(limit = 50): Promise<Conversation[]> {
   const data = await rpcClient.call<{ conversations: Conversation[] }>(
     RpcMethods.conversationList,
@@ -17,6 +18,7 @@ export async function listConversations(limit = 50): Promise<Conversation[]> {
   return data.conversations
 }
 
+/** 获取 `conversation` 对应的数据或流程。 */
 export async function getConversation(
   conversationId: string,
 ): Promise<{ conversation: Conversation; messages: Message[] }> {
@@ -25,6 +27,7 @@ export async function getConversation(
   })
 }
 
+/** 创建 `conversation` 对应的数据或流程。 */
 export async function createConversation(): Promise<Conversation> {
   const data = await rpcClient.call<{ conversation: Conversation }>(
     RpcMethods.conversationCreate,
@@ -33,6 +36,7 @@ export async function createConversation(): Promise<Conversation> {
   return data.conversation
 }
 
+/** 执行 `renameConversation` 对应的界面或业务逻辑。 */
 export async function renameConversation(
   conversationId: string,
   title: string,
@@ -44,6 +48,7 @@ export async function renameConversation(
   return data.conversation
 }
 
+/** 删除 `conversation` 对应的数据或流程。 */
 export async function deleteConversation(conversationId: string): Promise<boolean> {
   const data = await rpcClient.call<{ deleted: boolean }>(
     RpcMethods.conversationDelete,
@@ -52,6 +57,7 @@ export async function deleteConversation(conversationId: string): Promise<boolea
   return data.deleted
 }
 
+/** 发送 `message` 对应的数据或流程。 */
 export async function sendMessage(
   conversationId: string,
   content: string,

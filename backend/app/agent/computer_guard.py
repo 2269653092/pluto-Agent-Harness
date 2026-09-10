@@ -42,6 +42,7 @@ class ComputerStagnationGuard:
     """识别“同一目标 + 同一失败 + 桌面没有进展”的跨调用停滞。"""
 
     def __init__(self, *, corrective_after: int = 2, halt_after: int = 3) -> None:
+        """初始化 `ComputerStagnationGuard` 实例及其依赖。"""
         if corrective_after < 2 or halt_after <= corrective_after:
             raise ValueError("computer guard thresholds are invalid")
         self._corrective_after = corrective_after
@@ -91,6 +92,7 @@ class ComputerStagnationGuard:
         return ComputerGuardDecision()
 
     def _update_target(self, tool_name: str, payload: dict[str, object]) -> None:
+        """更新 `target` 对应的数据或流程。"""
         if tool_name == "computer_open_app":
             metadata = payload.get("metadata")
             if isinstance(metadata, dict):
@@ -110,6 +112,7 @@ class ComputerStagnationGuard:
                     self._set_target(str(identity))
 
     def _set_target(self, identity: str) -> None:
+        """设置 `target` 对应的数据或流程。"""
         if identity != self._target:
             self._target = identity
             self._desktop_revision += 1
@@ -120,6 +123,7 @@ class ComputerStagnationGuard:
         tool_name: str,
         payload: dict[str, object],
     ) -> None:
+        """记录 `progress` 对应的数据或流程。"""
         if tool_name == "computer_observe":
             fingerprint = _observation_fingerprint(payload)
             if fingerprint != self._last_observation_fingerprint:
@@ -133,6 +137,7 @@ class ComputerStagnationGuard:
 
 
 def _json_object(raw: str | None) -> dict[str, object]:
+    """处理 `_json_object` 的内部辅助逻辑。"""
     if not raw:
         return {}
     try:

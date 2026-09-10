@@ -27,6 +27,7 @@ interface NotificationPayload {
   kind: string
 }
 
+/** 执行 `showMainWindow` 对应的界面或业务逻辑。 */
 function showMainWindow(): void {
   if (mainWindow === null || mainWindow.isDestroyed()) {
     createWindow()
@@ -111,6 +112,7 @@ function setApprovalVisible(visible: boolean): void {
   console.log('[approval] show')
 }
 
+/** 创建 `window` 对应的数据或流程。 */
 function createWindow(): void {
   const win = new BrowserWindow({
     width: 1520,
@@ -153,6 +155,7 @@ function createWindow(): void {
   })
 }
 
+/** 判断 `http_url` 对应的数据或流程。 */
 function isHttpUrl(value: string): boolean {
   try {
     const protocol = new URL(value).protocol

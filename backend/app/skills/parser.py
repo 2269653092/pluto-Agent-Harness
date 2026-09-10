@@ -118,6 +118,7 @@ def _optional_str(
     key: str,
     label: str,
 ) -> str | None:
+    """处理 `_optional_str` 的内部辅助逻辑。"""
     value = data.get(key)
     if value is None:
         return None
@@ -130,6 +131,7 @@ def _optional_str(
 
 
 def _allowed_tools(data: dict[str, Any]) -> tuple[str, ...]:
+    """处理 `_allowed_tools` 的内部辅助逻辑。"""
     hyphen_key = data.get("allowed-tools")
     underscore_key = data.get("allowed_tools")
     if hyphen_key is not None and underscore_key is not None:

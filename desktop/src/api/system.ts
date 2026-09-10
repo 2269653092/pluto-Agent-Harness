@@ -11,6 +11,7 @@ export interface SystemInfo {
   database: string
 }
 
+/** 获取 `system_info` 对应的数据或流程。 */
 export async function getSystemInfo(): Promise<SystemInfo> {
   return rpcClient.call(RpcMethods.systemInfo, {})
 }

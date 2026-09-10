@@ -66,9 +66,11 @@ class SQLiteRunStore:
     """持久化 Run 生命周期记录，并强制状态转换合法性。"""
 
     def __init__(self, database_path: str | Path = DEFAULT_DATABASE_PATH) -> None:
+        """初始化 `SQLiteRunStore` 实例及其依赖。"""
         self.database_path = Path(database_path).expanduser().resolve()
 
     async def initialize(self) -> None:
+        """初始化`SQLiteRunStore`的相关流程。"""
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
         async with self._connect() as database:
             await database.executescript(_SCHEMA)
@@ -135,6 +137,7 @@ class SQLiteRunStore:
         return run
 
     async def get(self, run_id: str) -> Run | None:
+        """获取`SQLiteRunStore`的相关流程。"""
         async with self._connect() as database:
             cursor = await database.execute(
                 "SELECT * FROM runs WHERE run_id = ?",
@@ -236,6 +239,7 @@ class SQLiteRunStore:
         *,
         stop_reason: str | None = None,
     ) -> Run:
+        """执行 `mark_completed` 对应的业务逻辑。"""
         return await self.update_status(
             run_id,
             RunStatus.COMPLETED,
@@ -249,6 +253,7 @@ class SQLiteRunStore:
         error: str | None = None,
         stop_reason: str | None = None,
     ) -> Run:
+        """执行 `mark_failed` 对应的业务逻辑。"""
         return await self.update_status(
             run_id,
             RunStatus.FAILED,
@@ -262,6 +267,7 @@ class SQLiteRunStore:
         *,
         error: str | None = None,
     ) -> Run:
+        """执行 `mark_cancelled` 对应的业务逻辑。"""
         return await self.update_status(
             run_id,
             RunStatus.CANCELLED,
@@ -274,6 +280,7 @@ class SQLiteRunStore:
         *,
         error: str | None = None,
     ) -> Run:
+        """执行 `mark_interrupted` 对应的业务逻辑。"""
         return await self.update_status(
             run_id,
             RunStatus.INTERRUPTED,
@@ -281,6 +288,7 @@ class SQLiteRunStore:
         )
 
     async def require(self, run_id: str) -> Run:
+        """读取并校验`SQLiteRunStore`的相关流程。"""
         run = await self.get(run_id)
         if run is None:
             raise KeyError(f"Run 不存在：{run_id}")
@@ -288,6 +296,7 @@ class SQLiteRunStore:
 
     @asynccontextmanager
     async def _connect(self) -> AsyncIterator[aiosqlite.Connection]:
+        """建立连接`SQLiteRunStore`的相关流程。"""
         database = await aiosqlite.connect(self.database_path)
         database.row_factory = aiosqlite.Row
         try:
@@ -297,10 +306,12 @@ class SQLiteRunStore:
 
 
 def _now() -> str:
+    """处理 `_now` 的内部辅助逻辑。"""
     return datetime.now(UTC).isoformat()
 
 
 def _required_identifier(value: str, field: str) -> str:
+    """处理 `_required_identifier` 的内部辅助逻辑。"""
     normalized = value.strip()
     if not normalized:
         raise ValueError(f"{field} cannot be empty")
@@ -308,12 +319,14 @@ def _required_identifier(value: str, field: str) -> str:
 
 
 def _optional_identifier(value: str | None) -> str | None:
+    """处理 `_optional_identifier` 的内部辅助逻辑。"""
     if value is None:
         return None
     return _required_identifier(value, "identifier")
 
 
 async def _require_row(database: aiosqlite.Connection, run_id: str) -> Run:
+    """读取并校验 `row` 对应的数据或流程。"""
     cursor = await database.execute(
         "SELECT * FROM runs WHERE run_id = ?",
         (_required_identifier(run_id, "run_id"),),
@@ -325,6 +338,7 @@ async def _require_row(database: aiosqlite.Connection, run_id: str) -> Run:
 
 
 def _run_from_row(row: aiosqlite.Row) -> Run:
+    """运行 `from_row` 对应的数据或流程。"""
     return Run(
         id=row["run_id"],
         conversation_id=row["conversation_id"],
@@ -370,6 +384,7 @@ def _run_from_row(row: aiosqlite.Row) -> Run:
 
 
 def _parse_datetime(value: str) -> datetime:
+    """解析 `datetime` 对应的数据或流程。"""
     return datetime.fromisoformat(value)
 
 

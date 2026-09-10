@@ -129,6 +129,7 @@ class AgentLoop:
         skill_context_provider: SkillContextProvider | None,
         run_budget: RunBudget,
     ) -> None:
+        """初始化 `AgentLoop` 实例及其依赖。"""
         self._model_registry = model_registry
         self._tool_registry = tool_registry
         self._tool_executor = tool_executor
@@ -776,6 +777,7 @@ class AgentLoop:
 
             try:
                 async def emit_text_delta(delta: str) -> None:
+                    """发送 `text_delta` 对应的数据或流程。"""
                     if not delta:
                         return
                     await emitter.emit(
@@ -1069,6 +1071,7 @@ class AgentLoop:
 
     @staticmethod
     def _error_message(error: AgentRuntimeError) -> Message:
+        """处理 `_error_message` 的内部辅助逻辑。"""
         return Message(
             role=MessageRole.ASSISTANT,
             content=f"Agent stopped: {error}",
@@ -1116,6 +1119,7 @@ class AgentLoop:
         summary_state: ConversationSummaryState | None = None,
         plan_task_id: str | None = None,
     ) -> AgentResult:
+        """处理 `_result` 的内部辅助逻辑。"""
         complete_messages = tuple(messages)
         if not complete_messages or complete_messages[-1] != final_message:
             complete_messages = (*complete_messages, final_message)

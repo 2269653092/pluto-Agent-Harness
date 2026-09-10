@@ -73,9 +73,11 @@ class InMemoryPermissionRuleStore(PermissionRuleStore):
     """进程内保存规则。"""
 
     def __init__(self) -> None:
+        """初始化 `InMemoryPermissionRuleStore` 实例及其依赖。"""
         self._rules: list[PermissionRule] = []
 
     async def add(self, rule: PermissionRule) -> None:
+        """添加`InMemoryPermissionRuleStore`的相关流程。"""
         self._rules.append(rule)
 
     async def list(
@@ -83,6 +85,7 @@ class InMemoryPermissionRuleStore(PermissionRuleStore):
         *,
         scope_ids: tuple[str, ...] | None = None,
     ) -> tuple[PermissionRule, ...]:
+        """列出`InMemoryPermissionRuleStore`的相关流程。"""
         if scope_ids is None:
             return tuple(self._rules)
         allowed = set(scope_ids)
@@ -93,12 +96,14 @@ class InMemoryPermissionRuleStore(PermissionRuleStore):
         )
 
     async def get(self, rule_id: str) -> PermissionRule | None:
+        """获取`InMemoryPermissionRuleStore`的相关流程。"""
         for rule in self._rules:
             if rule.id == rule_id:
                 return rule
         return None
 
     async def remove(self, rule_id: str) -> bool:
+        """移除`InMemoryPermissionRuleStore`的相关流程。"""
         for index, rule in enumerate(self._rules):
             if rule.id == rule_id:
                 del self._rules[index]
@@ -106,6 +111,7 @@ class InMemoryPermissionRuleStore(PermissionRuleStore):
         return False
 
     async def remove_scope(self, scope: ApprovalScope, scope_id: str) -> int:
+        """移除 `scope` 对应的数据或流程。"""
         retained = [
             rule
             for rule in self._rules
@@ -120,9 +126,11 @@ class SQLitePermissionRuleStore(PermissionRuleStore):
     """把规则持久化到 SQLite。"""
 
     def __init__(self, database_path: str | Path = DEFAULT_DATABASE_PATH) -> None:
+        """初始化 `SQLitePermissionRuleStore` 实例及其依赖。"""
         self.database_path = Path(database_path).expanduser().resolve()
 
     async def initialize(self) -> None:
+        """初始化`SQLitePermissionRuleStore`的相关流程。"""
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
         async with self._connect() as database:
             await database.executescript(_SCHEMA)
@@ -140,6 +148,7 @@ class SQLitePermissionRuleStore(PermissionRuleStore):
             await database.commit()
 
     async def add(self, rule: PermissionRule) -> None:
+        """添加`SQLitePermissionRuleStore`的相关流程。"""
         async with self._connect() as database:
             await database.execute(
                 """
@@ -171,6 +180,7 @@ class SQLitePermissionRuleStore(PermissionRuleStore):
         *,
         scope_ids: tuple[str, ...] | None = None,
     ) -> tuple[PermissionRule, ...]:
+        """列出`SQLitePermissionRuleStore`的相关流程。"""
         if scope_ids is None:
             query = "SELECT * FROM permission_rules"
             parameters: tuple[Any, ...] = ()
@@ -190,6 +200,7 @@ class SQLitePermissionRuleStore(PermissionRuleStore):
         return tuple(_rule_from_row(row) for row in rows)
 
     async def get(self, rule_id: str) -> PermissionRule | None:
+        """获取`SQLitePermissionRuleStore`的相关流程。"""
         async with self._connect() as database:
             cursor = await database.execute(
                 "SELECT * FROM permission_rules WHERE id = ?",
@@ -199,6 +210,7 @@ class SQLitePermissionRuleStore(PermissionRuleStore):
         return _rule_from_row(row) if row is not None else None
 
     async def remove(self, rule_id: str) -> bool:
+        """移除`SQLitePermissionRuleStore`的相关流程。"""
         async with self._connect() as database:
             cursor = await database.execute(
                 "DELETE FROM permission_rules WHERE id = ?",
@@ -208,6 +220,7 @@ class SQLitePermissionRuleStore(PermissionRuleStore):
         return cursor.rowcount > 0
 
     async def remove_scope(self, scope: ApprovalScope, scope_id: str) -> int:
+        """移除 `scope` 对应的数据或流程。"""
         async with self._connect() as database:
             cursor = await database.execute(
                 "DELETE FROM permission_rules WHERE scope = ? AND scope_id = ?",
@@ -218,6 +231,7 @@ class SQLitePermissionRuleStore(PermissionRuleStore):
 
     @asynccontextmanager
     async def _connect(self) -> AsyncIterator[aiosqlite.Connection]:
+        """建立连接`SQLitePermissionRuleStore`的相关流程。"""
         database = await aiosqlite.connect(self.database_path)
         database.row_factory = aiosqlite.Row
         try:
@@ -227,6 +241,7 @@ class SQLitePermissionRuleStore(PermissionRuleStore):
 
 
 def _rule_from_row(row: aiosqlite.Row) -> PermissionRule:
+    """处理 `_rule_from_row` 的内部辅助逻辑。"""
     return PermissionRule(
         id=row["id"],
         tool_name=row["tool_name"],

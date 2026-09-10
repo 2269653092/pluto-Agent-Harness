@@ -21,12 +21,14 @@ const STATUS_ORDER: Record<TaskStatus, number> = {
   cancelled: 5,
 }
 
+/** 执行 `progress` 对应的界面或业务逻辑。 */
 function progress(task: Task): { done: number; total: number; percent: number } {
   const total = task.steps.length
   const done = task.steps.filter((step) => step.status === 'done').length
   return { done, total, percent: total > 0 ? Math.round((done / total) * 100) : 0 }
 }
 
+/** 执行 `currentStep` 对应的界面或业务逻辑。 */
 function currentStep(task: Task): string | null {
   return task.steps.find((step) => step.status === 'in_progress')?.title
     ?? task.steps.find((step) => step.status === 'blocked')?.title
@@ -34,6 +36,7 @@ function currentStep(task: Task): string | null {
     ?? null
 }
 
+/** 执行 `orderConversationTasks` 对应的界面或业务逻辑。 */
 export function orderConversationTasks(tasks: Task[]): Task[] {
   return [...tasks].sort((left, right) => {
     const status = STATUS_ORDER[left.status] - STATUS_ORDER[right.status]
@@ -41,6 +44,7 @@ export function orderConversationTasks(tasks: Task[]): Task[] {
   })
 }
 
+/** 渲染 `CurrentTaskPanel` React 组件。 */
 export default function CurrentTaskPanel({ tasks }: { tasks: Task[] }): React.JSX.Element | null {
   const ordered = orderConversationTasks(tasks)
   const current = ordered[0]

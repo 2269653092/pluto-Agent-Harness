@@ -118,6 +118,7 @@ def _main_agent_chargeable_tokens(
 
 
 def _reflection_status(events: Sequence[AgentEvent]) -> tuple[str, str | None]:
+    """处理 `_reflection_status` 的内部辅助逻辑。"""
     status = "not_run"
     skip_reason: str | None = None
     for event in events:
@@ -136,6 +137,7 @@ def _reflection_status(events: Sequence[AgentEvent]) -> tuple[str, str | None]:
 
 
 def _main_agent_usage(events: Sequence[AgentEvent]) -> ModelUsage:
+    """处理 `_main_agent_usage` 的内部辅助逻辑。"""
     usage = ModelUsage()
     completed_calls = 0
     for event in events:
@@ -167,6 +169,7 @@ def _main_agent_usage(events: Sequence[AgentEvent]) -> ModelUsage:
 
 
 def _main_model_call_count(events: Sequence[AgentEvent]) -> int:
+    """处理 `_main_model_call_count` 的内部辅助逻辑。"""
     return sum(
         event.usage.model_calls or 1
         for event in events
@@ -175,6 +178,7 @@ def _main_model_call_count(events: Sequence[AgentEvent]) -> int:
 
 
 def _context_summary_usage(events: Sequence[AgentEvent]) -> ModelUsage:
+    """处理 `_context_summary_usage` 的内部辅助逻辑。"""
     usage = ModelUsage()
     for event in events:
         if (
@@ -188,6 +192,7 @@ def _context_summary_usage(events: Sequence[AgentEvent]) -> ModelUsage:
 def _context_summary_status(
     events: Sequence[AgentEvent],
 ) -> tuple[str, str | None, str | None, float]:
+    """处理 `_context_summary_status` 的内部辅助逻辑。"""
     status = "not_run"
     provider: str | None = None
     model: str | None = None
@@ -214,6 +219,7 @@ def _sum_event_usage(
     events: Sequence[AgentEvent],
     event_types: frozenset[AgentEventType],
 ) -> ModelUsage:
+    """汇总 `event_usage` 对应的数据或流程。"""
     usage = ModelUsage()
     for event in events:
         if event.type in event_types and event.usage is not None:
@@ -222,12 +228,14 @@ def _sum_event_usage(
 
 
 def _with_inferred_call(usage: ModelUsage) -> ModelUsage:
+    """处理 `_with_inferred_call` 的内部辅助逻辑。"""
     if usage.model_calls > 0 or not _has_tokens(usage):
         return usage
     return usage.model_copy(update={"model_calls": 1})
 
 
 def _has_tokens(usage: ModelUsage) -> bool:
+    """判断是否包含 `tokens` 对应的数据或流程。"""
     return bool(usage.input_tokens or usage.output_tokens or usage.total_tokens)
 
 

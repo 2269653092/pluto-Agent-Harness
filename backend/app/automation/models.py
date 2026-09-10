@@ -59,6 +59,7 @@ class Schedule(BaseModel):
     @field_validator("timezone")
     @classmethod
     def validate_timezone(cls, value: str) -> str:
+        """校验 `timezone` 对应的数据或流程。"""
         try:
             ZoneInfo(value)
         except Exception as exc:  # noqa: BLE001
@@ -68,6 +69,7 @@ class Schedule(BaseModel):
     @field_validator("run_at")
     @classmethod
     def validate_run_at(cls, value: datetime | None) -> datetime | None:
+        """校验 `run_at` 对应的数据或流程。"""
         if value is None:
             return None
         if value.tzinfo is None or value.utcoffset() is None:
@@ -80,6 +82,7 @@ class Schedule(BaseModel):
     @field_validator("interval_seconds")
     @classmethod
     def validate_interval(cls, value: float | None) -> float | None:
+        """校验 `interval` 对应的数据或流程。"""
         if value is None:
             return None
         if value <= 0:
@@ -108,6 +111,7 @@ class Automation(BaseModel):
     @field_validator("id", "conversation_id", "last_run_id")
     @classmethod
     def normalize_identifier(cls, value: str | None) -> str | None:
+        """标准化 `identifier` 对应的数据或流程。"""
         if value is None:
             return None
         normalized = value.strip()
@@ -123,6 +127,7 @@ class Automation(BaseModel):
     )
     @classmethod
     def normalize_datetime(cls, value: datetime | None) -> datetime | None:
+        """标准化 `datetime` 对应的数据或流程。"""
         if value is None:
             return None
         if value.tzinfo is None or value.utcoffset() is None:

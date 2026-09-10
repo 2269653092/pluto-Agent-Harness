@@ -43,6 +43,7 @@ class ModelCapabilities:
     source: CapabilitySource
 
     def __post_init__(self) -> None:
+        """处理 `__post_init__` 的内部辅助逻辑。"""
         if not self.provider.strip():
             raise ValueError("provider cannot be empty")
         if not self.model.strip():
@@ -85,6 +86,7 @@ class ModelCapabilityRegistry:
         provider_defaults: dict[str, ModelCapabilities] | None = None,
         fallback: ModelCapabilities | None = None,
     ) -> None:
+        """初始化 `ModelCapabilityRegistry` 实例及其依赖。"""
         self._overrides: dict[tuple[str, str], ModelCapabilities] = {}
         self._builtin = {**(builtin or {})}
         self._provider_defaults = {**(provider_defaults or {})}
@@ -200,6 +202,7 @@ def build_model_capability_registry(
 
 
 def _window_for(name: str, settings: ContextSettings) -> int:
+    """处理 `_window_for` 的内部辅助逻辑。"""
     if name == "openai":
         return settings.context_window_openai
     if name == "qwen":

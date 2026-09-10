@@ -16,6 +16,7 @@ export interface RunListQuery {
   limit?: number
 }
 
+/** 列出 `runs` 对应的数据或流程。 */
 export async function listRuns(query: RunListQuery = {}): Promise<Run[]> {
   const params: Record<string, unknown> = {}
   if (query.conversationId) params.conversation_id = query.conversationId
@@ -25,6 +26,7 @@ export async function listRuns(query: RunListQuery = {}): Promise<Run[]> {
   return data.runs
 }
 
+/** 获取 `run` 对应的数据或流程。 */
 export async function getRun(runId: string): Promise<Run> {
   const data = await rpcClient.call<{ run: Run }>(RpcMethods.runGet, {
     run_id: runId,
@@ -32,6 +34,7 @@ export async function getRun(runId: string): Promise<Run> {
   return data.run
 }
 
+/** 取消 `run` 对应的数据或流程。 */
 export async function cancelRun(runId: string): Promise<Run> {
   const data = await rpcClient.call<{ run: Run }>(RpcMethods.runCancel, {
     run_id: runId,
@@ -47,12 +50,14 @@ export async function interruptRun(runId: string): Promise<Run> {
   return data.run
 }
 
+/** 恢复 `run` 对应的数据或流程。 */
 export async function recoverRun(
   runId: string,
 ): Promise<{ recovered_from_run_id: string; run: Run; result: AgentResult | null }> {
   return rpcClient.call(RpcMethods.runRecover, { run_id: runId })
 }
 
+/** 获取 `run_trace` 对应的数据或流程。 */
 export async function getRunTrace(
   runId: string,
 ): Promise<{ run: AgentRunTrace; events: AgentEvent[]; usage: RunUsageSummary }> {

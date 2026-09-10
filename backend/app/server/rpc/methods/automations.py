@@ -23,6 +23,7 @@ async def automation_list(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `automation_list` 对应的业务逻辑。"""
     conversation_id = params.get("conversation_id")
     if conversation_id is not None and not isinstance(conversation_id, str):
         raise JsonRpcError(
@@ -41,6 +42,7 @@ async def automation_get(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `automation_get` 对应的业务逻辑。"""
     automation_id = _require_str(params, "automation_id")
     automation = await ctx.application.automation_scheduler.get(automation_id)
     if automation is None:
@@ -52,6 +54,7 @@ async def automation_create(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `automation_create` 对应的业务逻辑。"""
     title = _require_str(params, "title")
     prompt = _require_str(params, "prompt")
     conversation_id = params.get("conversation_id")
@@ -79,6 +82,7 @@ async def _control(
     ctx: RpcContext,
     action: str,
 ) -> dict[str, Any]:
+    """处理 `_control` 的内部辅助逻辑。"""
     automation_id = _require_str(params, "automation_id")
     scheduler = ctx.application.automation_scheduler
     automation = await scheduler.get(automation_id)
@@ -100,6 +104,7 @@ async def automation_pause(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `automation_pause` 对应的业务逻辑。"""
     return await _control(params, ctx, "pause")
 
 
@@ -107,6 +112,7 @@ async def automation_resume(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `automation_resume` 对应的业务逻辑。"""
     return await _control(params, ctx, "resume")
 
 
@@ -114,10 +120,12 @@ async def automation_cancel(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
+    """执行 `automation_cancel` 对应的业务逻辑。"""
     return await _control(params, ctx, "cancel")
 
 
 def _require_str(params: dict[str, Any], key: str) -> str:
+    """读取并校验 `str` 对应的数据或流程。"""
     value = params.get(key)
     if not isinstance(value, str) or not value:
         raise JsonRpcError(RpcErrorCode.INVALID_PARAMS, f"{key} is required")
@@ -125,6 +133,7 @@ def _require_str(params: dict[str, Any], key: str) -> str:
 
 
 def _positive_int(params: dict[str, Any], key: str, *, default: int) -> int:
+    """处理 `_positive_int` 的内部辅助逻辑。"""
     value = params.get(key, default)
     if not isinstance(value, int) or isinstance(value, bool) or value < 1:
         raise JsonRpcError(
@@ -135,6 +144,7 @@ def _positive_int(params: dict[str, Any], key: str, *, default: int) -> int:
 
 
 def register(dispatcher: RpcDispatcher) -> None:
+    """注册当前对象的相关流程。"""
     dispatcher.register("automation.list", automation_list)
     dispatcher.register("automation.get", automation_get)
     dispatcher.register("automation.create", automation_create)

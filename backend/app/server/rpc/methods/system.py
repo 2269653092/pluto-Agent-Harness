@@ -48,5 +48,6 @@ async def system_restart(
 
 
 def register(dispatcher: RpcDispatcher) -> None:
+    """注册当前对象的相关流程。"""
     dispatcher.register("system.info", system_info)
     dispatcher.register("system.restart", system_restart)

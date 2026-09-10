@@ -17,9 +17,11 @@ class ModelSettingsStore:
     """用临时文件+原子替换保存设置，文件中禁止出现密钥。"""
 
     def __init__(self, path: str | Path = DEFAULT_MODEL_SETTINGS_PATH) -> None:
+        """初始化 `ModelSettingsStore` 实例及其依赖。"""
         self.path = Path(path).expanduser().resolve()
 
     def load(self) -> StoredModelSettings | None:
+        """加载`ModelSettingsStore`的相关流程。"""
         if not self.path.is_file():
             return None
         if self.path.is_symlink():
@@ -28,6 +30,7 @@ class ModelSettingsStore:
         return StoredModelSettings.model_validate(payload)
 
     def save(self, settings: StoredModelSettings) -> None:
+        """保存`ModelSettingsStore`的相关流程。"""
         self.path.parent.mkdir(parents=True, exist_ok=True)
         temporary = self.path.with_name(f".{self.path.name}.tmp-{os.getpid()}")
         serialized = json.dumps(

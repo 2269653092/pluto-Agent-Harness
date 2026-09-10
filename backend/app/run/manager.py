@@ -48,6 +48,7 @@ class RunManager:
         approval_store: SQLiteApprovalStore | None = None,
         run_finalizers: Sequence[RunFinalizer] = (),
     ) -> None:
+        """初始化 `RunManager` 实例及其依赖。"""
         self._run_store = run_store
         self._checkpoint_store = checkpoint_store
         self._runtime = runtime
@@ -206,6 +207,7 @@ class RunManager:
         return self._last_results.get(run_id)
 
     async def get_run(self, run_id: str) -> Run | None:
+        """获取 `run` 对应的数据或流程。"""
         return await self._run_store.get(run_id)
 
     async def list_runs(
@@ -215,6 +217,7 @@ class RunManager:
         status: RunStatus | str | None = None,
         limit: int = 20,
     ) -> tuple[Run, ...]:
+        """列出 `runs` 对应的数据或流程。"""
         return await self._run_store.list_runs(
             conversation_id=conversation_id,
             status=status,
@@ -223,6 +226,7 @@ class RunManager:
 
     @property
     def active_run_ids(self) -> tuple[str, ...]:
+        """执行 `active_run_ids` 对应的业务逻辑。"""
         return tuple(
             run_id
             for run_id, task in self._active_tasks.items()
@@ -392,6 +396,7 @@ class RunManager:
         recovery_run_id: str | None,
         mode: AgentMode,
     ) -> None:
+        """执行`RunManager`的相关流程。"""
         try:
             result: AgentResult | None = None
             try:

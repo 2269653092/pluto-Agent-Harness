@@ -4,6 +4,7 @@ import { leaseLabel } from '../api/computer'
 import type { ComputerStatus } from '../api/computer'
 import { StatusDot } from './ui'
 
+/** 渲染 `ComputerStatusView` React 组件。 */
 export default function ComputerStatusView({
   status,
   loading = false,

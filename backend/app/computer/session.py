@@ -78,6 +78,7 @@ class ComputerSession:
         self.current_snapshot = None
 
     def snapshot_id(self) -> str | None:
+        """执行 `snapshot_id` 对应的业务逻辑。"""
         return self.current_snapshot.id if self.current_snapshot else None
 
 
@@ -88,12 +89,14 @@ class ComputerSessionManager:
     """
 
     def __init__(self) -> None:
+        """初始化 `ComputerSessionManager` 实例及其依赖。"""
         self._guard = Lock()
         self._sessions: dict[str, ComputerSession] = {}
         self._active_run_id: str | None = None
 
     @property
     def active_run_id(self) -> str | None:
+        """执行 `active_run_id` 对应的业务逻辑。"""
         with self._guard:
             return self._active_run_id
 
@@ -139,16 +142,19 @@ class ComputerSessionManager:
             return session
 
     def get(self, run_id: str) -> ComputerSession | None:
+        """获取`ComputerSessionManager`的相关流程。"""
         with self._guard:
             return self._sessions.get(run_id)
 
     def get_active(self) -> ComputerSession | None:
+        """获取 `active` 对应的数据或流程。"""
         with self._guard:
             if self._active_run_id is None:
                 return None
             return self._sessions.get(self._active_run_id)
 
     def require_active(self) -> ComputerSession:
+        """读取并校验 `active` 对应的数据或流程。"""
         session = self.get_active()
         if session is None:
             raise ComputerSessionNotActiveError(
@@ -188,11 +194,13 @@ class ComputerSessionManager:
             return True
 
     def close(self) -> None:
+        """关闭`ComputerSessionManager`的相关流程。"""
         with self._guard:
             self._sessions.clear()
             self._active_run_id = None
 
     def active_count(self) -> int:
+        """执行 `active_count` 对应的业务逻辑。"""
         with self._guard:
             return len(self._sessions)
 

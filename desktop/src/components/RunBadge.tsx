@@ -9,6 +9,7 @@ const ORDER: RunStatus[] = [
   'interrupted',
 ]
 
+/** 执行 `RunBadge` 对应的界面或业务逻辑。 */
 export default function RunBadge({ status }: { status: RunStatus }): React.JSX.Element {
   const labels: Record<RunStatus, string> = {
     pending: '准备中',

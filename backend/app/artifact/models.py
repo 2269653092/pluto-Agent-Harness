@@ -40,6 +40,7 @@ class Artifact(BaseModel):
     @field_validator("id")
     @classmethod
     def id_required(cls, value: str) -> str:
+        """执行 `id_required` 对应的业务逻辑。"""
         normalized = value.strip()
         if not normalized:
             raise ValueError("artifact id cannot be empty")
@@ -48,6 +49,7 @@ class Artifact(BaseModel):
     @field_validator("created_at")
     @classmethod
     def created_at_valid(cls, value: datetime) -> datetime:
+        """执行 `created_at_valid` 对应的业务逻辑。"""
         if value.tzinfo is None or value.utcoffset() is None:
             raise ValueError("created_at must include timezone information")
         return value.astimezone(UTC)

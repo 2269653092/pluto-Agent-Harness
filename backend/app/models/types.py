@@ -143,6 +143,7 @@ class ModelRequest(BaseModel):
 
     @model_validator(mode="after")
     def require_messages(self) -> ModelRequest:
+        """读取并校验 `messages` 对应的数据或流程。"""
         if not self.messages:
             raise ValueError("messages cannot be empty")
         return self
@@ -174,6 +175,7 @@ def add_model_usage(left: ModelUsage, right: ModelUsage) -> ModelUsage:
     right_has_usage = _has_model_usage(right)
 
     def add_optional(left_value: int | None, right_value: int | None) -> int | None:
+        """添加 `optional` 对应的数据或流程。"""
         if not left_has_usage:
             return right_value
         if not right_has_usage:
@@ -207,6 +209,7 @@ def add_model_usage(left: ModelUsage, right: ModelUsage) -> ModelUsage:
 
 
 def _has_model_usage(usage: ModelUsage) -> bool:
+    """判断是否包含 `model_usage` 对应的数据或流程。"""
     return bool(
         usage.input_tokens
         or usage.output_tokens

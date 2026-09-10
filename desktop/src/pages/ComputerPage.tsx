@@ -18,6 +18,7 @@ import { PageShell } from '../components/PageShell'
 import { Icon } from '../components/Icon'
 import { useEventsStore } from '../stores/events'
 
+/** 执行 `ComputerSessionOverview` 对应的界面或业务逻辑。 */
 export function ComputerSessionOverview({
   active,
   available,
@@ -70,6 +71,7 @@ export function ComputerSessionOverview({
   )
 }
 
+/** 渲染 `ComputerPage` React 组件。 */
 export default function ComputerPage(): React.JSX.Element {
   const eventsByRun = useEventsStore((state) => state.eventsByRun)
   const statusQuery = useQuery({
@@ -80,6 +82,7 @@ export default function ComputerPage(): React.JSX.Element {
   })
   const observationQuery = useQuery({
     queryKey: ['computer-observation'],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () => getLatestComputerObservation(),
     refetchInterval: 2500,
     retry: false,
@@ -87,6 +90,7 @@ export default function ComputerPage(): React.JSX.Element {
   const activeRunId = statusQuery.data?.lease?.owner_run_id || null
   const runQuery = useQuery({
     queryKey: ['run', activeRunId],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () => getRun(activeRunId!),
     enabled: Boolean(activeRunId),
     refetchInterval: 3000,

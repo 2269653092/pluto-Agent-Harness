@@ -15,6 +15,7 @@ _MAX_LIST_LIMIT = 200
 async def artifact_list(
     params: dict[str, Any], ctx: RpcContext
 ) -> dict[str, Any]:
+    """执行 `artifact_list` 对应的业务逻辑。"""
     run_id = params.get("run_id")
     conversation_id = params.get("conversation_id")
     if run_id is not None and (not isinstance(run_id, str) or not run_id):
@@ -52,6 +53,7 @@ async def artifact_list(
 async def artifact_get(
     params: dict[str, Any], ctx: RpcContext
 ) -> dict[str, Any]:
+    """执行 `artifact_get` 对应的业务逻辑。"""
     artifact_id = params.get("id")
     if not isinstance(artifact_id, str) or not _ARTIFACT_ID_RE.fullmatch(
         artifact_id
@@ -68,5 +70,6 @@ async def artifact_get(
 
 
 def register(dispatcher: RpcDispatcher) -> None:
+    """注册当前对象的相关流程。"""
     dispatcher.register("artifact.list", artifact_list)
     dispatcher.register("artifact.get", artifact_get)

@@ -27,6 +27,7 @@ import { toast } from '../stores/toasts'
 
 type ExtensionTab = 'skills' | 'mcp'
 
+/** 执行 `ExtensionsSettings` 对应的界面或业务逻辑。 */
 export default function ExtensionsSettings(): React.JSX.Element {
   const [tab, setTab] = useState<ExtensionTab>('skills')
   const [showAdd, setShowAdd] = useState(false)
@@ -44,11 +45,13 @@ export default function ExtensionsSettings(): React.JSX.Element {
     retry: false,
   })
 
+  /** 执行 `refresh` 对应的界面或业务逻辑。 */
   const refresh = (): void => {
     void queryClient.invalidateQueries({ queryKey: ['extensions'] })
   }
   const skillMutation = useMutation({
     mutationFn: installSkill,
+    /** 响应 `onSuccess` 对应的事件。 */
     onSuccess: (skill) => {
       toast.success(`Skill ${skill.name} 已安装`)
       setShowAdd(false)
@@ -57,6 +60,7 @@ export default function ExtensionsSettings(): React.JSX.Element {
   })
   const mcpMutation = useMutation({
     mutationFn: addMCPServer,
+    /** 响应 `onSuccess` 对应的事件。 */
     onSuccess: (result) => {
       toast.success(`MCP ${result.server.name} 已写入配置`)
       setShowAdd(false)
@@ -64,27 +68,33 @@ export default function ExtensionsSettings(): React.JSX.Element {
     },
   })
   const skillControlMutation = useMutation({
+    /** 执行 `mutationFn` 对应的界面或业务逻辑。 */
     mutationFn: async (action: { name: string; scope: 'user' | 'project'; enabled: boolean; delete?: boolean }): Promise<void> => {
       if (action.delete) await deleteSkill(action.name, action.scope, action.enabled)
       else await setSkillEnabled(action.name, action.scope, !action.enabled)
     },
+    /** 响应 `onSuccess` 对应的事件。 */
     onSuccess: (_result, action) => {
       toast.info(action.delete ? `Skill ${action.name} 已删除` : `Skill ${action.name} 已${action.enabled ? '停用' : '启用'}`)
       setDeleteTarget(null)
       refresh()
     },
+    /** 响应 `onError` 对应的事件。 */
     onError: (error: unknown) => toast.error(error instanceof Error ? error.message : String(error)),
   })
   const mcpControlMutation = useMutation({
+    /** 执行 `mutationFn` 对应的界面或业务逻辑。 */
     mutationFn: async (action: { name: string; enabled?: boolean; delete?: boolean }): Promise<void> => {
       if (action.delete) await deleteMCPServer(action.name)
       else await setMCPServerEnabled(action.name, !action.enabled)
     },
+    /** 响应 `onSuccess` 对应的事件。 */
     onSuccess: (_result, action) => {
       toast.info(action.delete ? `MCP ${action.name} 已从配置删除，重启后生效` : `MCP ${action.name} 已${action.enabled ? '停用' : '启用'}，重启后生效`)
       setDeleteTarget(null)
       refresh()
     },
+    /** 响应 `onError` 对应的事件。 */
     onError: (error: unknown) => toast.error(error instanceof Error ? error.message : String(error)),
   })
 
@@ -181,6 +191,7 @@ export default function ExtensionsSettings(): React.JSX.Element {
   )
 }
 
+/** 渲染 `UnifiedImportForm` React 组件。 */
 export function UnifiedImportForm({
   onInstalled,
   onCancel,
@@ -196,17 +207,20 @@ export function UnifiedImportForm({
   const previewMutation = useMutation({ mutationFn: previewExtensionImport })
   const applyMutation = useMutation({ mutationFn: applyExtensionImport })
 
+  /** 重置 `preview` 对应的数据或流程。 */
   const resetPreview = (): void => {
     setPlan(null)
     setPreviewedInput(null)
     previewMutation.reset()
     applyMutation.reset()
   }
+  /** 构建 `input` 对应的数据或流程。 */
   const buildInput = (): ExtensionImportInput => ({
     input: rawInput.trim(),
     skill_scope: scope,
     mcp_permission: permission,
   })
+  /** 执行 `preview` 对应的界面或业务逻辑。 */
   const preview = async (): Promise<void> => {
     const input = buildInput()
     if (!input.input) return
@@ -214,6 +228,7 @@ export function UnifiedImportForm({
     setPreviewedInput(input)
     setPlan(nextPlan)
   }
+  /** 执行 `install` 对应的界面或业务逻辑。 */
   const install = async (): Promise<void> => {
     if (!plan || !previewedInput) return
     const result = await applyMutation.mutateAsync({
@@ -275,6 +290,7 @@ export function UnifiedImportForm({
   )
 }
 
+/** 执行 `ImportPlanPreview` 对应的界面或业务逻辑。 */
 function ImportPlanPreview({ plan }: { plan: ExtensionImportPlan }): React.JSX.Element {
   return (
     <div className="extension-import__preview">
@@ -297,6 +313,7 @@ function ImportPlanPreview({ plan }: { plan: ExtensionImportPlan }): React.JSX.E
   )
 }
 
+/** 渲染 `SkillList` React 组件。 */
 function SkillList({
   skills,
   diagnostics,
@@ -342,6 +359,7 @@ function SkillList({
   )
 }
 
+/** 渲染 `MCPList` React 组件。 */
 function MCPList({
   servers,
   configPath,
@@ -397,6 +415,7 @@ function MCPList({
   )
 }
 
+/** 渲染 `SkillInstallForm` React 组件。 */
 export function SkillInstallForm({
   busy,
   serverError,
@@ -415,6 +434,7 @@ export function SkillInstallForm({
   const [error, setError] = useState<string | null>(null)
 
   const preview = useMemo(() => `---\nname: ${name || 'my-skill'}\ndescription: ${description || '这个 Skill 适合解决什么任务'}\n---\n\n${instructions || '# 操作方法\n\n1. 描述执行步骤。'}`, [description, instructions, name])
+  /** 执行 `submit` 对应的界面或业务逻辑。 */
   const submit = async (): Promise<void> => {
     setError(null)
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(name) || name.length > 64) {
@@ -444,6 +464,7 @@ export function SkillInstallForm({
   )
 }
 
+/** 渲染 `MCPInstallForm` React 组件。 */
 export function MCPInstallForm({
   busy,
   serverError,
@@ -470,6 +491,7 @@ export function MCPInstallForm({
     servers: [{ name: name || 'example', transport: 'stdio', command: command || 'npx', args, ...(cwd.trim() ? { cwd: cwd.trim() } : {}), env: envResult.env, permission, sandbox: { filesystem, network } }],
   }), [args, command, cwd, envResult.env, filesystem, name, network, permission])
 
+  /** 执行 `submit` 对应的界面或业务逻辑。 */
   const submit = async (): Promise<void> => {
     setError(null)
     if (!/^[a-zA-Z0-9_]+$/.test(name)) {
@@ -508,10 +530,12 @@ export function MCPInstallForm({
   )
 }
 
+/** 执行 `lines` 对应的界面或业务逻辑。 */
 function lines(value: string): string[] {
   return value.split('\n').map((item) => item.trim()).filter(Boolean)
 }
 
+/** 解析 `env` 对应的数据或流程。 */
 export function parseEnv(value: string): { env: Record<string, string>; error: string | null } {
   const env: Record<string, string> = {}
   for (const line of lines(value)) {
@@ -525,6 +549,7 @@ export function parseEnv(value: string): { env: Record<string, string>; error: s
   return { env, error: null }
 }
 
+/** 执行 `mcpStateLabel` 对应的界面或业务逻辑。 */
 function mcpStateLabel(state: ManagedMCPServer['state']): string {
   if (state === 'running') return '已连接'
   if (state === 'failed') return '启动失败'
@@ -533,6 +558,7 @@ function mcpStateLabel(state: ManagedMCPServer['state']): string {
   return '已停止'
 }
 
+/** 执行 `permissionLabel` 对应的界面或业务逻辑。 */
 function permissionLabel(permission: MCPPermission): string {
   if (permission === 'allowed') return '自动允许'
   if (permission === 'forbidden') return '禁止调用'

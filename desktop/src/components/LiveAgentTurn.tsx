@@ -21,6 +21,7 @@ const STATUS = {
   cancelled: { label: '已取消', tone: 'cancelled' },
 } as const
 
+/** 执行 `LiveAgentTurn` 对应的界面或业务逻辑。 */
 export default function LiveAgentTurn({
   runId,
   step,

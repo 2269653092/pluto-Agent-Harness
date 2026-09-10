@@ -52,6 +52,7 @@ class ToolExecutor:
         rule_factory: Any = build_safe_rule,
         output_recorder: ToolOutputRecorder | None = None,
     ) -> None:
+        """初始化 `ToolExecutor` 实例及其依赖。"""
         if timeout_seconds <= 0:
             raise ValueError("timeout_seconds must be greater than zero")
         if max_output_chars <= 0:
@@ -108,6 +109,7 @@ class ToolExecutor:
         context: ToolExecutionContext | None = None,
         hooks: Sequence[ToolHook] = (),
     ) -> ToolResult:
+        """执行`ToolExecutor`的相关流程。"""
         started_at = perf_counter()
         started_iso = _now_iso()
 
@@ -150,6 +152,7 @@ class ToolExecutor:
         return await self._complete(execution_context, result, hook_runner)
 
     def _lookup_tool(self, tool_call: ToolCall) -> BaseTool | None:
+        """处理 `_lookup_tool` 的内部辅助逻辑。"""
         try:
             return self._registry.get(tool_call.name)
         except KeyError:
@@ -207,6 +210,7 @@ class ToolExecutor:
         context: ToolExecutionContext,
         started_at: float,
     ) -> ToolResult:
+        """分发`ToolExecutor`的相关流程。"""
         try:
             arguments = _parse_arguments(tool_call.arguments)
         except (TypeError, ValueError) as exc:
@@ -284,6 +288,7 @@ class ToolExecutor:
         error: str,
         started_at: float,
     ) -> ToolResult:
+        """处理 `_failure` 的内部辅助逻辑。"""
         return ToolResult(
             tool_call_id=tool_call.id,
             tool_name=tool_call.name,
@@ -306,6 +311,7 @@ class ToolExecutor:
 
 
 def _parse_arguments(arguments: dict[str, Any] | str) -> dict[str, Any]:
+    """解析 `arguments` 对应的数据或流程。"""
     if isinstance(arguments, dict):
         return arguments
     try:
@@ -326,6 +332,7 @@ def _safe_arguments(arguments: dict[str, Any] | str) -> dict[str, Any]:
 
 
 def _serialize_output(output: Any) -> str:
+    """序列化 `output` 对应的数据或流程。"""
     if isinstance(output, str):
         return output
     try:
@@ -335,8 +342,10 @@ def _serialize_output(output: Any) -> str:
 
 
 def _truncate(value: str, limit: int) -> str:
+    """处理 `_truncate` 的内部辅助逻辑。"""
     return value[:limit]
 
 
 def _duration_ms(started_at: float) -> float:
+    """处理 `_duration_ms` 的内部辅助逻辑。"""
     return max(0.0, (perf_counter() - started_at) * 1000)

@@ -86,10 +86,12 @@ export interface ComputerLatestObservation {
 // RPC
 // ---------------------------------------------------------------------------
 
+/** 获取 `computer_status` 对应的数据或流程。 */
 export async function getComputerStatus(): Promise<ComputerStatus> {
   return rpcClient.call<ComputerStatus>(RpcMethods.computerStatus, {})
 }
 
+/** 获取 `latest_computer_observation` 对应的数据或流程。 */
 export async function getLatestComputerObservation(
   runId?: string,
 ): Promise<ComputerLatestObservation> {

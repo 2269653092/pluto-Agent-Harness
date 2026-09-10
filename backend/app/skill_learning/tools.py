@@ -35,11 +35,13 @@ class SkillProposeTool(BaseTool):
         candidate_store: SkillCandidateStore,
         skill_store: SkillStore,
     ) -> None:
+        """初始化 `SkillProposeTool` 实例及其依赖。"""
         self._candidate_store = candidate_store
         self._skill_store = skill_store
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name=SKILL_PROPOSE_TOOL_NAME,
             record_output=False,
@@ -101,6 +103,7 @@ class SkillProposeTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> Any:
+        """执行`SkillProposeTool`的相关流程。"""
         raise ValueError("skill_propose requires run and conversation context")
 
     async def execute_with_context(
@@ -108,6 +111,7 @@ class SkillProposeTool(BaseTool):
         arguments: dict[str, Any],
         context: ToolExecutionContext,
     ) -> dict[str, Any]:
+        """执行 `with_context` 对应的数据或流程。"""
         run_id = (context.run_id or "").strip()
         conversation_id = (context.conversation_id or "").strip()
         tool_call_id = context.tool_call.id.strip()
@@ -170,6 +174,7 @@ def _candidate_output(
     *,
     replayed: bool,
 ) -> dict[str, Any]:
+    """处理 `_candidate_output` 的内部辅助逻辑。"""
     return {
         "candidate_id": candidate.id,
         "action": candidate.action.value,

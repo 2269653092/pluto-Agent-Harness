@@ -35,6 +35,7 @@ export interface AppState {
   openRun: (runId: string) => void
 }
 
+/** 执行 `App` 对应的界面或业务逻辑。 */
 export default function App(): React.JSX.Element {
   const [page, setPage] = useState<PageKey>('chat')
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null)
@@ -63,6 +64,7 @@ export default function App(): React.JSX.Element {
 
   const pendingApprovalsQuery = useQuery({
     queryKey: ['sidebar-approvals'],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () => listApprovals('pending'),
     refetchInterval: 4000,
   })
@@ -70,6 +72,7 @@ export default function App(): React.JSX.Element {
   // 侧栏背景状态：最近有新交付物（very light，不刷 dashboard 数字墙）。
   const artifactsIndicatorQuery = useQuery({
     queryKey: ['rail-artifacts'],
+    /** 执行 `queryFn` 对应的界面或业务逻辑。 */
     queryFn: () => listArtifacts({ limit: 1 }),
     refetchInterval: 6000,
   })
@@ -88,16 +91,19 @@ export default function App(): React.JSX.Element {
   ).length
   const pendingApprovalCount = pendingApprovalsQuery.data?.length ?? 0
 
+  /** 执行 `navigate` 对应的界面或业务逻辑。 */
   const navigate = (next: PageKey): void => {
     setPage(next)
     if (next !== 'runs') setSelectedRunId(null)
   }
 
+  /** 打开 `run` 对应的数据或流程。 */
   const openRun = (runId: string): void => {
     setSelectedRunId(runId)
     setPage('runs')
   }
 
+  /** 打开 `conversation` 对应的数据或流程。 */
   const openConversation = (conversationId: string): void => {
     setSelectedConversationId(conversationId)
     setSelectedRunId(null)

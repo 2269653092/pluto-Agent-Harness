@@ -57,6 +57,7 @@ class SQLiteTraceStore:
     """将 Agent Run 摘要和完整事件保存在 SQLite 中。"""
 
     def __init__(self, database_path: str | Path = DEFAULT_DATABASE_PATH) -> None:
+        """初始化 `SQLiteTraceStore` 实例及其依赖。"""
         self.database_path = Path(database_path).expanduser().resolve()
 
     async def initialize(self) -> None:
@@ -213,6 +214,7 @@ class SQLiteTraceStore:
         database: aiosqlite.Connection,
         event: AgentEvent,
     ) -> None:
+        """更新 `run` 对应的数据或流程。"""
         status: RunStatus | None = None
         completed_at: str | None = None
         if event.type is AgentEventType.AGENT_COMPLETED:
@@ -269,6 +271,7 @@ class SQLiteTraceStore:
 
     @asynccontextmanager
     async def _connect(self) -> AsyncIterator[aiosqlite.Connection]:
+        """建立连接`SQLiteTraceStore`的相关流程。"""
         database = await aiosqlite.connect(self.database_path)
         database.row_factory = aiosqlite.Row
         await database.execute("PRAGMA foreign_keys = ON")
@@ -282,10 +285,12 @@ class SQLiteTraceEventHandler(AgentEventHandler):
     """把 Runtime 事件逐条写入 SQLite TraceStore。"""
 
     def __init__(self, store: SQLiteTraceStore) -> None:
+        """初始化 `SQLiteTraceEventHandler` 实例及其依赖。"""
         self.store = store
 
     async def emit(self, event: AgentEvent) -> None:
         # 文本/思考增量只服务实时界面；持久化每个 chunk 会放大 Trace 与数据库。
+        """发送`SQLiteTraceEventHandler`的相关流程。"""
         if event.type in (
             AgentEventType.MODEL_OUTPUT_DELTA,
             AgentEventType.MODEL_REASONING_DELTA,
@@ -295,6 +300,7 @@ class SQLiteTraceEventHandler(AgentEventHandler):
 
 
 def _trace_from_row(row: aiosqlite.Row) -> AgentRunTrace:
+    """处理 `_trace_from_row` 的内部辅助逻辑。"""
     return AgentRunTrace(
         run_id=row["run_id"],
         conversation_id=row["conversation_id"],

@@ -4,6 +4,7 @@ import { Icon } from './Icon'
 
 const PINNED_KEY = 'pluto.pinnedConversations'
 
+/** 加载 `pinned` 对应的数据或流程。 */
 function loadPinned(): string[] {
   try {
     const raw = localStorage.getItem(PINNED_KEY)
@@ -25,6 +26,7 @@ const STATUS_META: Record<string, { label: string; tone: string }> = {
   interrupted: { label: '已停止', tone: 'failed' },
 }
 
+/** 执行 `relativeTime` 对应的界面或业务逻辑。 */
 function relativeTime(iso: string): string {
   const date = new Date(iso)
   if (Number.isNaN(date.getTime())) return ''
@@ -38,6 +40,7 @@ function relativeTime(iso: string): string {
   return `${days}d`
 }
 
+/** 渲染 `ConversationList` React 组件。 */
 export default function ConversationList({
   conversations,
   selectedId,
@@ -68,6 +71,7 @@ export default function ConversationList({
   // 点击菜单外部关闭。
   useEffect(() => {
     if (menuFor === null) return
+    /** 响应 `onPointer` 对应的事件。 */
     const onPointer = (event: MouseEvent): void => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setMenuFor(null)
@@ -77,6 +81,7 @@ export default function ConversationList({
     return () => document.removeEventListener('mousedown', onPointer)
   }, [menuFor])
 
+  /** 切换 `pin` 对应的数据或流程。 */
   const togglePin = (id: string): void => {
     setPinned((prev) => {
       const next = prev.includes(id)
@@ -104,12 +109,14 @@ export default function ConversationList({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingValue, setEditingValue] = useState('')
 
+  /** 启动 `rename` 对应的数据或流程。 */
   const startRename = (id: string, current: string): void => {
     setEditingValue(current)
     setEditingId(id)
     setMenuFor(null)
   }
 
+  /** 执行 `commitRename` 对应的界面或业务逻辑。 */
   const commitRename = (id: string, original: string): void => {
     setEditingId(null)
     const trimmed = editingValue.trim()
@@ -117,6 +124,7 @@ export default function ConversationList({
     void onRename?.(id, trimmed)
   }
 
+  /** 执行 `runDelete` 对应的界面或业务逻辑。 */
   const runDelete = (id: string): void => {
     // Electron 不实现 window.confirm，直接执行删除（可恢复为新建）。
     void onDelete?.(id)

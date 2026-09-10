@@ -32,6 +32,7 @@ export interface SidebarProps {
   dots?: Partial<Record<PageKey, boolean>>
 }
 
+/** 执行 `Sidebar` 对应的界面或业务逻辑。 */
 export default function Sidebar({
   current,
   onNavigate,
@@ -39,6 +40,7 @@ export default function Sidebar({
   badges,
   dots,
 }: SidebarProps): ReactElement {
+  /** 执行 `badgeFor` 对应的界面或业务逻辑。 */
   const badgeFor = (key: PageKey): number | null => {
     const value = badges?.[key]
     return typeof value === 'number' && value > 0 ? value : null

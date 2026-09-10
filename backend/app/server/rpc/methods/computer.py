@@ -19,6 +19,7 @@ from ..protocol import JsonRpcError, RpcErrorCode
 logger = logging.getLogger("pluto.server.rpc.computer")
 
 def _lease_dict(application: Any) -> dict[str, Any] | None:
+    """处理 `_lease_dict` 的内部辅助逻辑。"""
     lease = application.computer_lease
     if lease is None:
         return None
@@ -42,6 +43,7 @@ def _status_dict(
     *,
     lease: dict[str, Any] | None,
 ) -> dict[str, Any]:
+    """处理 `_status_dict` 的内部辅助逻辑。"""
     host = application.computer_host_status
     if host is None:
         return {
@@ -65,6 +67,7 @@ def _status_dict(
 async def computer_status(
     params: dict[str, Any], ctx: RpcContext
 ) -> dict[str, Any]:
+    """执行 `computer_status` 对应的业务逻辑。"""
     application = ctx.application
     return _status_dict(
         application,
@@ -89,6 +92,7 @@ def _extract_observation(output: str) -> dict[str, Any] | None:
 async def computer_latest_observation(
     params: dict[str, Any], ctx: RpcContext
 ) -> dict[str, Any]:
+    """执行 `computer_latest_observation` 对应的业务逻辑。"""
     application = ctx.application
     run_id = params.get("run_id")
     if run_id is not None and (not isinstance(run_id, str) or not run_id):
@@ -138,6 +142,7 @@ async def computer_latest_observation(
 
 
 def register(dispatcher: RpcDispatcher) -> None:
+    """注册当前对象的相关流程。"""
     dispatcher.register("computer.status", computer_status)
     dispatcher.register(
         "computer.latest_observation", computer_latest_observation

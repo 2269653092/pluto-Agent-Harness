@@ -105,6 +105,7 @@ _HELP_TEXT = (
 
 
 def _initial_history(system_prompt: str | None) -> list[Message]:
+    """处理 `_initial_history` 的内部辅助逻辑。"""
     if not system_prompt:
         return []
     return [Message(role=MessageRole.SYSTEM, content=system_prompt)]
@@ -114,6 +115,7 @@ class _CliEventHandler(AgentEventHandler):
     """把 Agent 事件打印到终端（等价原 run_stream async for 里的打印）。"""
 
     async def emit(self, event: AgentEvent) -> None:
+        """发送`_CliEventHandler`的相关流程。"""
         _print_agent_event(event)
 
 
@@ -127,6 +129,7 @@ async def _send_message(
     content: str,
     model: str,
 ) -> tuple[bool, Conversation]:
+    """处理 `_send_message` 的内部辅助逻辑。"""
     print("Pluto 正在思考...", flush=True)
 
     try:
@@ -284,6 +287,7 @@ def _print_conversations(
     conversations: tuple[Conversation, ...],
     current_id: str,
 ) -> None:
+    """处理 `_print_conversations` 的内部辅助逻辑。"""
     if not conversations:
         print("暂无会话。")
         return
@@ -618,6 +622,7 @@ async def _run(
     *,
     offer_setup: bool = True,
 ) -> int:
+    """运行当前对象的相关流程。"""
     print_banner()
     try:
         app = Application(
@@ -1087,6 +1092,7 @@ async def _run(
 
 
 def _parse_args() -> argparse.Namespace:
+    """解析 `args` 对应的数据或流程。"""
     parser = argparse.ArgumentParser(
         prog="python -m app",
         description="启动 Pluto CLI，或完成首次模型设置。",
@@ -1176,6 +1182,7 @@ def _parse_args() -> argparse.Namespace:
 
 
 async def _main(args: argparse.Namespace) -> int:
+    """处理 `_main` 的内部辅助逻辑。"""
     if args.setup:
         should_start = await run_setup()
         if not should_start:
@@ -1184,6 +1191,7 @@ async def _main(args: argparse.Namespace) -> int:
 
 
 def main() -> None:
+    """执行 `main` 对应的业务逻辑。"""
     raise SystemExit(asyncio.run(_main(_parse_args())))
 
 

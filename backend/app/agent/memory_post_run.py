@@ -40,6 +40,7 @@ class PostRunMemoryCoordinator:
         task_context_provider: TaskContextProvider | None,
         submit: Callable[[Callable[[], Any]], bool] | None,
     ) -> None:
+        """初始化 `PostRunMemoryCoordinator` 实例及其依赖。"""
         self._manager = manager
         self._reflector = reflector
         self._maintenance_reflector = maintenance_reflector
@@ -142,6 +143,7 @@ class PostRunMemoryCoordinator:
             return
 
         async def job() -> None:
+            """执行 `job` 对应的业务逻辑。"""
             await self._run_reflection(
                 reflector=reflector,
                 manager=manager,

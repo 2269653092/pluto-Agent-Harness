@@ -23,6 +23,7 @@ _SKILL_NAME_MAX_LENGTH = 64
 
 
 def _normalize_text(value: str) -> str:
+    """标准化 `text` 对应的数据或流程。"""
     return " ".join(value.split()).strip()
 
 
@@ -54,6 +55,7 @@ class TaskCard(BaseModel):
     @field_validator("created_at", "completed_at")
     @classmethod
     def normalize_datetime(cls, value: datetime | None) -> datetime | None:
+        """标准化 `datetime` 对应的数据或流程。"""
         if value is None:
             return None
         if value.tzinfo is None or value.utcoffset() is None:
@@ -95,6 +97,7 @@ class TaskPatternCluster(BaseModel):
     )
     @classmethod
     def normalize_required_text(cls, value: object) -> str:
+        """标准化 `required_text` 对应的数据或流程。"""
         if not isinstance(value, str):
             raise TypeError("cluster text fields must be strings")
         normalized = _normalize_text(value)
@@ -105,6 +108,7 @@ class TaskPatternCluster(BaseModel):
     @field_validator("task_ids")
     @classmethod
     def normalize_task_ids(cls, value: object) -> tuple[str, ...]:
+        """标准化 `task_ids` 对应的数据或流程。"""
         if not isinstance(value, (list, tuple)):
             raise TypeError("task_ids must be a list")
         seen: list[str] = []
@@ -152,6 +156,7 @@ class SkillCandidateOrigin(StrEnum):
 
     PATTERN_MINING = "pattern_mining"
     AGENT_PROPOSAL = "agent_proposal"
+    MANUAL_TASK = "manual_task"
 
 
 class SkillCandidate(BaseModel):
@@ -185,6 +190,7 @@ class SkillCandidate(BaseModel):
     @field_validator("id", "proposed_name", "description", "reason", mode="before")
     @classmethod
     def normalize_required_text(cls, value: object) -> str:
+        """标准化 `required_text` 对应的数据或流程。"""
         if not isinstance(value, str):
             raise TypeError("candidate text fields must be strings")
         normalized = _normalize_text(value)
@@ -195,6 +201,7 @@ class SkillCandidate(BaseModel):
     @field_validator("proposed_name")
     @classmethod
     def validate_proposed_name(cls, value: str) -> str:
+        """校验 `proposed_name` 对应的数据或流程。"""
         from app.skills import validate_skill_name
 
         try:
@@ -210,6 +217,7 @@ class SkillCandidate(BaseModel):
     )
     @classmethod
     def normalize_optional_skill_name(cls, value: object) -> str | None:
+        """标准化 `optional_skill_name` 对应的数据或流程。"""
         if value is None:
             return None
         if not isinstance(value, str):
@@ -220,6 +228,7 @@ class SkillCandidate(BaseModel):
     @field_validator("created_at", "reviewed_at")
     @classmethod
     def normalize_datetime(cls, value: datetime | None) -> datetime | None:
+        """标准化 `datetime` 对应的数据或流程。"""
         if value is None:
             return None
         if value.tzinfo is None or value.utcoffset() is None:
@@ -236,6 +245,7 @@ class SkillCandidate(BaseModel):
     )
     @classmethod
     def normalize_entries(cls, value: object) -> tuple[str, ...]:
+        """标准化 `entries` 对应的数据或流程。"""
         if value is None:
             return ()
         if not isinstance(value, (list, tuple)):
@@ -251,6 +261,7 @@ class SkillCandidate(BaseModel):
 
     @model_validator(mode="after")
     def validate_action(self) -> SkillCandidate:
+        """校验 `action` 对应的数据或流程。"""
         if self.action is SkillCandidateAction.UPDATE and not self.existing_skill_name:
             raise ValueError("update candidate requires existing_skill_name")
         if (
@@ -263,14 +274,19 @@ class SkillCandidate(BaseModel):
                 raise ValueError(
                     "pattern mining candidate must reference at least one source task"
                 )
-        elif not (
-            self.source_run_ids
-            and self.source_conversation_id
-            and self.source_tool_call_id
-        ):
+        elif self.origin is SkillCandidateOrigin.AGENT_PROPOSAL:
+            if not (
+                self.source_run_ids
+                and self.source_conversation_id
+                and self.source_tool_call_id
+            ):
+                raise ValueError(
+                    "agent proposal candidate requires run, conversation, "
+                    "and tool call provenance"
+                )
+        elif not (self.source_task_ids and self.source_conversation_id):
             raise ValueError(
-                "agent proposal candidate requires run, conversation, "
-                "and tool call provenance"
+                "manual task candidate requires task and conversation provenance"
             )
         if not self.procedure:
             raise ValueError("candidate must contain at least one procedure step")

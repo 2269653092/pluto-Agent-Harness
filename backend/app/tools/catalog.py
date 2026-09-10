@@ -27,6 +27,7 @@ class ToolCatalogMatch:
     score: int
 
     def as_dict(self) -> dict[str, Any]:
+        """执行 `as_dict` 对应的业务逻辑。"""
         return {
             "name": self.name,
             "description": self.description,
@@ -38,9 +39,11 @@ class ToolCatalog:
     """每次搜索直接读取 Registry，因此工具增删无需维护额外索引。"""
 
     def __init__(self, registry: ToolRegistry) -> None:
+        """初始化 `ToolCatalog` 实例及其依赖。"""
         self._registry = registry
 
     def search(self, query: str, *, limit: int = 5) -> tuple[ToolCatalogMatch, ...]:
+        """搜索`ToolCatalog`的相关流程。"""
         normalized_query = " ".join(query.casefold().split())
         if not normalized_query:
             raise ValueError("query 不能为空")
@@ -107,9 +110,11 @@ class ToolSearchTool(BaseTool):
     )
 
     def __init__(self, registry: ToolRegistry) -> None:
+        """初始化 `ToolSearchTool` 实例及其依赖。"""
         self._catalog = ToolCatalog(registry)
 
     async def execute(self, arguments: dict[str, Any]) -> str:
+        """执行`ToolSearchTool`的相关流程。"""
         query = arguments.get("query")
         if not isinstance(query, str):
             raise TypeError("query 必须是字符串")
@@ -162,6 +167,7 @@ def activated_tool_names(output: str | None) -> tuple[str, ...]:
 
 
 def _relevance_score(query: str, definition: ToolDefinition) -> int:
+    """处理 `_relevance_score` 的内部辅助逻辑。"""
     properties = definition.parameters.get("properties", {})
     parameter_text = ""
     if isinstance(properties, dict):
@@ -186,6 +192,7 @@ def _relevance_score(query: str, definition: ToolDefinition) -> int:
 
 
 def _query_tokens(query: str) -> tuple[str, ...]:
+    """查询 `tokens` 对应的数据或流程。"""
     tokens = list(_ASCII_TOKEN_RE.findall(query))
     for sequence in _CJK_RE.findall(query):
         if len(sequence) <= 2:
@@ -199,6 +206,7 @@ def _query_tokens(query: str) -> tuple[str, ...]:
 
 
 def _compact_text(value: str, *, max_chars: int) -> str:
+    """处理 `_compact_text` 的内部辅助逻辑。"""
     compacted = " ".join(value.split())
     if len(compacted) <= max_chars:
         return compacted

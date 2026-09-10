@@ -31,6 +31,7 @@ class MCPClientManager:
         client_factory: MCPClientFactory | None = None,
         sandbox_supervisor: SandboxSupervisor | None = None,
     ) -> None:
+        """初始化 `MCPClientManager` 实例及其依赖。"""
         names = [config.name for config in configs]
         if len(names) != len(set(names)):
             raise MCPConfigurationError("MCP Server 名称不能重复")
@@ -65,6 +66,7 @@ class MCPClientManager:
         config: MCPServerConfig,
         registry: ToolRegistry,
     ) -> None:
+        """启动 `server` 对应的数据或流程。"""
         if config.name in self._clients:
             return
         self._set_status(config.name, MCPServerState.STARTING)
@@ -143,6 +145,7 @@ class MCPClientManager:
         sandboxed: bool | None = None,
         sandbox_backend: str | None = None,
     ) -> None:
+        """设置 `status` 对应的数据或流程。"""
         self._states[name] = MCPServerStatus(
             name=name,
             state=state,
@@ -169,6 +172,7 @@ def _build_adapters(
     client: MCPClientProtocol,
     remote_tools: Sequence,
 ) -> tuple[MCPToolAdapter, ...]:
+    """构建 `adapters` 对应的数据或流程。"""
     adapters: list[MCPToolAdapter] = []
     seen: set[str] = set()
     for remote_tool in remote_tools:

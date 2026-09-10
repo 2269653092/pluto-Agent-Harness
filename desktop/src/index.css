@@ -1806,6 +1806,32 @@ textarea,
   color: var(--danger);
 }
 
+.skill-review {
+  display: grid;
+  gap: 10px;
+  max-height: min(58vh, 520px);
+  overflow-y: auto;
+  text-align: left;
+}
+
+.skill-review p,
+.skill-review h4,
+.skill-review ol,
+.skill-review ul {
+  margin: 0;
+}
+
+.skill-review ol,
+.skill-review ul {
+  display: grid;
+  gap: 6px;
+  padding-left: 22px;
+}
+
+.skill-review__reason {
+  color: var(--text-secondary);
+}
+
 /* 当前 Agent Turn 直接进入对话流：与最终消息共用 .message-assistant 视觉
    （无气泡、无卡片、无背景），避免回复完成时容器切换造成的“整理”跳变。 */
 .live-turn {

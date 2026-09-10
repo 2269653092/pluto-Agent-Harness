@@ -20,6 +20,7 @@ from .hooks import ToolExecutionContext, ToolHook
 
 
 def _now_iso() -> str:
+    """处理 `_now_iso` 的内部辅助逻辑。"""
     return datetime.now(UTC).isoformat()
 
 
@@ -50,6 +51,7 @@ class ToolExecutionRecord:
         output: str | None = None,
         error: str | None = None,
     ) -> None:
+        """初始化 `ToolExecutionRecord` 实例及其依赖。"""
         self.id = uuid4().hex
         self.tool_call_id = tool_call_id
         self.tool_name = tool_name
@@ -63,6 +65,7 @@ class ToolExecutionRecord:
         self.error = error
 
     def to_dict(self) -> dict[str, Any]:
+        """转换 `dict` 对应的数据或流程。"""
         return {
             "id": self.id,
             "tool_call_id": self.tool_call_id,
@@ -88,28 +91,34 @@ class InMemoryExecutionLogger(ToolExecutionLogger):
     """把最近 N 条执行记录保存在内存中。"""
 
     def __init__(self, maxlen: int = 200) -> None:
+        """初始化 `InMemoryExecutionLogger` 实例及其依赖。"""
         if maxlen < 1:
             raise ValueError("maxlen must be at least 1")
         self._maxlen = maxlen
         self._records: list[ToolExecutionRecord] = []
 
     def record(self, record: ToolExecutionRecord) -> None:
+        """记录`InMemoryExecutionLogger`的相关流程。"""
         self._records.append(record)
         if len(self._records) > self._maxlen:
             del self._records[: len(self._records) - self._maxlen]
 
     @property
     def records(self) -> tuple[ToolExecutionRecord, ...]:
+        """执行 `records` 对应的业务逻辑。"""
         return tuple(self._records)
 
     def recent(self, limit: int = 10) -> tuple[ToolExecutionRecord, ...]:
+        """执行 `recent` 对应的业务逻辑。"""
         return tuple(self._records[-limit:])
 
     @property
     def count(self) -> int:
+        """统计`InMemoryExecutionLogger`的相关流程。"""
         return len(self._records)
 
     def clear(self) -> None:
+        """清理`InMemoryExecutionLogger`的相关流程。"""
         self._records.clear()
 
 
@@ -117,9 +126,11 @@ class StructLogExecutionLogger(ToolExecutionLogger):
     """通过 structlog 输出执行记录，失败时记录 error 原因。"""
 
     def __init__(self, logger_name: str = "pluto.tools") -> None:
+        """初始化 `StructLogExecutionLogger` 实例及其依赖。"""
         self._log = structlog.get_logger(logger_name)
 
     def record(self, record: ToolExecutionRecord) -> None:
+        """记录`StructLogExecutionLogger`的相关流程。"""
         event = record.to_dict()
         if record.success:
             self._log.info("tool.executed", **event)
@@ -135,6 +146,7 @@ class ObservabilityHook(ToolHook):
     """在工具执行结束后写入统一执行记录。"""
 
     def __init__(self, logger: ToolExecutionLogger) -> None:
+        """初始化 `ObservabilityHook` 实例及其依赖。"""
         self._logger = logger
 
     async def after_execute(
@@ -142,6 +154,7 @@ class ObservabilityHook(ToolHook):
         context: ToolExecutionContext,
         result: ToolResult,
     ) -> None:
+        """执行 `after_execute` 对应的业务逻辑。"""
         permission = (
             context.tool_definition.permission
             if context.tool_definition is not None

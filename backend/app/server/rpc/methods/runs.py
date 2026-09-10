@@ -20,6 +20,7 @@ from ..protocol import (
 
 
 async def run_list(params: dict[str, Any], ctx: RpcContext) -> dict[str, Any]:
+    """运行 `list` 对应的数据或流程。"""
     conversation_id = params.get("conversation_id")
     if conversation_id is not None and not isinstance(conversation_id, str):
         raise JsonRpcError(
@@ -45,6 +46,7 @@ async def run_list(params: dict[str, Any], ctx: RpcContext) -> dict[str, Any]:
 
 
 async def run_get(params: dict[str, Any], ctx: RpcContext) -> dict[str, Any]:
+    """运行 `get` 对应的数据或流程。"""
     run_id = _require_str(params, "run_id")
     run = await ctx.application.run_manager.get_run(run_id)
     if run is None:
@@ -53,6 +55,7 @@ async def run_get(params: dict[str, Any], ctx: RpcContext) -> dict[str, Any]:
 
 
 async def run_cancel(params: dict[str, Any], ctx: RpcContext) -> dict[str, Any]:
+    """运行 `cancel` 对应的数据或流程。"""
     run_id = _require_str(params, "run_id")
     application = ctx.application
     run = await application.run_manager.get_run(run_id)
@@ -91,6 +94,7 @@ async def run_interrupt(params: dict[str, Any], ctx: RpcContext) -> dict[str, An
 
 
 async def run_recover(params: dict[str, Any], ctx: RpcContext) -> dict[str, Any]:
+    """运行 `recover` 对应的数据或流程。"""
     run_id = _require_str(params, "run_id")
     application = ctx.application
     run = await application.run_manager.get_run(run_id)
@@ -111,6 +115,7 @@ async def run_recover(params: dict[str, Any], ctx: RpcContext) -> dict[str, Any]
 
 
 def _require_str(params: dict[str, Any], key: str) -> str:
+    """读取并校验 `str` 对应的数据或流程。"""
     value = params.get(key)
     if not isinstance(value, str) or not value:
         raise JsonRpcError(RpcErrorCode.INVALID_PARAMS, f"{key} is required")
@@ -118,6 +123,7 @@ def _require_str(params: dict[str, Any], key: str) -> str:
 
 
 def _positive_int(params: dict[str, Any], key: str, *, default: int) -> int:
+    """处理 `_positive_int` 的内部辅助逻辑。"""
     value = params.get(key, default)
     if not isinstance(value, int) or isinstance(value, bool) or value < 1:
         raise JsonRpcError(
@@ -128,6 +134,7 @@ def _positive_int(params: dict[str, Any], key: str, *, default: int) -> int:
 
 
 def register(dispatcher: RpcDispatcher) -> None:
+    """注册当前对象的相关流程。"""
     dispatcher.register("run.list", run_list)
     dispatcher.register("run.get", run_get)
     dispatcher.register("run.cancel", run_cancel)

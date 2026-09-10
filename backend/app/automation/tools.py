@@ -29,10 +29,12 @@ class AutomationCreateTool(BaseTool):
     """创建一个未来自动触发的 Agent Run。"""
 
     def __init__(self, scheduler: AutomationScheduler) -> None:
+        """初始化 `AutomationCreateTool` 实例及其依赖。"""
         self._scheduler = scheduler
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="automation_create",
             record_output=False,
@@ -107,6 +109,7 @@ class AutomationCreateTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`AutomationCreateTool`的相关流程。"""
         raise ValueError("automation_create requires conversation context")
 
     async def execute_with_context(
@@ -114,6 +117,7 @@ class AutomationCreateTool(BaseTool):
         arguments: dict[str, Any],
         context: ToolExecutionContext,
     ) -> dict[str, Any]:
+        """执行 `with_context` 对应的数据或流程。"""
         conversation_id = context.conversation_id
         title = _require_non_empty(arguments, "title")
         prompt = _require_non_empty(arguments, "prompt")
@@ -133,10 +137,12 @@ class AutomationListTool(BaseTool):
     """列出自动化（当前会话创建的）。"""
 
     def __init__(self, scheduler: AutomationScheduler) -> None:
+        """初始化 `AutomationListTool` 实例及其依赖。"""
         self._scheduler = scheduler
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="automation_list",
             record_output=False,
@@ -151,6 +157,7 @@ class AutomationListTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`AutomationListTool`的相关流程。"""
         raise ValueError("automation_list requires conversation context")
 
     async def execute_with_context(
@@ -158,6 +165,7 @@ class AutomationListTool(BaseTool):
         arguments: dict[str, Any],
         context: ToolExecutionContext,
     ) -> dict[str, Any]:
+        """执行 `with_context` 对应的数据或流程。"""
         automations = await self._scheduler.list(
             conversation_id=context.conversation_id,
         )
@@ -168,10 +176,12 @@ class AutomationGetTool(BaseTool):
     """查看单个自动化详情。"""
 
     def __init__(self, scheduler: AutomationScheduler) -> None:
+        """初始化 `AutomationGetTool` 实例及其依赖。"""
         self._scheduler = scheduler
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="automation_get",
             record_output=False,
@@ -188,6 +198,7 @@ class AutomationGetTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`AutomationGetTool`的相关流程。"""
         automation_id = _require_non_empty(arguments, "id")
         automation = await self._scheduler.get(automation_id)
         if automation is None:
@@ -199,10 +210,12 @@ class AutomationCancelTool(BaseTool):
     """取消一个自动化（不再触发）。"""
 
     def __init__(self, scheduler: AutomationScheduler) -> None:
+        """初始化 `AutomationCancelTool` 实例及其依赖。"""
         self._scheduler = scheduler
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="automation_cancel",
             record_output=False,
@@ -219,6 +232,7 @@ class AutomationCancelTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`AutomationCancelTool`的相关流程。"""
         automation_id = _require_non_empty(arguments, "id")
         automation = await self._scheduler.cancel(automation_id)
         return _automation_brief(automation)
@@ -228,10 +242,12 @@ class AutomationPauseTool(BaseTool):
     """暂停一个自动化（保留，但不触发）。"""
 
     def __init__(self, scheduler: AutomationScheduler) -> None:
+        """初始化 `AutomationPauseTool` 实例及其依赖。"""
         self._scheduler = scheduler
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="automation_pause",
             record_output=False,
@@ -248,6 +264,7 @@ class AutomationPauseTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`AutomationPauseTool`的相关流程。"""
         automation_id = _require_non_empty(arguments, "id")
         automation = await self._scheduler.pause(automation_id)
         return _automation_brief(automation)
@@ -257,10 +274,12 @@ class AutomationResumeTool(BaseTool):
     """恢复一个已暂停的自动化。"""
 
     def __init__(self, scheduler: AutomationScheduler) -> None:
+        """初始化 `AutomationResumeTool` 实例及其依赖。"""
         self._scheduler = scheduler
 
     @property
     def definition(self) -> ToolDefinition:
+        """执行 `definition` 对应的业务逻辑。"""
         return ToolDefinition(
             name="automation_resume",
             record_output=False,
@@ -277,6 +296,7 @@ class AutomationResumeTool(BaseTool):
         )
 
     async def execute(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """执行`AutomationResumeTool`的相关流程。"""
         automation_id = _require_non_empty(arguments, "id")
         automation = await self._scheduler.resume(automation_id)
         return _automation_brief(automation)
@@ -286,6 +306,7 @@ def register_automation_tools(
     registry: ToolRegistry,
     scheduler: AutomationScheduler,
 ) -> None:
+    """注册 `automation_tools` 对应的数据或流程。"""
     registry.register(AutomationCreateTool(scheduler))
     registry.register(AutomationListTool(scheduler))
     registry.register(AutomationGetTool(scheduler))
@@ -381,6 +402,7 @@ def build_schedule_and_next(
 
 
 def _require_non_empty(arguments: dict[str, Any], key: str) -> str:
+    """读取并校验 `non_empty` 对应的数据或流程。"""
     value = arguments.get(key)
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"'{key}' must be a non-empty string")
@@ -388,6 +410,7 @@ def _require_non_empty(arguments: dict[str, Any], key: str) -> str:
 
 
 def _automation_brief(automation) -> dict[str, Any]:
+    """处理 `_automation_brief` 的内部辅助逻辑。"""
     return {
         "id": automation.id,
         "title": automation.title,
@@ -403,6 +426,7 @@ def _automation_brief(automation) -> dict[str, Any]:
 
 
 def _automation_full(automation) -> dict[str, Any]:
+    """处理 `_automation_full` 的内部辅助逻辑。"""
     return json.loads(automation.model_dump_json())
 
 

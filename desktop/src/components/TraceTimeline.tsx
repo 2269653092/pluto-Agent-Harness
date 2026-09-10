@@ -1,5 +1,6 @@
 import type { AgentEvent } from '../api/types'
 
+/** 执行 `eventSummary` 对应的界面或业务逻辑。 */
 function eventSummary(event: AgentEvent): string {
   const parts: string[] = []
   if (event.step != null) parts.push(`step=${event.step}`)
@@ -14,12 +15,14 @@ function eventSummary(event: AgentEvent): string {
   return parts.length > 0 ? ` · ${parts.join(' ')}` : ''
 }
 
+/** 格式化 `time` 对应的数据或流程。 */
 function formatTime(iso: string): string {
   const date = new Date(iso)
   if (Number.isNaN(date.getTime())) return iso
   return date.toLocaleTimeString()
 }
 
+/** 渲染 `TraceTimeline` React 组件。 */
 export default function TraceTimeline({
   events,
 }: {

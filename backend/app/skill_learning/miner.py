@@ -44,6 +44,7 @@ class TaskPatternMiner:
         default_provider: str | None = None,
         default_model: str | None = None,
     ) -> None:
+        """初始化 `TaskPatternMiner` 实例及其依赖。"""
         self._registry = registry
         self.settings = settings
         self._default_provider = default_provider

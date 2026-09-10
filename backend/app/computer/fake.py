@@ -74,6 +74,7 @@ class FakeComputerRuntime:
     """预设 Observation 并记录 action_history 的假 Computer Runtime。"""
 
     def __init__(self, observation: Observation | None = None) -> None:
+        """初始化 `FakeComputerRuntime` 实例及其依赖。"""
         self._observation = observation or default_observation()
         self.action_history: list[ActionResult] = []
 
@@ -84,12 +85,14 @@ class FakeComputerRuntime:
         return self._observation
 
     async def observe(self, include_screenshot: bool = True) -> Observation:
+        """执行 `observe` 对应的业务逻辑。"""
         return self._observation
 
     async def click(
         self,
         target: ElementTarget | CoordinateTarget,
     ) -> ActionResult:
+        """执行 `click` 对应的业务逻辑。"""
         metadata: dict[str, Any] = {}
         if isinstance(target, ElementTarget):
             metadata["element_ref"] = target.element_ref
@@ -107,6 +110,7 @@ class FakeComputerRuntime:
         text: str,
         element_ref: str | None = None,
     ) -> ActionResult:
+        """执行 `type` 对应的业务逻辑。"""
         metadata: dict[str, Any] = {"text": text}
         if element_ref is not None:
             metadata["element_ref"] = element_ref
@@ -121,6 +125,7 @@ class FakeComputerRuntime:
         modifiers: tuple[str, ...] = (),
         element_ref: str | None = None,
     ) -> ActionResult:
+        """执行 `key` 对应的业务逻辑。"""
         metadata: dict[str, Any] = {"key": key, "modifiers": modifiers}
         if element_ref is not None:
             metadata["element_ref"] = element_ref
@@ -134,18 +139,21 @@ class FakeComputerRuntime:
         delta_x: int = 0,
         delta_y: int = 0,
     ) -> ActionResult:
+        """执行 `scroll` 对应的业务逻辑。"""
         return self._record(
             ActionName.SCROLL,
             metadata={"delta_x": delta_x, "delta_y": delta_y},
         )
 
     async def open_app(self, app: str) -> ActionResult:
+        """执行 `open_app` 对应的业务逻辑。"""
         return self._record(
             ActionName.OPEN_APP,
             metadata={"app": app},
         )
 
     async def focus_window(self, window_ref: str) -> ActionResult:
+        """执行 `focus_window` 对应的业务逻辑。"""
         return self._record(
             ActionName.FOCUS_WINDOW,
             metadata={"window_ref": window_ref},
@@ -158,6 +166,7 @@ class FakeComputerRuntime:
         observation_id: str | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> ActionResult:
+        """记录`FakeComputerRuntime`的相关流程。"""
         result = ActionResult(
             success=True,
             action=action,

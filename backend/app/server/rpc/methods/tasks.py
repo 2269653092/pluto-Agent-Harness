@@ -23,6 +23,7 @@ from ..protocol import (
 
 
 async def task_get(params: dict[str, Any], ctx: RpcContext) -> dict[str, Any]:
+    """执行 `task_get` 对应的业务逻辑。"""
     task_id = _require_str(params, "task_id")
     task = await ctx.application.task_store.resolve(task_id)
     if task is None:
@@ -50,6 +51,7 @@ async def task_list(params: dict[str, Any], ctx: RpcContext) -> dict[str, Any]:
 
 
 async def task_plan_accept(params: dict[str, Any], ctx: RpcContext) -> dict[str, Any]:
+    """执行 `task_plan_accept` 对应的业务逻辑。"""
     task_id = _require_str(params, "task_id")
     try:
         task = await ctx.application.task_store.plan_accept(task_id)
@@ -61,6 +63,7 @@ async def task_plan_accept(params: dict[str, Any], ctx: RpcContext) -> dict[str,
 
 
 async def task_plan_reject(params: dict[str, Any], ctx: RpcContext) -> dict[str, Any]:
+    """执行 `task_plan_reject` 对应的业务逻辑。"""
     task_id = _require_str(params, "task_id")
     try:
         task = await ctx.application.task_store.plan_reject(task_id)
@@ -72,6 +75,7 @@ async def task_plan_reject(params: dict[str, Any], ctx: RpcContext) -> dict[str,
 
 
 def _require_str(params: dict[str, Any], key: str) -> str:
+    """读取并校验 `str` 对应的数据或流程。"""
     value = params.get(key)
     if not isinstance(value, str) or not value:
         raise JsonRpcError(RpcErrorCode.INVALID_PARAMS, f"{key} is required")
@@ -79,6 +83,7 @@ def _require_str(params: dict[str, Any], key: str) -> str:
 
 
 def register(dispatcher: RpcDispatcher) -> None:
+    """注册当前对象的相关流程。"""
     dispatcher.register("task.list", task_list)
     dispatcher.register("task.get", task_get)
     dispatcher.register("task.plan_accept", task_plan_accept)

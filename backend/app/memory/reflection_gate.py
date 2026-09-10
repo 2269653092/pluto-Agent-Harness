@@ -141,6 +141,7 @@ def decide_reflection_gate(
 
 
 def _normalize(value: str) -> str:
+    """标准化当前对象的相关流程。"""
     return re.sub(r"[\W_]+", "", value.casefold(), flags=re.UNICODE)
 
 

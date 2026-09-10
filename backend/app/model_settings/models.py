@@ -20,6 +20,7 @@ class ProviderSettings(BaseModel):
     @field_validator("model", mode="before")
     @classmethod
     def normalize_model(cls, value: object) -> str:
+        """标准化 `model` 对应的数据或流程。"""
         if not isinstance(value, str) or not value.strip():
             raise ValueError("model cannot be empty")
         return value.strip()
@@ -27,6 +28,7 @@ class ProviderSettings(BaseModel):
     @field_validator("base_url", mode="before")
     @classmethod
     def normalize_base_url(cls, value: object) -> str | None:
+        """标准化 `base_url` 对应的数据或流程。"""
         if value is None:
             return None
         if not isinstance(value, str):
@@ -40,6 +42,7 @@ class ProviderSettings(BaseModel):
 
     @model_validator(mode="after")
     def validate_provider_style(self) -> ProviderSettings:
+        """校验 `provider_style` 对应的数据或流程。"""
         if (
             self.provider is ModelProvider.ANTHROPIC
             and self.api_style is not ApiStyle.ANTHROPIC_MESSAGES
@@ -61,6 +64,7 @@ class ProviderSettingsUpdate(ProviderSettings):
     @field_validator("api_key", mode="before")
     @classmethod
     def normalize_api_key(cls, value: object) -> str | None:
+        """标准化 `api_key` 对应的数据或流程。"""
         if value is None:
             return None
         if not isinstance(value, str):
@@ -81,6 +85,7 @@ class ModelRoleSettings(BaseModel):
     @field_validator("model", mode="before")
     @classmethod
     def normalize_model(cls, value: object) -> str | None:
+        """标准化 `model` 对应的数据或流程。"""
         if value is None:
             return None
         if not isinstance(value, str):
@@ -89,6 +94,7 @@ class ModelRoleSettings(BaseModel):
 
     @model_validator(mode="after")
     def validate_override(self) -> ModelRoleSettings:
+        """校验 `override` 对应的数据或流程。"""
         if self.inherit_main:
             return self
         if self.provider is None or self.model is None:
@@ -122,6 +128,7 @@ class ModelSettingsUpdate(BaseModel):
 
     @model_validator(mode="after")
     def unique_providers(self) -> ModelSettingsUpdate:
+        """执行 `unique_providers` 对应的业务逻辑。"""
         names = [item.provider for item in self.providers]
         if len(names) != len(set(names)):
             raise ValueError("provider settings contain duplicate providers")

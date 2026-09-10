@@ -8,6 +8,7 @@ interface Props {
   onCancel: () => void
 }
 
+/** 渲染 `AutomationForm` React 组件。 */
 export default function AutomationForm({
   onSubmit,
   onCancel,
@@ -22,6 +23,7 @@ export default function AutomationForm({
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
+  /** 执行 `submit` 对应的界面或业务逻辑。 */
   const submit = async (): Promise<void> => {
     setError(null)
     if (!title.trim() || !prompt.trim()) {
@@ -136,6 +138,7 @@ export default function AutomationForm({
 }
 
 
+/** 转换 `iso_with_offset` 对应的数据或流程。 */
 function toIsoWithOffset(localValue: string): string | null {
   if (!localValue) return null
   const date = new Date(localValue)

@@ -17,14 +17,18 @@ const desktopApi = {
     node: process.versions.node,
     chrome: process.versions.chrome,
   },
+  /** 打开 `external` 对应的数据或流程。 */
   openExternal: (url: string): Promise<boolean> =>
     ipcRenderer.invoke('pluto:open-external', url) as Promise<boolean>,
+  /** 通知当前对象的相关流程。 */
   notify: (notification: DesktopNotification): void => {
     ipcRenderer.send('pluto:notify', notification)
   },
+  /** 设置 `approval_visible` 对应的数据或流程。 */
   setApprovalVisible: (visible: boolean): void => {
     ipcRenderer.send('pluto:approval-set-visible', visible)
   },
+  /** 设置 `approval_size` 对应的数据或流程。 */
   setApprovalSize: (height: number): void => {
     ipcRenderer.send('pluto:approval-set-size', height)
   },

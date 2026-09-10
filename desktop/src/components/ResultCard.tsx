@@ -5,6 +5,7 @@ import { buildArtifactDownloadUrl } from '../api/artifacts'
 import type { Artifact } from '../api/artifacts'
 import { Icon } from './Icon'
 
+/** 格式化 `bytes` 对应的数据或流程。 */
 function formatBytes(bytes: number): string {
   if (!bytes) return '-'
   if (bytes < 1024) return `${bytes} B`
@@ -17,12 +18,14 @@ export interface ResultCardProps {
   artifact: Artifact
 }
 
+/** 渲染 `ResultCard` React 组件。 */
 export default function ResultCard({ artifact }: ResultCardProps): ReactElement {
   const isFile = artifact.kind === 'file'
   const href = isFile
     ? buildArtifactDownloadUrl(artifact.id)
     : (artifact.source_url ?? '#')
 
+  /** 打开 `url` 对应的数据或流程。 */
   const openUrl = (): void => {
     if (!artifact.source_url) return
     if (window.pluto) {

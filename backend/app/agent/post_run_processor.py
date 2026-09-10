@@ -30,6 +30,7 @@ class PostRunProcessor:
         drain_timeout: float = 10.0,
         max_concurrency: int = 32,
     ) -> None:
+        """初始化 `PostRunProcessor` 实例及其依赖。"""
         self._drain_timeout = drain_timeout
         self._max_concurrency = max_concurrency
         self._active: set[asyncio.Task[None]] = set()
@@ -42,6 +43,7 @@ class PostRunProcessor:
 
     @property
     def closed(self) -> bool:
+        """执行 `closed` 对应的业务逻辑。"""
         return self._closed
 
     def submit(self, job: PostRunJob) -> bool:
@@ -58,6 +60,7 @@ class PostRunProcessor:
         return True
 
     async def _run_job(self, job: PostRunJob) -> None:
+        """运行 `job` 对应的数据或流程。"""
         try:
             await job()
         except asyncio.CancelledError:

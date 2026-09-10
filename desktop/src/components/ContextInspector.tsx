@@ -10,6 +10,7 @@ import {
 import { formatTokens } from '../agent/turnPresentation'
 import { EmptyState } from './ui'
 
+/** 执行 `TokenTransition` 对应的界面或业务逻辑。 */
 function TokenTransition({ before, after }: { before: number; after: number }): React.JSX.Element {
   return (
     <span className="context-token-transition mono">
@@ -18,6 +19,7 @@ function TokenTransition({ before, after }: { before: number; after: number }): 
   )
 }
 
+/** 渲染 `CompactionList` React 组件。 */
 function CompactionList({ step }: { step: ContextStepVM }): React.JSX.Element {
   const actions = [
     step.compactedToolResults > 0
@@ -57,6 +59,7 @@ function CompactionList({ step }: { step: ContextStepVM }): React.JSX.Element {
   )
 }
 
+/** 渲染 `ContextInspector` React 组件。 */
 export default function ContextInspector({
   events,
 }: {

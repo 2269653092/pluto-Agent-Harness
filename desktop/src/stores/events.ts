@@ -46,6 +46,7 @@ let flushTimer: ReturnType<typeof setTimeout> | null = null
 
 type StoreApi = EventsState
 
+/** 执行 `flushPending` 对应的界面或业务逻辑。 */
 function flushPending(api: {
   getState: () => StoreApi
   setState: (partial: Partial<EventsState>) => void
@@ -76,6 +77,7 @@ function flushPending(api: {
   api.setState({ streamTextByRun, reasoningByRun })
 }
 
+/** 执行 `scheduleFlush` 对应的界面或业务逻辑。 */
 function scheduleFlush(api: {
   getState: () => StoreApi
   setState: (partial: Partial<EventsState>) => void
@@ -90,12 +92,16 @@ export const useEventsStore = create<EventsState>((set, get) => {
 
   // 供 flushPending 使用的轻量 api 适配。
   const flushApi = {
+    /** 获取 `state` 对应的数据或流程。 */
     getState: () => get(),
+    /** 设置 `state` 对应的数据或流程。 */
     setState: (partial: Partial<EventsState>) => set(partial),
   }
 
+  /** 执行 `flushNow` 对应的界面或业务逻辑。 */
   const flushNow = (): void => flushPending(flushApi)
 
+  /** 处理 `handleAgentEvent` 对应的用户操作或事件。 */
   const handleAgentEvent = (params: unknown): void => {
     const agentEvent = params as AgentEvent
     const runId = agentEvent.run_id
@@ -133,11 +139,13 @@ export const useEventsStore = create<EventsState>((set, get) => {
     set({ eventsByRun: { ...get().eventsByRun, [runId]: next } })
   }
 
+  /** 处理 `handleRunStatus` 对应的用户操作或事件。 */
   const handleRunStatus = (params: unknown): void => {
     const data = params as { run_id: string; status: string }
     set({ runStatuses: { ...get().runStatuses, [data.run_id]: data.status } })
   }
 
+  /** 执行 `syncRunStatuses` 对应的界面或业务逻辑。 */
   const syncRunStatuses = (updates: Record<string, string>): void => {
     if (!updates || Object.keys(updates).length === 0) return
     set({ runStatuses: { ...get().runStatuses, ...updates } })
@@ -149,6 +157,7 @@ export const useEventsStore = create<EventsState>((set, get) => {
     streamTextByRun: {},
     reasoningByRun: {},
     runStatuses: {},
+    /** 建立 RPC 或服务连接。 */
     connect: () => {
       if (unsubscribeStatus) return // 只订阅一次
       unsubscribeStatus = rpcClient.setStatusListener((connected) =>
@@ -159,6 +168,7 @@ export const useEventsStore = create<EventsState>((set, get) => {
       rpcClient.connect()
     },
     syncRunStatuses,
+    /** 断开当前连接并清理等待状态。 */
     disconnect: () => {
       flushNow()
       unsubscribeStatus?.()

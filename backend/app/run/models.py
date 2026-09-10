@@ -109,6 +109,7 @@ class Run(BaseModel):
     @field_validator("id", "conversation_id", "recovered_from_run_id", "source_id")
     @classmethod
     def normalize_identifier(cls, value: str | None) -> str | None:
+        """标准化 `identifier` 对应的数据或流程。"""
         if value is None:
             return None
         normalized = value.strip()
@@ -126,6 +127,7 @@ class Run(BaseModel):
     )
     @classmethod
     def normalize_datetime(cls, value: datetime | None) -> datetime | None:
+        """标准化 `datetime` 对应的数据或流程。"""
         if value is None:
             return None
         if value.tzinfo is None or value.utcoffset() is None:

@@ -6,15 +6,30 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import Composer from './Composer'
 
 describe('Composer', () => {
-  it('渲染工作指令占位符、Normal / Plan 模式和发送按钮', () => {
+  it('渲染工作指令占位符、执行模式、Skill 按钮和发送按钮', () => {
     const html = renderToStaticMarkup(
       <Composer disabled={false} mode="normal" onModeChange={() => {}} onSend={async () => {}} />,
     )
     expect(html).toContain('告诉 Pluto 你想完成什么')
     expect(html).toContain('普通')
     expect(html).toContain('规划')
+    expect(html).toContain('生成 Skill')
+    expect(html).toContain('aria-label="为当前任务生成 Skill"')
     expect(html).toContain('aria-label="发送"')
     expect(html).toContain('aria-pressed="true"')
+  })
+
+  it('有已完成任务时启用生成 Skill 按钮', () => {
+    const html = renderToStaticMarkup(
+      <Composer
+        disabled={false}
+        canGenerateSkill
+        onGenerateSkill={() => {}}
+        onSend={async () => {}}
+      />,
+    )
+    expect(html).toContain('aria-label="为当前任务生成 Skill"')
+    expect(html).toContain('从当前任务已有的执行证据中提炼 Skill')
   })
 
   it('Plan 模式可见且有草稿时发送按钮可用', () => {

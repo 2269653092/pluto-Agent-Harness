@@ -64,6 +64,7 @@ class ContextBudgetPolicy:
         compact_input_tokens: int | None = None,
         tool_result_budget_ratio: float = 0.35,
     ) -> None:
+        """初始化 `ContextBudgetPolicy` 实例及其依赖。"""
         if not 0.0 < trigger_ratio < 1.0:
             raise ValueError("trigger_ratio must be in (0, 1)")
         if not 0.0 < target_ratio < 1.0:

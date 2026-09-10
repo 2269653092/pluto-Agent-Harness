@@ -56,6 +56,7 @@ class DesktopApprovalGate(ApprovalGate):
         *,
         broadcaster: Broadcaster | None = None,
     ) -> None:
+        """初始化 `DesktopApprovalGate` 实例及其依赖。"""
         self._store = store
         self._broadcaster = broadcaster
         # approval_id → Future，表示“正在等待用户决定的审批”。
@@ -138,6 +139,7 @@ class DesktopApprovalGate(ApprovalGate):
             future.set_result(response)
 
     async def _notify(self, method: str, params: Any) -> None:
+        """通知`DesktopApprovalGate`的相关流程。"""
         if self._broadcaster is not None:
             await self._broadcaster(method, params)
 
