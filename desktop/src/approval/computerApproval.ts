@@ -27,20 +27,35 @@ export function isSandboxApproval(approval: ApprovalRequest): boolean {
   return !isDesktopApproval(approval)
 }
 
-/** Chat 内是否展示：普通（sandbox）审批 + 属于当前 active Run。 */
+/** 审批是否属于当前主 Run；Worker 子图使用 ``<主 Run>:worker:<id>`` 作为运行标识。 */
+export function approvalBelongsToRun(
+  approvalRunId: string | null,
+  activeRunId: string | null,
+): boolean {
+  if (!approvalRunId || !activeRunId) return false
+  return (
+    approvalRunId === activeRunId ||
+    approvalRunId.startsWith(`${activeRunId}:worker:`)
+  )
+}
+
+/** Chat 内是否展示：普通（sandbox）审批 + 属于当前 active Run 或其 Worker 子图。 */
 export function isChatApproval(
   approval: ApprovalRequest,
   activeRunId: string | null,
 ): boolean {
-  return isSandboxApproval(approval) && approval.run_id === activeRunId
+  return (
+    isSandboxApproval(approval) &&
+    approvalBelongsToRun(approval.run_id, activeRunId)
+  )
 }
 
-/** Chat 路由：只有当前 Run 的 sandbox 审批进入 Chat。 */
+/** Chat 路由：只有当前 Run（含 Worker 子图）的 sandbox 审批进入 Chat。 */
 export function chatShouldShowApproval(
   approval: ApprovalRequest,
   activeRunId: string | null,
 ): boolean {
-  return isSandboxApproval(approval) && approval.run_id === activeRunId
+  return isChatApproval(approval, activeRunId)
 }
 
 /** 浮窗路由：所有 desktop 审批始终进入浮窗。 */

@@ -60,7 +60,7 @@ from .events import (
     NullEventHandler,
 )
 from .hierarchy import (
-    DEFAULT_WORKER_TOOL_NAMES,
+    WORKER_FORBIDDEN_TOOL_NAMES,
     DelegateWorkerTool,
     WorkerSubgraph,
     planner_system_prompt,
@@ -105,7 +105,7 @@ class AgentRuntime:
         worker_model_registry: ModelAdapterRegistry | None = None,
         worker_provider: ModelProvider | str | None = None,
         worker_model: str | None = None,
-        worker_tool_names: Collection[str] = DEFAULT_WORKER_TOOL_NAMES,
+        worker_tool_names: Collection[str] | None = None,
         worker_max_steps: int = 4,
         worker_max_tool_rounds: int = 3,
         worker_max_output_tokens: int = 2048,
@@ -135,7 +135,21 @@ class AgentRuntime:
         if worker_model_registry is not None:
             if worker_provider is None:
                 raise ValueError("worker_provider is required for hierarchical runtime")
-            worker_tool_registry = tool_registry.restricted(worker_tool_names)
+            selected_worker_tools = (
+                set(tool_registry.names())
+                if worker_tool_names is None
+                else set(worker_tool_names)
+            )
+            selected_worker_tools.difference_update(WORKER_FORBIDDEN_TOOL_NAMES)
+            worker_tool_registry = tool_registry.restricted(selected_worker_tools)
+            worker_tool_executor = ToolExecutor(
+                worker_tool_registry,
+                approval_gate=approval_gate,
+                policy_engine=policy_engine,
+                rule_store=rule_store,
+                hooks=tool_hooks,
+                output_recorder=tool_output_recorder,
+            )
             self._worker_subgraph = WorkerSubgraph(
                 worker_model_registry,
                 worker_tool_registry,
@@ -144,6 +158,7 @@ class AgentRuntime:
                 max_steps=worker_max_steps,
                 max_tool_rounds=worker_max_tool_rounds,
                 max_output_tokens=worker_max_output_tokens,
+                tool_executor=worker_tool_executor,
             )
             tool_registry.register(DelegateWorkerTool(self._worker_subgraph))
             resolved_system_prompt = planner_system_prompt(resolved_system_prompt)

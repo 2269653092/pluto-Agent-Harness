@@ -13,6 +13,7 @@ from app.agent.hierarchy import (
     PLANNER_SYSTEM_PROMPT_MARKER,
     WORKER_SYSTEM_PROMPT,
     AgentHierarchySettings,
+    WorkerSubgraph,
 )
 from app.agent.runtime import AgentRuntime
 from app.models.adapter import ModelAdapter
@@ -124,6 +125,23 @@ def test_role_settings_support_independent_provider_credentials() -> None:
     assert worker.provider_config("deepseek").api_key_value() == "worker-key"
 
 
+def test_worker_subgraph_rejects_delegate_tool_even_if_registry_contains_it() -> None:
+    worker_registry, _ = _registry("worker-fake", [_response("unused")])
+    tools = ToolRegistry()
+    tools.register(StubTool(DELEGATE_WORKER_TOOL_NAME))
+
+    with pytest.raises(ValueError, match="forbidden tools"):
+        WorkerSubgraph(
+            model_registry=worker_registry,
+            tool_registry=tools,
+            provider="worker-fake",
+            model="worker-fake-model",
+            max_steps=1,
+            max_tool_rounds=1,
+            max_output_tokens=128,
+        )
+
+
 @pytest.mark.asyncio
 async def test_planner_delegates_bounded_task_and_summarizes_worker_result() -> None:
     task_payload = {
@@ -150,12 +168,24 @@ async def test_planner_delegates_bounded_task_and_summarizes_worker_result() -> 
     )
     worker_registry, worker_adapter = _registry(
         "worker-fake",
-        [_response("worker-result")],
+        [
+            _response(
+                tool_calls=(
+                    ToolCall(
+                        id="worker-write-1",
+                        name="write_file",
+                        arguments={"path": "result.txt"},
+                    ),
+                )
+            ),
+            _response("worker-result"),
+        ],
     )
     tools = ToolRegistry()
     read_tool = StubTool("read_file")
+    write_tool = StubTool("write_file")
     tools.register(read_tool)
-    tools.register(StubTool("write_file"))
+    tools.register(write_tool)
     tools.register(StubTool("task_create"))
 
     runtime = AgentRuntime(
@@ -168,10 +198,14 @@ async def test_planner_delegates_bounded_task_and_summarizes_worker_result() -> 
     result = await runtime.run("处理这个请求")
 
     assert result.content == "Planner 已验收并汇总：worker-result"
-    assert runtime.worker_tool_names == ("read_file",)
+    assert set(runtime.worker_tool_names) == {
+        "read_file",
+        "write_file",
+        "task_create",
+    }
     assert DELEGATE_WORKER_TOOL_NAME in tools.names()
-    assert "write_file" not in runtime.worker_tool_names
-    assert "task_create" not in runtime.worker_tool_names
+    assert DELEGATE_WORKER_TOOL_NAME not in runtime.worker_tool_names
+    assert write_tool.calls == [{"path": "result.txt"}]
 
     planner_request = planner_adapter.requests[0]
     assert PLANNER_SYSTEM_PROMPT_MARKER in (planner_request.messages[0].content or "")
@@ -180,13 +214,20 @@ async def test_planner_delegates_bounded_task_and_summarizes_worker_result() -> 
     }
     assert "write_file" in {definition.name for definition in planner_request.tools}
 
-    worker_request = worker_adapter.requests[0]
-    assert worker_request.messages[0].content == WORKER_SYSTEM_PROMPT
-    assert {definition.name for definition in worker_request.tools} == {"read_file"}
-    assert "读取一个已知文件" in (worker_request.messages[-1].content or "")
+    first_worker_request = worker_adapter.requests[0]
+    assert first_worker_request.messages[0].content == WORKER_SYSTEM_PROMPT
+    assert {definition.name for definition in first_worker_request.tools} == {
+        "read_file",
+        "write_file",
+        "task_create",
+    }
+    assert "读取一个已知文件" in (
+        first_worker_request.messages[-1].content or ""
+    )
     assert all(
         definition.name != DELEGATE_WORKER_TOOL_NAME
-        for definition in worker_request.tools
+        for request in worker_adapter.requests
+        for definition in request.tools
     )
 
     planner_follow_up = planner_adapter.requests[1]

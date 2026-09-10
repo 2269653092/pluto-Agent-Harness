@@ -1,4 +1,4 @@
-"""Planner 主图与最小权限 Worker 子图。"""
+"""Planner 主图与禁止递归委派的全工具 Worker 子图。"""
 
 from __future__ import annotations
 
@@ -28,14 +28,7 @@ from .loop import AgentLoop
 _BACKEND_ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
 
 DELEGATE_WORKER_TOOL_NAME = "delegate_to_worker"
-DEFAULT_WORKER_TOOL_NAMES = frozenset(
-    {
-        "get_current_time",
-        "list_files",
-        "read_file",
-        "web_search",
-    }
-)
+WORKER_FORBIDDEN_TOOL_NAMES = frozenset({DELEGATE_WORKER_TOOL_NAME})
 
 PLANNER_SYSTEM_PROMPT_MARKER = "[Pluto Planner Role]"
 PLANNER_SYSTEM_PROMPT = f"""
@@ -54,7 +47,8 @@ WORKER_SYSTEM_PROMPT = """
 [Pluto Worker Role]
 你是分层 Agent 架构中的工人 Agent（Worker）。上游已经完成规划和判断。
 你只能执行收到的标准 task_payload，不得重新规划、扩展范围、改变目标或创建/委派子任务。
-严格按 instructions 和 constraints 执行；只能使用运行时提供的最小工具集。
+严格按 instructions 和 constraints 执行；可以使用运行时提供的全部工具，但绝对禁止
+调用、创建或委派另一个 Worker/子代理，也不得通过其他工具规避这条限制。
 缺少完成任务所必需的信息时，明确返回缺失项，不要自行猜测或扩大任务。
 最终只返回可供 Planner 验收和汇总的执行结果，不直接面向最终用户做决策。
 """.strip()
@@ -175,18 +169,15 @@ class WorkerSubgraph:
         max_steps: int,
         max_tool_rounds: int,
         max_output_tokens: int,
+        tool_executor: ToolExecutor | None = None,
     ) -> None:
         """初始化 `WorkerSubgraph` 实例及其依赖。"""
-        forbidden = {
-            DELEGATE_WORKER_TOOL_NAME,
-            "task_create",
-            "task_update",
-        }.intersection(tool_registry.names())
+        forbidden = WORKER_FORBIDDEN_TOOL_NAMES.intersection(tool_registry.names())
         if forbidden:
             names = ", ".join(sorted(forbidden))
             raise ValueError(f"Worker registry contains forbidden tools: {names}")
         self._tool_registry = tool_registry
-        self._executor = ToolExecutor(tool_registry)
+        self._executor = tool_executor or ToolExecutor(tool_registry)
         self._loop = AgentLoop(
             model_registry=model_registry,
             tool_registry=tool_registry,
@@ -268,7 +259,7 @@ class DelegateWorkerTool(BaseTool):
             name=DELEGATE_WORKER_TOOL_NAME,
             description=(
                 "Delegate one already-planned, simple, bounded subtask to the "
-                "minimal-permission Worker Agent and return its result."
+                "non-delegating Worker Agent and return its result."
             ),
             parameters=WorkerTaskPayload.model_json_schema(),
             strict=True,
@@ -327,7 +318,6 @@ def _secret_value(value: SecretStr | None) -> str | None:
 
 __all__ = [
     "AgentHierarchySettings",
-    "DEFAULT_WORKER_TOOL_NAMES",
     "DELEGATE_WORKER_TOOL_NAME",
     "DelegateWorkerTool",
     "PLANNER_SYSTEM_PROMPT",
@@ -335,5 +325,6 @@ __all__ = [
     "WorkerExecutionResult",
     "WorkerSubgraph",
     "WorkerTaskPayload",
+    "WORKER_FORBIDDEN_TOOL_NAMES",
     "planner_system_prompt",
 ]

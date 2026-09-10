@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { ApprovalRequest } from '../api/types'
 import {
+  approvalBelongsToRun,
   chatShouldShowApproval,
   computerActionDescription,
   computerActionLabel,
@@ -93,6 +94,14 @@ describe('稳定路由：chatShouldShowApproval / floatingShouldShowApproval', (
     expect(chatShouldShowApproval(sandbox, 'run-1')).toBe(true)
   })
 
+  it('sandbox + 属于当前 Run 的 Worker 子图 → 进入 Chat', () => {
+    const workerApproval = approval({
+      tool_name: 'write_file',
+      run_id: 'run-1:worker:abc123',
+    })
+    expect(chatShouldShowApproval(workerApproval, 'run-1')).toBe(true)
+  })
+
   it('desktop 无论主窗口状态都不进入 Chat', () => {
     expect(chatShouldShowApproval(desktop, 'run-1')).toBe(false)
   })
@@ -123,6 +132,14 @@ describe('isChatApproval', () => {
     expect(isChatApproval(normal, 'run-1')).toBe(true)
   })
 
+  it('普通 + 属于当前 Run 的 Worker 子图 → true', () => {
+    const workerApproval = approval({
+      tool_name: 'write_file',
+      run_id: 'run-1:worker:abc123',
+    })
+    expect(isChatApproval(workerApproval, 'run-1')).toBe(true)
+  })
+
   it('普通 + 不属于当前 Run → false', () => {
     expect(isChatApproval(normal, 'run-other')).toBe(false)
     expect(isChatApproval(normal, null)).toBe(false)
@@ -130,6 +147,17 @@ describe('isChatApproval', () => {
 
   it('computer 审批即使属于当前 Run 也不进 Chat → false', () => {
     expect(isChatApproval(computer, 'run-1')).toBe(false)
+  })
+})
+
+describe('approvalBelongsToRun', () => {
+  it('只接受主 Run 本身及其 Worker 子图', () => {
+    expect(approvalBelongsToRun('run-1', 'run-1')).toBe(true)
+    expect(approvalBelongsToRun('run-1:worker:abc123', 'run-1')).toBe(true)
+    expect(approvalBelongsToRun('run-10:worker:abc123', 'run-1')).toBe(false)
+    expect(approvalBelongsToRun('run-1:other:abc123', 'run-1')).toBe(false)
+    expect(approvalBelongsToRun('run-1:worker:abc123', null)).toBe(false)
+    expect(approvalBelongsToRun(null, 'run-1')).toBe(false)
   })
 })
 
