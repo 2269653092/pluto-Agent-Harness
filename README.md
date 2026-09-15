@@ -32,7 +32,7 @@
 模型层通过统一 Adapter 接入 OpenAI、Qwen、DeepSeek 与 Anthropic。
 
 效果展示如下
-
+## demo
 <p align="center">
   <img src="docs/assets/img.png" alt="Pluto desktop interface" width="48%" />
   <img src="docs/assets/img_1.png" alt="Pluto agent execution" width="48%" />
