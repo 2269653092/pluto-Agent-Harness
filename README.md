@@ -34,6 +34,7 @@
 效果展示如下
 ## demo
 <p align="center">
+ <img src="docs/assets/img_2.png" alt="Pluto desktop interface" width="48%" />
   <img src="docs/assets/img.png" alt="Pluto desktop interface" width="48%" />
   <img src="docs/assets/img_1.png" alt="Pluto agent execution" width="48%" />
 </p>
