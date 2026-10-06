@@ -54,6 +54,7 @@ class FileTaskStore:
         """初始化 `FileTaskStore` 实例及其依赖。"""
         self.tasks_dir = Path(tasks_dir).expanduser().resolve()
         self._locks: dict[str, asyncio.Lock] = {}
+        self.project_resolver = None
 
     async def initialize(self) -> None:
         """创建任务目录。"""
@@ -90,6 +91,8 @@ class FileTaskStore:
                 owner_conversation_id,
                 field_name="owner_conversation_id",
             ),
+            project_id=(await self.project_resolver(owner_conversation_id)
+                        if self.project_resolver is not None else None),
             run_ids=_merge_entries((), run_ids),
             created_at=now,
             updated_at=now,

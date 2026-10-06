@@ -113,11 +113,15 @@ class SkillCandidateStore:
 
     def _candidate_path(self, candidate_id: str) -> Path:
         """处理 `_candidate_path` 的内部辅助逻辑。"""
+        if not candidate_id or not all(c.isalnum() or c in "-_" for c in candidate_id):
+            raise ValueError("invalid candidate identifier")
         return self.candidates_dir / f"{candidate_id}.json"
 
     async def create(self, candidate: SkillCandidate) -> SkillCandidate:
         """写入候选；ID 冲突时抛 ValueError。"""
 
+        if getattr(self, "project_id", None) and candidate.project_id is None:
+            candidate = candidate.model_copy(update={"project_id": self.project_id})
         async with self._lock_for(candidate.id):
             path = self._candidate_path(candidate.id)
             if await asyncio.to_thread(path.is_file):

@@ -13,6 +13,11 @@ import asyncio
 import logging
 import os
 import re
+import hashlib
+from functools import wraps
+from contextvars import ContextVar
+
+core_generation = ContextVar("core_generation", default=None)
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -116,6 +121,19 @@ class CoreMemoryEntry(BaseModel):
         return value.astimezone(UTC)
 
 
+def serialized(method):
+    @wraps(method)
+    async def wrapper(self, *args, expected_version=None, **kwargs):
+        async with self._lock:
+            generation = core_generation.get()
+            if generation is not None and generation != self.manual_generation:
+                raise ValueError("用户已修改偏好，忽略旧 Run 的更新")
+            if expected_version is not None and await self.version() != expected_version:
+                raise ValueError("用户偏好版本冲突，请刷新后重试")
+            return await method(self, *args, **kwargs)
+    return wrapper
+
+
 class CoreMemoryManager:
     """CORE.md 的加载与受控更新。"""
 
@@ -128,6 +146,8 @@ class CoreMemoryManager:
         """初始化 `CoreMemoryManager` 实例及其依赖。"""
         self.path = Path(memory_dir) / "CORE.md"
         self.max_tokens = max_tokens
+        self._lock = asyncio.Lock()
+        self.manual_generation = 0
         if max_tokens <= 0:
             raise ValueError("max_tokens must be greater than zero")
 
@@ -167,6 +187,26 @@ class CoreMemoryManager:
             )
         return visible
 
+    async def entries(self):
+        raw = await asyncio.to_thread(self.path.read_text, encoding="utf-8") if self.path.is_file() else ""
+        return tuple(_parse_document(raw)[0].values())
+
+    async def snapshot(self):
+        """Read displayed entries and their CAS version from one locked document."""
+        async with self._lock:
+            if self.path.is_symlink():
+                raise ValueError("CORE.md cannot be a symbolic link")
+            raw = await asyncio.to_thread(self.path.read_bytes) if self.path.is_file() else b""
+            entries, visible = _parse_document(raw.decode("utf-8"))
+            if self._estimate_tokens(visible) > self.max_tokens:
+                raise ValueError("core memory exceeds token limit")
+            return visible, tuple(entries.values()), hashlib.sha256(raw).hexdigest()
+
+    async def version(self):
+        raw = await asyncio.to_thread(self.path.read_bytes) if self.path.is_file() else b""
+        return hashlib.sha256(raw).hexdigest()
+
+    @serialized
     async def update(self, content: str) -> None:
         """受控更新 CORE.md。由显式长期信息触发，不用于模型普通写入。"""
 
@@ -180,6 +220,17 @@ class CoreMemoryManager:
             )
         await asyncio.to_thread(self._write_atomic, normalized + "\n")
 
+    @serialized
+    async def edit_legacy(self, content: str) -> None:
+        """Manage pre-migration human notes without replacing structured keys."""
+        raw = await asyncio.to_thread(self.path.read_text, encoding="utf-8") if self.path.is_file() else ""
+        entries, _ = _parse_document(raw)
+        rendered, visible = _render_document(entries, legacy=content.strip())
+        if self._estimate_tokens(visible) > self.max_tokens:
+            raise ValueError("core memory exceeds token limit")
+        await asyncio.to_thread(self._write_atomic, rendered)
+
+    @serialized
     async def upsert(
         self,
         *,
@@ -216,6 +267,7 @@ class CoreMemoryManager:
         await asyncio.to_thread(self._write_atomic, rendered)
         return entry, created
 
+    @serialized
     async def remove(self, key: str) -> CoreMemoryEntry:
         """移除一个结构化 Core 条目，不允许模型重写其他内容。"""
 

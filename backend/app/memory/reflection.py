@@ -57,6 +57,12 @@ limits, and safety constraints from the current evidence. Do not invent a
 finalized decision from proposals, speculation, or the assistant's own claims.
 
 Return strict JSON and no markdown fence:
+For any mutation additionally include kind (project_interface or project_decision)
+and source_statement: an exact, nonempty quote from user_input or tool_context
+proving the durable fact. Assistant final_answer alone is NOT evidence. Interface
+memory stores purpose, constraints and the location of the current definition,
+not a stale copy of every parameter. Decisions preserve why, alternatives,
+conditions and replacement relationships.
 {"action":"none|create|update","memory_id":null,"title":null,
 "summary":null,"content":null,"reason":"..."}
 

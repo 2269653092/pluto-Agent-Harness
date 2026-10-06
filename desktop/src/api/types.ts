@@ -1,6 +1,7 @@
 /** 与 Pluto Host JSON-RPC 对应的 Desktop 类型。 */
 
 export interface Conversation {
+  project_id?: string | null
   id: string
   title: string
   created_at: string
@@ -37,6 +38,7 @@ export type RunStatus =
 export type AgentMode = 'normal' | 'plan'
 
 export interface Run {
+  project_id?: string | null
   id: string
   conversation_id: string | null
   status: RunStatus
@@ -91,6 +93,9 @@ export interface RunUsageSummary {
 }
 
 export interface LongTermMemory {
+  project_id?: string | null
+  kind?: string
+  source?: Record<string, string>
   id: string
   title: string
   summary: string
@@ -106,6 +111,10 @@ export interface LongTermMemory {
 }
 
 export interface LongTermMemoryOverview {
+  legacy_core?: string
+  preferences?: { key: string; value: string; reason: string; source_statement: string; updated_at: string }[]
+  core_version?: string
+  project_id?: string
   core: string
   active: LongTermMemory[]
   archived: LongTermMemory[]
@@ -148,6 +157,7 @@ export interface TaskStep {
 }
 
 export interface Task {
+  project_id?: string | null
   id: string
   title: string
   description: string | null
@@ -167,6 +177,12 @@ export interface Task {
 }
 
 export interface SkillCandidate {
+  project_id?: string | null
+  scope?: 'user' | 'project'
+  revision?: number
+  target_version?: string | null
+  dismissed?: boolean
+  suppressed?: boolean
   id: string
   origin: 'pattern_mining' | 'agent_proposal' | 'manual_task'
   action: 'create' | 'update'

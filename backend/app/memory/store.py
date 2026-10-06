@@ -19,6 +19,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+from contextvars import ContextVar
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -50,6 +51,8 @@ class MemoryStore:
         self.active_dir = self.memory_dir / "active"
         self.archive_dir = self.memory_dir / "archive"
         self.max_active = max_active
+        self.project_id = None
+        self.provenance = ContextVar(f"memory_source_{id(self)}", default={})
         if max_active <= 0:
             raise ValueError("max_active must be greater than zero")
 
@@ -79,6 +82,9 @@ class MemoryStore:
             created_at=now,
             updated_at=now,
             last_accessed_at=now,
+            project_id=self.project_id,
+            kind=self.provenance.get().get("kind", "project_context"),
+            source=self.provenance.get().get("source", {}),
         )
         await self._write(record)
         return record
@@ -139,6 +145,8 @@ class MemoryStore:
                 "title": title if title is not None else record.title,
                 "summary": summary if summary is not None else record.summary,
                 "content": content,
+                "kind": self.provenance.get().get("kind", record.kind),
+                "source": self.provenance.get().get("source", record.source),
                 "last_update_reason": reason,
                 "updated_at": datetime.now(UTC),
                 "revision": record.revision + 1,
@@ -215,11 +223,9 @@ class MemoryStore:
     async def _all_ids(self) -> set[str]:
         """处理 `_all_ids` 的内部辅助逻辑。"""
         ids: set[str] = set()
-        for directory in (self.active_dir, self.archive_dir):
+        for directory in (self.active_dir, self.archive_dir, self.memory_dir / "deleted"):
             for path in directory.glob("M*.md"):
-                record = await self.load(path.stem)
-                if record is not None:
-                    ids.add(record.id)
+                ids.add(path.stem)
         return ids
 
     async def _resolve_path(self, memory_id: str) -> Path | None:
@@ -254,6 +260,15 @@ class MemoryStore:
     def _repair_interrupted_archives(self) -> None:
         """把已标记 archived 但仍位于 active/ 的文件移回 archive/。"""
 
+        for path in self.archive_dir.glob("M*.md"):
+            if path.is_symlink() or not path.is_file():
+                continue
+            try:
+                record = parse_memory_markdown(path.read_text(encoding="utf-8"))
+                if record.id == path.stem and record.status is MemoryStatus.ACTIVE and not (self.active_dir / path.name).exists():
+                    os.replace(path, self.active_dir / path.name)
+            except (OSError, ValueError) as exc:
+                logger.warning("failed to repair memory restore %s: %s", path.name, exc)
         for path in self.active_dir.glob("M*.md"):
             if path.is_symlink() or not path.is_file():
                 continue

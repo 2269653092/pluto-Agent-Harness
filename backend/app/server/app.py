@@ -154,6 +154,7 @@ def create_app(
     hub = RpcHub()
     broadcast = RpcBroadcastEventHandler(hub)
     application.shared_event_handler = broadcast
+    application.change_broadcaster = hub.broadcast
 
     dispatcher = build_dispatcher()
 

@@ -186,6 +186,15 @@ class SkillCandidate(BaseModel):
     created_at: datetime
     reviewed_at: datetime | None = None
     evidence_summary: str = ""
+    project_id: str | None = None
+    scope: str = "project"
+    revision: int = 1
+    target_version: str | None = None
+    workflow_key: str | None = None
+    dismissed: bool = False
+    suppressed: bool = False
+    approval_revision: int | None = None
+    approval_scope: str | None = None
 
     @field_validator("id", "proposed_name", "description", "reason", mode="before")
     @classmethod

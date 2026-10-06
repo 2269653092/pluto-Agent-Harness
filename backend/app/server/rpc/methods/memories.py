@@ -1,12 +1,9 @@
-"""长期记忆只读 RPC。
-
-Desktop 只能观察 Core、active 与 archived 记忆；记忆写入仍由
-Agent 提出、Harness 验证并执行，不在此暴露可变更接口。
-"""
+"""Scoped memory overview; version-checked mutations live in project_flows."""
 
 from __future__ import annotations
 
 from typing import Any
+from app.memory.core import _legacy_content
 
 from ..dispatcher import RpcContext, RpcDispatcher
 
@@ -15,8 +12,13 @@ async def memory_list(
     params: dict[str, Any], ctx: RpcContext
 ) -> dict[str, Any]:
     """执行 `memory_list` 对应的业务逻辑。"""
-    del params
     manager = ctx.application.memory_manager
+    project_id = None
+    if hasattr(ctx.application, "project_services"):
+        from .project_flows import services
+        service = await services(params, ctx)
+        manager = service.memory
+        project_id = service.project.id
     if manager is None:
         return {
             "core": "",
@@ -26,11 +28,15 @@ async def memory_list(
             "max_active": 0,
         }
 
-    core = await manager.core.load()
+    core, preferences, version = await manager.core.snapshot()
     active = await manager.list()
     archived = await manager.list_archived()
     return {
         "core": core,
+        "legacy_core": _legacy_content(core),
+        "preferences": preferences,
+        "core_version": version,
+        "project_id": project_id,
         "active": [record.model_dump(mode="json") for record in active],
         "archived": [record.model_dump(mode="json") for record in archived],
         "active_count": len(active),

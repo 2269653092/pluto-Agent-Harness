@@ -111,6 +111,9 @@ class AgentRuntime:
         worker_max_output_tokens: int = 2048,
     ) -> None:
         """初始化 `AgentRuntime` 实例及其依赖。"""
+        # Factory creates an independent executor/worker graph for every Run.
+        self.construction = {key: value for key, value in locals().items()
+                             if key not in {"self", "model_registry", "tool_registry"}}
         if max_steps < 1:
             raise ValueError("max_steps must be at least 1")
         if max_output_tokens is not None and max_output_tokens < 1:
@@ -132,6 +135,8 @@ class AgentRuntime:
             else None
         )
         self._worker_subgraph: WorkerSubgraph | None = None
+        self._core = getattr(memory_manager, "core", None)
+        self._core_generation = getattr(self._core, "manual_generation", None)
         if worker_model_registry is not None:
             if worker_provider is None:
                 raise ValueError("worker_provider is required for hierarchical runtime")
@@ -244,6 +249,8 @@ class AgentRuntime:
         """
 
         run_id = run_id or uuid4().hex
+        from app.memory.core import core_generation
+        generation_token = core_generation.set(self._core_generation)
         emitter = _EventEmitter(
             handler=event_handler or NullEventHandler(),
             run_id=run_id,
@@ -332,6 +339,7 @@ class AgentRuntime:
             )
             return result
         finally:
+            core_generation.reset(generation_token)
             with suppress(Exception):
                 await self._tool_executor.clear_run_rules(run_id)
 

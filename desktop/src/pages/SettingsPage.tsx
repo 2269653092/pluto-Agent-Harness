@@ -8,10 +8,13 @@ import ExtensionsSettings from '../components/ExtensionsSettings'
 import ModelSettingsPanel from '../components/ModelSettingsPanel'
 import { ErrorState } from '../components/PageStates'
 import { PageShell } from '../components/PageShell'
+import MemoryPage from './MemoryPage'
+
+export interface SettingsTarget { section: 'extensions' | 'memory'; projectId?: string; candidateId?: string; memoryId?: string }
 
 /** 渲染 `SettingsPage` React 组件。 */
-export default function SettingsPage(): React.JSX.Element {
-  const [section, setSection] = useState<'general' | 'models' | 'extensions'>('general')
+export default function SettingsPage({ target }: { target?: SettingsTarget } = {}): React.JSX.Element {
+  const [section, setSection] = useState<'general' | 'models' | 'extensions' | 'memory'>(target?.section ?? 'general')
 
   const infoQuery = useQuery({
     queryKey: ['system-info'],
@@ -39,6 +42,7 @@ export default function SettingsPage(): React.JSX.Element {
     >
       <div className="settings-layout">
         <aside className="settings-nav" aria-label="设置分类">
+          <button className={section === 'memory' ? 'active' : ''} onClick={() => setSection('memory')}><strong>记忆</strong><span>用户偏好与项目记忆</span></button>
           <button className={section === 'general' ? 'active' : ''} onClick={() => setSection('general')}>
             <strong>通用</strong><span>Windows 运行环境</span>
           </button>
@@ -51,7 +55,7 @@ export default function SettingsPage(): React.JSX.Element {
         </aside>
 
         <main className="settings-content">
-          {section === 'extensions' ? <ExtensionsSettings /> : section === 'models' ? <ModelSettingsPanel /> : (
+          {section === 'memory' ? <MemoryPage initialProjectId={target?.projectId} memoryId={target?.memoryId} /> : section === 'extensions' ? <ExtensionsSettings initialProjectId={target?.projectId} candidateId={target?.candidateId} /> : section === 'models' ? <ModelSettingsPanel /> : (
             <div className="settings-general">
               <header className="settings-content__header">
                 <h2>通用</h2>

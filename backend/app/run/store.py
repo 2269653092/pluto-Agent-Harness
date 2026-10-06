@@ -54,6 +54,7 @@ ON runs(status, created_at DESC);
 
 # 旧库迁移：为已存在的 runs 表补齐 provenance 列（新库由 _SCHEMA 直接创建）。
 _PROVENANCE_COLUMNS = (
+    "project_id TEXT",
     "source TEXT",
     "source_id TEXT",
     "scheduled_for TEXT",
@@ -87,6 +88,7 @@ class SQLiteRunStore:
         self,
         *,
         conversation_id: str | None = None,
+        project_id: str | None = None,
         user_message: str = "",
         recovered_from_run_id: str | None = None,
         source: str | None = None,
@@ -106,8 +108,8 @@ class SQLiteRunStore:
                 INSERT INTO runs (
                     run_id, conversation_id, status, user_message,
                     created_at, updated_at, recovered_from_run_id,
-                    source, source_id, scheduled_for, triggered_at, mode
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    source, source_id, scheduled_for, triggered_at, mode, project_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     run_id,
@@ -130,6 +132,7 @@ class SQLiteRunStore:
                         else None
                     ),
                     AgentMode(mode).value,
+                    project_id,
                 ),
             )
             await database.commit()
@@ -342,6 +345,7 @@ def _run_from_row(row: aiosqlite.Row) -> Run:
     return Run(
         id=row["run_id"],
         conversation_id=row["conversation_id"],
+        project_id=row["project_id"] if "project_id" in row.keys() else None,
         status=RunStatus(row["status"]),
         user_message=row["user_message"] or "",
         created_at=_parse_datetime(row["created_at"]),

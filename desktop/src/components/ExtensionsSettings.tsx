@@ -24,11 +24,17 @@ import { ConfirmDialog } from './ConfirmDialog'
 import { Icon } from './Icon'
 import { EmptyState, ErrorState, LoadingState } from './PageStates'
 import { toast } from '../stores/toasts'
+import ProjectPicker from './ProjectPicker'
+import SkillLearningPanel from './SkillLearningPanel'
+import SkillEditor from './SkillEditor'
+import type { InstalledSkill } from '../api/extensions'
 
 type ExtensionTab = 'skills' | 'mcp'
 
 /** 执行 `ExtensionsSettings` 对应的界面或业务逻辑。 */
-export default function ExtensionsSettings(): React.JSX.Element {
+export default function ExtensionsSettings({ initialProjectId, candidateId }: { initialProjectId?: string; candidateId?: string } = {}): React.JSX.Element {
+  const [projectId, setProjectId] = useState(initialProjectId)
+  const [editTarget, setEditTarget] = useState<InstalledSkill | null>(null)
   const [tab, setTab] = useState<ExtensionTab>('skills')
   const [showAdd, setShowAdd] = useState(false)
   const [showImporter, setShowImporter] = useState(false)
@@ -39,8 +45,8 @@ export default function ExtensionsSettings(): React.JSX.Element {
   >(null)
   const queryClient = useQueryClient()
   const query = useQuery({
-    queryKey: ['extensions'],
-    queryFn: listExtensions,
+    queryKey: ['extensions', projectId],
+    queryFn: () => projectId ? listExtensions(projectId) : listExtensions(),
     refetchInterval: 5000,
     retry: false,
   })
@@ -50,7 +56,7 @@ export default function ExtensionsSettings(): React.JSX.Element {
     void queryClient.invalidateQueries({ queryKey: ['extensions'] })
   }
   const skillMutation = useMutation({
-    mutationFn: installSkill,
+    mutationFn: (input: InstallSkillInput) => installSkill({ ...input, ...(projectId ? { project_id: projectId } : {}) }),
     /** 响应 `onSuccess` 对应的事件。 */
     onSuccess: (skill) => {
       toast.success(`Skill ${skill.name} 已安装`)
@@ -70,8 +76,8 @@ export default function ExtensionsSettings(): React.JSX.Element {
   const skillControlMutation = useMutation({
     /** 执行 `mutationFn` 对应的界面或业务逻辑。 */
     mutationFn: async (action: { name: string; scope: 'user' | 'project'; enabled: boolean; delete?: boolean }): Promise<void> => {
-      if (action.delete) await deleteSkill(action.name, action.scope, action.enabled)
-      else await setSkillEnabled(action.name, action.scope, !action.enabled)
+      if (action.delete) await deleteSkill(action.name, action.scope, action.enabled, projectId)
+      else await setSkillEnabled(action.name, action.scope, !action.enabled, projectId)
     },
     /** 响应 `onSuccess` 对应的事件。 */
     onSuccess: (_result, action) => {
@@ -100,6 +106,7 @@ export default function ExtensionsSettings(): React.JSX.Element {
 
   return (
     <div className="extensions-settings">
+      <ProjectPicker value={projectId} onChange={(id) => { setProjectId(id); setEditTarget(null) }} />
       <header className="extensions-header">
         <div>
           <span className="extensions-header__eyebrow">Extensions</span>
@@ -127,6 +134,7 @@ export default function ExtensionsSettings(): React.JSX.Element {
 
       {showImporter ? (
         <UnifiedImportForm
+          projectId={projectId}
           onInstalled={(result) => {
             const count = result.skills.length + result.mcp_servers.length
             toast.success(`已导入 ${count} 个扩展${result.restart_required ? '，MCP 重启 Host 后生效' : ''}`)
@@ -154,6 +162,8 @@ export default function ExtensionsSettings(): React.JSX.Element {
         />
       ) : null}
 
+      {tab === 'skills' ? <SkillLearningPanel key={projectId ?? 'default'} projectId={projectId} candidateId={candidateId} /> : null}
+      {editTarget ? <SkillEditor key={`${projectId}:${editTarget.scope}:${editTarget.name}`} projectId={projectId} skill={editTarget} onClose={() => setEditTarget(null)} /> : null}
       {query.isPending ? <LoadingState label="正在读取扩展能力…" />
         : query.isError ? <ErrorState message={String(query.error)} onRetry={() => void query.refetch()} />
           : tab === 'skills' ? (
@@ -163,6 +173,7 @@ export default function ExtensionsSettings(): React.JSX.Element {
               busy={skillControlMutation.isPending}
               onToggle={(skill) => skillControlMutation.mutate(skill)}
               onDelete={(skill) => setDeleteTarget({ kind: 'skill', ...skill })}
+              onEdit={setEditTarget}
             />
           ) : (
             <MCPList
@@ -193,9 +204,11 @@ export default function ExtensionsSettings(): React.JSX.Element {
 
 /** 渲染 `UnifiedImportForm` React 组件。 */
 export function UnifiedImportForm({
+  projectId,
   onInstalled,
   onCancel,
 }: {
+  projectId?: string
   onInstalled: (result: Awaited<ReturnType<typeof applyExtensionImport>>) => void
   onCancel: () => void
 }): React.JSX.Element {
@@ -205,7 +218,7 @@ export function UnifiedImportForm({
   const [plan, setPlan] = useState<ExtensionImportPlan | null>(null)
   const [previewedInput, setPreviewedInput] = useState<ExtensionImportInput | null>(null)
   const previewMutation = useMutation({ mutationFn: previewExtensionImport })
-  const applyMutation = useMutation({ mutationFn: applyExtensionImport })
+  const applyMutation = useMutation({ mutationFn: (input: Parameters<typeof applyExtensionImport>[0]) => applyExtensionImport({ ...input, ...(projectId ? { project_id: projectId } : {}) }) })
 
   /** 重置 `preview` 对应的数据或流程。 */
   const resetPreview = (): void => {
@@ -320,12 +333,14 @@ function SkillList({
   busy,
   onToggle,
   onDelete,
+  onEdit,
 }: {
   skills: Awaited<ReturnType<typeof listExtensions>>['skills']
   diagnostics: Awaited<ReturnType<typeof listExtensions>>['skill_diagnostics']
   busy: boolean
   onToggle: (skill: { name: string; scope: 'user' | 'project'; enabled: boolean }) => void
   onDelete: (skill: { name: string; scope: 'user' | 'project'; enabled: boolean }) => void
+  onEdit: (skill: InstalledSkill) => void
 }): React.JSX.Element {
   return (
     <div className="extension-list-wrap">
@@ -339,9 +354,11 @@ function SkillList({
               <div className="extension-row__main">
                 <div><strong>{skill.name}</strong><span className="extension-scope">{skill.scope === 'project' ? '当前项目' : '用户全局'}</span>{!skill.enabled ? <span className="extension-scope">已停用</span> : null}</div>
                 <p>{skill.description}</p>
+                <small>{skill.origin === 'automatic' ? '自动学习' : skill.origin === 'import' ? '导入' : '手动创建'}</small>
               </div>
               <span className="extension-row__path mono" title={skill.location}>{skill.location}</span>
               <div className="extension-row__actions">
+                <button className="btn btn-sm" disabled={busy} onClick={() => onEdit(skill)}>查看 / 编辑</button>
                 <button className="btn btn-sm" disabled={busy} onClick={() => onToggle(skill)}>{skill.enabled ? '停用' : '启用'}</button>
                 <button className="btn btn-sm btn-danger" disabled={busy} onClick={() => onDelete(skill)}>删除</button>
               </div>

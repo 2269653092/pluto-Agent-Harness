@@ -1,0 +1,14 @@
+.project-picker { display: flex; gap: 12px; align-items: center; padding: 10px 16px; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+.project-picker select { max-width: 300px; margin-left: 8px; padding: 7px; }
+.review-form { display: grid; gap: 12px; padding: 16px 0; }
+.review-form label { display: grid; gap: 6px; font-size: 13px; }
+.review-form input, .review-form textarea, .review-form select { box-sizing: border-box; width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; color: inherit; background: var(--bg-secondary, transparent); }
+.review-form pre { overflow: auto; max-height: 400px; padding: 12px; font-size: 12px; white-space: pre-wrap; }
+.review-actions, .review-candidates { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.skill-discovery-card { border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin: 16px 0; background: var(--bg-secondary, transparent); }
+.skill-discovery-card h3 { margin: 0 0 12px; font-size: 15px; }
+.skill-discovery-card small { opacity: .7; }
+.memory-controls { padding-top: 10px; border-top: 1px solid var(--border); }
+.preference-row { padding: 14px 0; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+.skill-review details p, .memory-controls details p { overflow-wrap: anywhere; }
+.settings-content .page-shell { padding: 0; }

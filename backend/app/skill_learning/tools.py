@@ -159,6 +159,10 @@ class SkillProposeTool(BaseTool):
             existing_skill_name=(
                 name if action is SkillCandidateAction.UPDATE else None
             ),
+            project_id=getattr(self._candidate_store, "project_id", None),
+            scope=existing.metadata.scope.value if action is SkillCandidateAction.UPDATE else "project",
+            target_version=(getattr(self._skill_store, "versions", {}).get(name)
+                            if action is SkillCandidateAction.UPDATE else None),
             status=SkillCandidateStatus.PENDING,
             created_at=datetime.now(UTC),
             evidence_summary=(

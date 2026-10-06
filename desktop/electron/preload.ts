@@ -12,6 +12,7 @@ export interface DesktopNotification {
 // Renderer 通过 WS /rpc 与 localhost Pluto Host 通信，媒体使用只读 HTTP transport。
 const desktopApi = {
   platform: process.platform,
+  selectProjectFolder: (): Promise<string | null> => ipcRenderer.invoke('pluto:select-project-folder'),
   versions: {
     electron: process.versions.electron,
     node: process.versions.node,

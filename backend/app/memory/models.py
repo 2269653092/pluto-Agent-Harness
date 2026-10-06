@@ -55,6 +55,9 @@ class MemoryRecord(BaseModel):
     status: MemoryStatus = MemoryStatus.ACTIVE
     last_update_reason: str | None = None
     archive_reason: str | None = None
+    project_id: str | None = None
+    kind: str = "project_context"
+    source: dict[str, str] = Field(default_factory=dict)
 
     @field_validator("title", "summary", mode="before")
     @classmethod
@@ -131,6 +134,9 @@ class MemoryRecord(BaseModel):
             "access_count": self.access_count,
             "revision": self.revision,
             "status": self.status.value,
+            "project_id": self.project_id,
+            "kind": self.kind,
+            "source": self.source,
         }
         if self.last_update_reason is not None:
             metadata["last_update_reason"] = self.last_update_reason
@@ -195,6 +201,9 @@ def parse_memory_markdown(text: str) -> MemoryRecord:
         status=MemoryStatus(str(data.get("status", MemoryStatus.ACTIVE.value))),
         last_update_reason=data.get("last_update_reason"),
         archive_reason=data.get("archive_reason"),
+        project_id=data.get("project_id"),
+        kind=data.get("kind", "project_context"),
+        source=data.get("source", {}),
     )
 
 

@@ -126,6 +126,7 @@ class Task(BaseModel):
     key_facts: tuple[str, ...] = ()
     steps: tuple[TaskStep, ...] = ()
     owner_conversation_id: str = Field(min_length=1, frozen=True)
+    project_id: str | None = Field(default=None, frozen=True)
     run_ids: tuple[str, ...] = ()
     created_at: datetime
     updated_at: datetime

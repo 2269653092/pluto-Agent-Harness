@@ -48,8 +48,14 @@ async def conversation_create(
     title = params.get("title")
     if title is not None and (not isinstance(title, str) or not title.strip()):
         raise JsonRpcError(RpcErrorCode.INVALID_PARAMS, "title must be a string")
+    project_id = params.get("project_id")
+    if hasattr(ctx.application, "projects"):
+        try:
+            project_id = (await ctx.application.projects.require(project_id)).id
+        except KeyError as exc:
+            raise JsonRpcError(RESOURCE_NOT_FOUND, "project not found") from exc
     conversation = await ctx.application.conversation_store.create(
-        title=title or "新会话"
+        title=title or "新会话", project_id=project_id
     )
     return {"conversation": conversation}
 

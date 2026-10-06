@@ -1,5 +1,6 @@
 import {
   app,
+  dialog,
   BrowserWindow,
   ipcMain,
   Notification,
@@ -20,6 +21,12 @@ const APPROVAL_RIGHT_MARGIN = 20
 
 let mainWindow: BrowserWindow | null = null
 let approvalWindow: BrowserWindow | null = null
+
+ipcMain.handle('pluto:select-project-folder', async (event) => {
+  if (!mainWindow || event.sender.id !== mainWindow.webContents.id) return null
+  const result = await dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'], title: '选择项目文件夹' })
+  return result.canceled ? null : result.filePaths[0] ?? null
+})
 
 interface NotificationPayload {
   title: string

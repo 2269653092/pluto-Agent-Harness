@@ -478,6 +478,10 @@ class CoreMemoryUpdateTool(BaseTool):
                 "'explicit_user_statement' must be copied exactly from the "
                 "current user message"
             )
+        if getattr(getattr(self._manager, "store", None), "project_id", None):
+            from .preferences import is_explicit_preference
+            if not is_explicit_preference(statement):
+                raise ValueError("临时或项目限定的要求不能保存为用户长期偏好")
         entry, created = await self._manager.upsert_core(
             key=key,
             value=value,

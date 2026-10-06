@@ -56,6 +56,7 @@ class SQLiteConversationStore:
     def __init__(self, database_path: str | Path = DEFAULT_DATABASE_PATH) -> None:
         """初始化 `SQLiteConversationStore` 实例及其依赖。"""
         self.database_path = Path(database_path).expanduser().resolve()
+        self.default_project_id: str | None = None
 
     async def initialize(self) -> None:
         """创建数据库目录和数据表（含幂等列迁移）。"""
@@ -64,6 +65,7 @@ class SQLiteConversationStore:
         async with self._connect() as database:
             await database.executescript(_SCHEMA)
             await _ensure_column(database, "messages", "reasoning", "TEXT")
+            await _ensure_column(database, "conversations", "project_id", "TEXT")
             await database.commit()
 
     async def create(
@@ -71,6 +73,7 @@ class SQLiteConversationStore:
         *,
         title: str = "新会话",
         messages: Sequence[Message] = (),
+        project_id: str | None = None,
     ) -> Conversation:
         """创建会话，并可同时写入初始消息。"""
 
@@ -80,10 +83,10 @@ class SQLiteConversationStore:
         async with self._connect() as database:
             await database.execute(
                 """
-                INSERT INTO conversations (id, title, created_at, updated_at)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO conversations (id, title, created_at, updated_at, project_id)
+                VALUES (?, ?, ?, ?, ?)
                 """,
-                (conversation_id, normalized_title, now, now),
+                (conversation_id, normalized_title, now, now, project_id or self.default_project_id),
             )
             await self._insert_messages(database, conversation_id, messages, now)
             await database.commit()
@@ -351,6 +354,7 @@ class SQLiteConversationStore:
 _CONVERSATION_SELECT = """
 SELECT
     c.id,
+    c.project_id,
     c.title,
     c.created_at,
     c.updated_at,
@@ -364,6 +368,7 @@ def _conversation_from_row(row: aiosqlite.Row) -> Conversation:
     """处理 `_conversation_from_row` 的内部辅助逻辑。"""
     return Conversation(
         id=row["id"],
+        project_id=row["project_id"],
         title=row["title"],
         created_at=datetime.fromisoformat(row["created_at"]),
         updated_at=datetime.fromisoformat(row["updated_at"]),

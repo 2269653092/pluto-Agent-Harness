@@ -141,6 +141,9 @@ class SkillLearningService:
         processed 永不重复。一次调用最多尝试一次模型调用。
         """
 
+        if getattr(self, "project_id", None):
+            from app.project_learning import mine_project
+            return await mine_project(self)
         if not self.settings.skill_learning_enabled:
             return SkillLearningOutcome(skipped_reason="disabled")
         completed = await self.task_store.list(
@@ -522,7 +525,7 @@ class SkillLearningService:
         返回值依次为候选、是否新建、供界面显示的说明。
         """
 
-        if not self.settings.skill_learning_enabled:
+        if not self.settings.skill_learning_enabled and not getattr(self, "project_id", None):
             raise ValueError("Skill Learning 已关闭")
         task = await self.task_store.resolve(task_id)
         if task is None:
@@ -545,14 +548,16 @@ class SkillLearningService:
             reusable_value="提取执行证据支持的可复用步骤、陷阱与验证方法",
         )
         pending = await self.list_candidates(status=SkillCandidateStatus.PENDING)
-        catalog = await self.skill_store.catalog()
+        from app.skills.snapshot import SkillSnapshot
+        snapshot = await SkillSnapshot.capture(self.skill_store)
+        catalog = await snapshot.catalog()
         distilled = await self.distiller.distill(
             cluster,
             evidence={task.id: evidence},
             run_ids={task.id: task.run_ids},
             catalog=catalog,
             pending_candidates=pending,
-            skill_loader=self.skill_store.load,
+            skill_loader=snapshot.load,
             manual_request=True,
         )
         if distilled.error:
@@ -572,6 +577,9 @@ class SkillLearningService:
                 "source_conversation_id": task.owner_conversation_id,
             }
         )
+        if getattr(self, "project_id", None):
+            from app.project_learning import prepare_candidate
+            candidate = await prepare_candidate(self, candidate, snapshot=snapshot)
         await self.candidate_store.create(candidate)
         return candidate, True, "Skill 候选已生成，请确认后保存"
 
@@ -622,6 +630,7 @@ class SkillLearningService:
         candidate_id: str,
         *,
         scope: str | None = None,
+        expected_revision: int | None = None,
     ) -> tuple[SkillCandidate, Path | None]:
         """接受候选（Human Gate 是最终决策点）。
 
@@ -637,10 +646,30 @@ class SkillLearningService:
             raise KeyError(f"candidate not found: {candidate_id}")
         if candidate.status is not SkillCandidateStatus.PENDING:
             raise ValueError(f"candidate is not pending: {candidate.status.value}")
+        if expected_revision is not None and candidate.revision != expected_revision:
+            raise ValueError("草稿版本冲突，请刷新后重新审核")
         resolved_scope = _resolve_scope(
-            scope or self.settings.skill_learning_default_scope
+            scope or candidate.scope or self.settings.skill_learning_default_scope
         )
+        resume = candidate.approval_revision == candidate.revision and candidate.approval_scope == resolved_scope.value
+        current = await self.skill_store.load_managed(candidate.existing_skill_name or candidate.proposed_name, resolved_scope)
+        already_applied = (resume and current is not None and current.metadata.description == candidate.description
+                           and current.content.strip() == _render_candidate_body(candidate).strip())
+        if already_applied:
+            updated = candidate.model_copy(update={"status": SkillCandidateStatus.ACCEPTED, "reviewed_at": datetime.now(UTC),
+                "revision": candidate.revision + 1, "scope": resolved_scope.value})
+            await self.candidate_store.update(updated)
+            return updated, current.metadata.location
+        if candidate.action is SkillCandidateAction.UPDATE and candidate.target_version:
+            from app.project_learning import skill_version
+            if resolved_scope.value != candidate.scope:
+                raise ValueError("更新候选必须保持目标作用域，请另建用户级 Skill")
+            current = await self.skill_store.load_managed(candidate.existing_skill_name, resolved_scope)
+            if current is None or skill_version(current) != candidate.target_version:
+                raise ValueError("目标 Skill 已被修改，请重新生成更新候选")
         target: Path | None = None
+        candidate = candidate.model_copy(update={"approval_revision": candidate.revision, "approval_scope": resolved_scope.value})
+        await self.candidate_store.update(candidate)
         if candidate.action is SkillCandidateAction.CREATE:
             target = await self._create_skill(candidate, resolved_scope)
         else:
@@ -649,6 +678,8 @@ class SkillLearningService:
             update={
                 "status": SkillCandidateStatus.ACCEPTED,
                 "reviewed_at": datetime.now(UTC),
+                "scope": resolved_scope.value,
+                "revision": candidate.revision + 1,
             }
         )
         await self.candidate_store.update(updated)
@@ -665,6 +696,9 @@ class SkillLearningService:
         updated = candidate.model_copy(
             update={
                 "status": SkillCandidateStatus.REJECTED,
+                "suppressed": True,
+                "dismissed": True,
+                "revision": candidate.revision + 1,
                 "reviewed_at": datetime.now(UTC),
             }
         )
@@ -683,6 +717,8 @@ class SkillLearningService:
             instructions=_render_candidate_body(candidate),
             scope=scope,
         )
+        self.skill_store.record_origin(candidate.proposed_name, scope,
+            "automatic" if candidate.origin == SkillCandidateOrigin.PATTERN_MINING else "manual")
         return installed.metadata.location
 
     async def _update_skill(self, candidate: SkillCandidate) -> Path:
@@ -705,6 +741,7 @@ class SkillLearningService:
             name=name,
             description=candidate.description,
             instructions=_render_candidate_body(candidate),
+            scope=SkillScope(candidate.scope) if candidate.target_version else None,
         )
         return updated.metadata.location
 

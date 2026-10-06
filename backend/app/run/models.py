@@ -84,6 +84,7 @@ class Run(BaseModel):
 
     id: str = Field(min_length=1)
     conversation_id: str | None = None
+    project_id: str | None = None
     status: RunStatus
     user_message: str = ""
     created_at: datetime

@@ -46,6 +46,7 @@ class PostRunMemoryCoordinator:
         self._maintenance_reflector = maintenance_reflector
         self._task_context_provider = task_context_provider
         self._submit = submit
+        self._manual_generation = getattr(manager, "manual_generation", 0)
 
     async def schedule(
         self,
@@ -178,6 +179,7 @@ class PostRunMemoryCoordinator:
         proposal = None
         memory_id: str | None = None
         mutation_applied = False
+        provenance_token = None
         try:
             proposal = await reflector.decide(reflection_input)
             if proposal.error is not None:
@@ -186,6 +188,26 @@ class PostRunMemoryCoordinator:
                 raise RuntimeError("reflection model returned no decision")
 
             decision = proposal.decision
+            if getattr(manager.store, "project_id", None) and decision.action is not ReflectionAction.NONE:
+                if getattr(manager, "manual_generation", 0) != self._manual_generation:
+                    raise ValueError("记忆已被用户修改，忽略旧后台结果")
+                quote = decision.source_statement
+                import json
+                verified_tool_quote = False
+                for item in reflection_input.tool_context:
+                    try:
+                        evidence = json.loads(item)
+                        if evidence.get("success") is True and quote and quote in str(evidence.get("output") or ""):
+                            verified_tool_quote = True
+                    except ValueError:
+                        continue
+                if not quote or not (quote in reflection_input.user_input or verified_tool_quote):
+                    raise ValueError("记忆缺少可核实的用户陈述或工具证据")
+                if decision.kind not in {"project_interface", "project_decision"}:
+                    raise ValueError("临时状态不能保存到项目长期记忆")
+                provenance_token = manager.store.provenance.set({"kind": decision.kind, "source": {
+                    "run_id": reflection_input.run_id, "conversation_id": reflection_input.conversation_id or "",
+                    "statement": quote, "reason": decision.reason}})
             if decision.action is ReflectionAction.UPDATE:
                 memory_id = decision.memory_id
                 expected_revision = recalled_revisions.get(memory_id or "")
@@ -221,6 +243,7 @@ class PostRunMemoryCoordinator:
                     title=decision.title or "",
                     summary=decision.summary or "",
                     content=decision.content or "",
+                    **({"expected_generation": self._manual_generation} if getattr(manager.store, "project_id", None) else {}),
                 )
                 if record is None:
                     raise RuntimeError(
@@ -229,6 +252,12 @@ class PostRunMemoryCoordinator:
                 memory_id = record.id
                 mutation_applied = True
         except Exception as exc:
+            notify = getattr(manager, "failure_notifier", None)
+            if provenance_token is not None:
+                manager.store.provenance.reset(provenance_token)
+                provenance_token = None
+            if notify:
+                await notify(str(exc))
             provider = (
                 proposal.provider
                 if proposal is not None
@@ -277,6 +306,8 @@ class PostRunMemoryCoordinator:
                 await self.ensure_capacity(required_slots=0, emitter=emitter)
             return
 
+        if provenance_token is not None:
+            manager.store.provenance.reset(provenance_token)
         maintenance_required = await manager.maintenance_required()
         candidate_ids: tuple[str, ...] = ()
         if maintenance_required:

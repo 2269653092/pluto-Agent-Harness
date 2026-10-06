@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 
 import { listApprovals } from './api/approvals'
@@ -17,6 +17,10 @@ import MemoryPage from './pages/MemoryPage'
 import RunDetailPage from './pages/RunDetailPage'
 import RunsPage from './pages/RunsPage'
 import SettingsPage from './pages/SettingsPage'
+import type { SettingsTarget } from './pages/SettingsPage'
+import { rpcClient } from './rpc'
+import { toast } from './stores/toasts'
+import './project-flows.css'
 
 export type PageKey =
   | 'chat'
@@ -41,11 +45,25 @@ export default function App(): React.JSX.Element {
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null)
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
   const [everConnected, setEverConnected] = useState(false)
+  const [settingsTarget, setSettingsTarget] = useState<SettingsTarget | undefined>()
+  const [memoryNotice, setMemoryNotice] = useState<{ project_id?: string; id?: string } | null>(null)
+  const queryClient = useQueryClient()
 
   const connect = useEventsStore((state) => state.connect)
   const disconnect = useEventsStore((state) => state.disconnect)
   const connected = useEventsStore((state) => state.connected)
   const runStatuses = useEventsStore((state) => state.runStatuses)
+  useEffect(() => {
+    const offMemory = rpcClient.on('memory.changed', (params) => {
+      setMemoryNotice(params as { project_id?: string; id?: string })
+      void queryClient.invalidateQueries({ queryKey: ['memories'] })
+    })
+    const offSkill = rpcClient.on('skill_learning.changed', () => {
+      for (const key of ['skill-candidates', 'skill-candidates-chat', 'extensions']) void queryClient.invalidateQueries({ queryKey: [key] })
+    })
+    const offFailure = rpcClient.on('memory.not_saved', (params) => toast.info(`记忆未保存：${(params as { reason: string }).reason}`))
+    return () => { offMemory(); offSkill(); offFailure() }
+  }, [queryClient])
 
   useEffect(() => {
     connect()
@@ -53,8 +71,11 @@ export default function App(): React.JSX.Element {
   }, [connect, disconnect])
 
   useEffect(() => {
-    if (connected) setEverConnected(true)
-  }, [connected])
+    if (connected) {
+      setEverConnected(true)
+      for (const key of ['memories', 'skill-candidates', 'skill-candidates-chat', 'extensions', 'projects']) void queryClient.invalidateQueries({ queryKey: [key] })
+    }
+  }, [connected, queryClient])
 
   useEffect(() => {
     const controller = createDesktopNotificationController()
@@ -93,6 +114,7 @@ export default function App(): React.JSX.Element {
 
   /** 执行 `navigate` 对应的界面或业务逻辑。 */
   const navigate = (next: PageKey): void => {
+    setSettingsTarget(undefined)
     setPage(next)
     if (next !== 'runs') setSelectedRunId(null)
   }
@@ -127,6 +149,7 @@ export default function App(): React.JSX.Element {
         }}
       />
       <div className="main">
+        {memoryNotice ? <div className="inline-notice" role="status">记忆已保存 <button className="btn btn-sm" onClick={() => { setSettingsTarget({ section: 'memory', projectId: memoryNotice.project_id, memoryId: memoryNotice.id }); setPage('settings'); setMemoryNotice(null) }}>查看记忆</button><button className="btn btn-sm" onClick={() => setMemoryNotice(null)}>关闭</button></div> : null}
         {!connected && everConnected ? (
           <div className="host-banner" role="status">
             <span className="host-banner__dot" />
@@ -139,6 +162,7 @@ export default function App(): React.JSX.Element {
             onOpenRun={openRun}
             initialConversationId={selectedConversationId}
             onConversationChange={setSelectedConversationId}
+            onReviewSkill={(projectId, candidateId) => { setSettingsTarget({ section: 'extensions', projectId, candidateId }); setPage('settings') }}
           />
         )}
         {page === 'runs' &&
@@ -156,7 +180,7 @@ export default function App(): React.JSX.Element {
         {page === 'artifacts' && <ArtifactsPage />}
         {page === 'computer' && <ComputerPage />}
         {page === 'memory' && <MemoryPage />}
-        {page === 'settings' && <SettingsPage />}
+        {page === 'settings' && <SettingsPage key={JSON.stringify(settingsTarget)} target={settingsTarget} />}
       </div>
       <ToastViewport />
     </div>

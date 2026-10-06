@@ -90,6 +90,8 @@ class ReflectionDecision(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     action: ReflectionAction
+    kind: str = "project_decision"
+    source_statement: str | None = None
     memory_id: str | None = None
     title: str | None = None
     summary: str | None = None

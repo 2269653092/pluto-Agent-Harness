@@ -15,6 +15,7 @@ class Conversation(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     id: str
+    project_id: str | None = None
     title: str
     created_at: datetime
     updated_at: datetime

@@ -11,6 +11,7 @@ from . import (
     conversations,
     extensions,
     memories,
+    project_flows,
     model_settings,
     runs,
     skill_learning,
@@ -34,6 +35,7 @@ def build_dispatcher() -> RpcDispatcher:
     tasks.register(dispatcher)
     computer.register(dispatcher)
     memories.register(dispatcher)
+    project_flows.register(dispatcher)
     extensions.register(dispatcher)
     skill_learning.register(dispatcher)
     model_settings.register(dispatcher)

@@ -39,6 +39,10 @@ import { Icon } from '../components/Icon'
 import { SectionHeader } from '../components/ui'
 import { useEventsStore } from '../stores/events'
 import type { PageKey } from '../App'
+import ProjectPicker from '../components/ProjectPicker'
+import SkillDiscoveryCard from '../components/SkillDiscoveryCard'
+import { listSkillCandidates, editSkillCandidate } from '../api/skillLearning'
+import { toast } from '../stores/toasts'
 
 /** 渲染 `ChatPage` React 组件。 */
 export default function ChatPage({
@@ -46,11 +50,13 @@ export default function ChatPage({
   onOpenRun,
   initialConversationId,
   onConversationChange,
+  onReviewSkill,
 }: {
   onNavigate?: (page: PageKey) => void
   onOpenRun?: (runId: string) => void
   initialConversationId?: string | null
   onConversationChange?: (conversationId: string | null) => void
+  onReviewSkill?: (projectId: string | undefined, candidateId: string) => void
 }): React.JSX.Element {
   const queryClient = useQueryClient()
   const eventsByRun = useEventsStore((state) => state.eventsByRun)
@@ -108,6 +114,18 @@ export default function ChatPage({
     queryFn: () => (selectedId ? getConversation(selectedId) : Promise.resolve(null)),
     enabled: selectedId !== null,
   })
+
+  const projectId = conversationQuery.data?.conversation.project_id ?? conversations.find((c) => c.id === selectedId)?.project_id ?? undefined
+  const candidatesQuery = useQuery({ queryKey: ['skill-candidates-chat', projectId, selectedId],
+    queryFn: () => listSkillCandidates(projectId, selectedId ?? undefined), enabled: Boolean(selectedId), refetchInterval: 5000, retry: false })
+  const switchProject = async (id: string): Promise<void> => {
+    try {
+      const conversation = await createConversation(id)
+      selectConversation(conversation.id)
+      setDraft(''); setPlanTask(null); setLastRunId(null); setLiveTurnActive(false)
+      await queryClient.invalidateQueries({ queryKey: ['conversations'] })
+    } catch (error) { toast.error(String(error)) }
+  }
 
   // conversation.send 返回前也能从共享事件流识别当前 Run，不需要改 RPC。
   const liveRunId = useMemo(() => {
@@ -232,7 +250,7 @@ export default function ChatPage({
 
   const newConversationMutation = useMutation({
     /** 执行 `mutationFn` 对应的界面或业务逻辑。 */
-    mutationFn: () => createConversation(),
+    mutationFn: () => createConversation(projectId),
     /** 响应 `onSuccess` 对应的事件。 */
     onSuccess: (conversation) => {
       selectConversation(conversation.id)
@@ -344,8 +362,8 @@ export default function ChatPage({
       decision: 'accept' | 'reject'
     }) => (
       decision === 'accept'
-        ? acceptSkillCandidate(candidateId)
-        : rejectSkillCandidate(candidateId)
+        ? acceptSkillCandidate(candidateId, { project_id: projectId, scope: skillCandidate?.scope ?? 'project', expected_revision: skillCandidate?.revision })
+        : rejectSkillCandidate(candidateId, { project_id: projectId, expected_revision: skillCandidate?.revision })
     ),
     /** 审核完成后关闭弹窗并刷新 Skill 管理列表。 */
     onSuccess: (_data, variables) => {
@@ -598,6 +616,7 @@ export default function ChatPage({
       </aside>
 
       <div className="chat-right">
+        <ProjectPicker value={projectId} disabled={isRunning} onChange={(id) => void switchProject(id)} />
         <RunStatusBar
           title={selectedConversation?.title || '新会话'}
           conversationSidebarOpen={conversationSidebarOpen}
@@ -660,6 +679,11 @@ export default function ChatPage({
               <div className="inline-notice inline-notice--error">{sendError}</div>
             ) : null}
             {skillNotice ? <div className="inline-notice">{skillNotice}</div> : null}
+            {candidatesQuery.data?.candidates.filter((c) => c.origin === 'pattern_mining' && c.status === 'pending' && !c.dismissed).map((candidate) => (
+              <SkillDiscoveryCard key={candidate.id} candidate={candidate}
+                onReview={() => onReviewSkill ? onReviewSkill(projectId, candidate.id) : onNavigate?.('settings')}
+                onDismiss={() => { void editSkillCandidate(candidate, { action: 'dismiss' }).then(() => candidatesQuery.refetch()).catch((error) => toast.error(String(error))) }} />
+            ))}
 
             {planTask ? (
               <PlanCard

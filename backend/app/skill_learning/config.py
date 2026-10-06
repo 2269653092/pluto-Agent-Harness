@@ -25,11 +25,11 @@ class SkillLearningSettings(BaseSettings):
     skill_learning_enabled: bool = True
     # 每累计多少个新的 Completed Task 才触发一次 Pattern Mining。
     # 这是"扫描周期"，不是"必须生成 Skill"的条件。
-    skill_learning_batch_size: int = Field(default=20, ge=1)
+    skill_learning_batch_size: int = Field(default=5, ge=1)
     # Cluster 至少包含的任务数；频率不是唯一依据，但这是下限。
-    skill_learning_min_cluster_size: int = Field(default=3, ge=2)
+    skill_learning_min_cluster_size: int = Field(default=5, ge=2)
     # 一次扫描最多处理的 Task 数（保护输入规模）。
-    skill_learning_max_tasks_per_scan: int = Field(default=20, ge=1)
+    skill_learning_max_tasks_per_scan: int = Field(default=50, ge=1)
     # Pattern Mining 失败的最大重试次数；达到上限后放弃该 batch（避免无限重试）。
     skill_learning_max_attempts: int = Field(default=3, ge=1)
     # 供 Pattern Mining / Distillation 使用的模型（缺省走默认 provider/model）。

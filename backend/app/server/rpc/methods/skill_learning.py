@@ -15,9 +15,12 @@ from ..protocol import (
 )
 
 
-def _service(ctx: RpcContext) -> SkillLearningService:
+async def _service(ctx: RpcContext, params) -> SkillLearningService:
     """获取已初始化的 Skill Learning Service。"""
 
+    if hasattr(ctx.application, "project_services"):
+        from .project_flows import services
+        return (await services(params, ctx)).learning
     service = ctx.application.skill_learning
     if service is None:
         raise JsonRpcError(
@@ -34,7 +37,7 @@ async def skill_learning_generate(
     """从指定当前任务的执行记录生成待审核 Skill Candidate。"""
 
     try:
-        candidate, created, message = await _service(ctx).generate_for_task(
+        candidate, created, message = await (await _service(ctx, params)).generate_for_task(
             _require_str(params, "task_id")
         )
     except KeyError as exc:
@@ -67,10 +70,12 @@ async def skill_learning_accept(
     if scope is not None and not isinstance(scope, str):
         raise JsonRpcError(RpcErrorCode.INVALID_PARAMS, "scope must be a string")
     try:
-        candidate, target = await _service(ctx).accept(
-            _require_str(params, "candidate_id"),
-            scope=scope,
-        )
+        from .project_flows import skill_lock, notify
+        async with skill_lock(ctx):
+            candidate, target = await (await _service(ctx, params)).accept(
+                _require_str(params, "candidate_id"), scope=scope,
+                expected_revision=params.get("expected_revision"))
+        await notify(ctx, "skill_learning.changed", {"project_id": candidate.project_id})
     except KeyError as exc:
         raise JsonRpcError(RESOURCE_NOT_FOUND, "candidate not found") from exc
     except (OSError, ValueError) as exc:
@@ -88,9 +93,14 @@ async def skill_learning_reject(
     """拒绝一个待审核 Skill Candidate。"""
 
     try:
-        candidate = await _service(ctx).reject(
-            _require_str(params, "candidate_id")
-        )
+        from .project_flows import skill_lock, notify
+        async with skill_lock(ctx):
+            service = await _service(ctx, params)
+            current = await service.get_candidate(_require_str(params, "candidate_id"))
+            if current and params.get("expected_revision", current.revision) != current.revision:
+                raise ValueError("草稿版本冲突，请刷新后重试")
+            candidate = await service.reject(_require_str(params, "candidate_id"))
+        await notify(ctx, "skill_learning.changed", {"project_id": candidate.project_id})
     except KeyError as exc:
         raise JsonRpcError(RESOURCE_NOT_FOUND, "candidate not found") from exc
     except ValueError as exc:

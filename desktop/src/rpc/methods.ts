@@ -1,6 +1,15 @@
 /** RPC method 名常量与参数/结果类型（与 Python methods 一一对应）。 */
 
 export const RpcMethods = {
+  projectList: 'project.list',
+  projectRegister: 'project.register',
+  memoryEdit: 'memory.edit',
+  skillLearningList: 'skill_learning.list',
+  skillLearningGet: 'skill_learning.get',
+  skillLearningEdit: 'skill_learning.edit',
+  skillLearningSettings: 'skill_learning.settings',
+  skillGet: 'skill.get',
+  skillUpdate: 'skill.update',
   systemInfo: 'system.info',
   systemRestart: 'system.restart',
   modelSettingsGet: 'model_settings.get',

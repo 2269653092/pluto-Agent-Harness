@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 
 interface PlutoDesktopApi {
+  selectProjectFolder?: () => Promise<string | null>
   platform: string
   versions: {
     electron: string

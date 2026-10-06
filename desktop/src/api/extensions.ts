@@ -4,6 +4,7 @@ import { rpcClient } from '../rpc'
 import { RpcMethods } from '../rpc/methods'
 
 export interface InstalledSkill {
+  origin?: 'automatic' | 'manual' | 'import'
   name: string
   description: string
   scope: 'user' | 'project'
@@ -64,6 +65,7 @@ export interface ExtensionsOverview {
 }
 
 export interface InstallSkillInput {
+  project_id?: string
   name: string
   description: string
   instructions: string
@@ -84,6 +86,7 @@ export interface AddMCPServerInput {
 }
 
 export interface ExtensionImportInput {
+  project_id?: string
   input: string
   skill_scope: 'user' | 'project'
   mcp_permission: MCPPermission
@@ -118,8 +121,8 @@ export interface ExtensionImportResult {
 }
 
 /** 列出 `extensions` 对应的数据或流程。 */
-export async function listExtensions(): Promise<ExtensionsOverview> {
-  return rpcClient.call<ExtensionsOverview>(RpcMethods.extensionList, {})
+export async function listExtensions(projectId?: string): Promise<ExtensionsOverview> {
+  return rpcClient.call<ExtensionsOverview>(RpcMethods.extensionList, projectId ? { project_id: projectId } : {})
 }
 
 /** 执行 `previewExtensionImport` 对应的界面或业务逻辑。 */
@@ -157,10 +160,11 @@ export async function setSkillEnabled(
   name: string,
   scope: InstalledSkill['scope'],
   enabled: boolean,
+  projectId?: string,
 ): Promise<InstalledSkill> {
   const result = await rpcClient.call<{ skill: InstalledSkill }>(
     RpcMethods.skillSetEnabled,
-    { name, scope, enabled },
+    { name, scope, enabled, ...(projectId ? { project_id: projectId } : {}) },
   )
   return result.skill
 }
@@ -170,8 +174,9 @@ export async function deleteSkill(
   name: string,
   scope: InstalledSkill['scope'],
   enabled: boolean,
+  projectId?: string,
 ): Promise<void> {
-  await rpcClient.call(RpcMethods.skillDelete, { name, scope, enabled })
+  await rpcClient.call(RpcMethods.skillDelete, { name, scope, enabled, ...(projectId ? { project_id: projectId } : {}) })
 }
 
 /** 添加 `mcpserver` 对应的数据或流程。 */

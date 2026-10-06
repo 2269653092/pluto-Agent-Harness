@@ -311,10 +311,13 @@ class MemoryManager:
         title: str,
         summary: str,
         content: str,
+        expected_generation: int | None = None,
     ) -> MemoryRecord | None:
         """在同一临界区检查容量并创建，避免并发突破 active 上限。"""
 
         async with self._mutation_guard():
+            if expected_generation is not None and getattr(self, "manual_generation", 0) != expected_generation:
+                raise ValueError("用户已修改记忆，忽略旧后台结果")
             if await self.store.count_active() >= self.max_active:
                 return None
             record = await self.store.create(
@@ -404,6 +407,54 @@ class MemoryManager:
             return record
 
     async def archive_if_unchanged(
+        self,
+        memory_id: str,
+        *,
+        expected_record: MemoryRecord,
+        reason: str,
+    ) -> MemoryRecord:
+        """Archive a maintenance snapshot only if it remains current."""
+        return await self._archive_if_unchanged(memory_id, expected_record=expected_record, reason=reason)
+
+    async def manage(self, memory_id: str, *, action: str, expected_revision: int):
+        """Version-checked archive/restore/recoverable removal."""
+        import os
+        from app.memory.models import MemoryStatus
+        async with self._mutation_guard():
+            record = await self.store.load(memory_id)
+            if record is None:
+                raise KeyError("记忆不存在")
+            if record.revision != expected_revision:
+                raise ValueError("记忆版本冲突，请刷新后重试")
+            if action == "archive":
+                record = await self.store.archive(memory_id, reason="用户归档")
+            elif action in {"restore", "delete"}:
+                if action == "restore" and record.status is not MemoryStatus.ARCHIVED:
+                    raise ValueError("只能恢复归档记忆")
+                if action == "restore" and await self.store.count_active() >= self.max_active:
+                    raise ValueError("项目记忆容量已满，无法安全恢复")
+                source = await self.store._resolve_path(record.id)
+                original = record
+                directory = self.store.active_dir if action == "restore" else self.store.memory_dir / "deleted"
+                directory.mkdir(parents=True, exist_ok=True)
+                record = record.model_copy(update={"status": MemoryStatus.ACTIVE if action == "restore" else MemoryStatus.ARCHIVED,
+                        "revision": record.revision + 1, "updated_at": datetime.now(UTC)})
+                await asyncio.to_thread(self.store._write_bytes, record.render_markdown(), source)
+                try:
+                    await asyncio.to_thread(os.replace, source, directory / f"{record.id}.md")
+                except BaseException:
+                    await asyncio.to_thread(self.store._write_bytes, original.render_markdown(), source)
+                    raise
+            else:
+                raise ValueError("不支持的记忆操作")
+            await self._rebuild_index()
+            if action == "restore":
+                await self._sync_search_index(record)
+            else:
+                await self._drop_search_index(record.id)
+            return record
+
+    async def _archive_if_unchanged(
         self,
         memory_id: str,
         *,

@@ -22,13 +22,19 @@ from ..dispatcher import RpcContext, RpcDispatcher
 from ..protocol import JsonRpcError, RpcErrorCode
 
 
+async def _store(params, ctx):
+    if hasattr(ctx.application, "project_services"):
+        from .project_flows import services
+        return (await services(params, ctx)).skills
+    return ctx.application.skill_store
+
+
 async def extension_list(
     params: dict[str, Any],
     ctx: RpcContext,
 ) -> dict[str, Any]:
     """执行 `extension_list` 对应的业务逻辑。"""
-    del params
-    skill_store = ctx.application.skill_store
+    skill_store = await _store(params, ctx)
     skills = (
         await skill_store.managed_catalog() if skill_store is not None else ()
     )
@@ -80,6 +86,7 @@ async def extension_list(
                 "scope": item.metadata.scope.value,
                 "location": str(item.metadata.location),
                 "enabled": item.enabled,
+                "origin": skill_store.origin(item.metadata.name, item.metadata.scope),
             }
             for item in skills
         ],
@@ -132,7 +139,7 @@ async def extension_import_apply(
             RpcErrorCode.INVALID_PARAMS,
             "必须先预览并明确确认导入",
         )
-    skill_store = ctx.application.skill_store
+    skill_store = await _store(params, ctx)
     mcp_store = ctx.application.mcp_config_store
     if skill_store is None or mcp_store is None:
         raise JsonRpcError(RpcErrorCode.INTERNAL_ERROR, "Extension Store unavailable")
@@ -167,7 +174,7 @@ async def skill_install(
     ctx: RpcContext,
 ) -> dict[str, Any]:
     """执行 `skill_install` 对应的业务逻辑。"""
-    store = ctx.application.skill_store
+    store = await _store(params, ctx)
     if store is None:
         raise JsonRpcError(RpcErrorCode.INTERNAL_ERROR, "Skill Store unavailable")
     name = _require_str(params, "name")
@@ -199,7 +206,7 @@ async def skill_set_enabled(
     ctx: RpcContext,
 ) -> dict[str, Any]:
     """执行 `skill_set_enabled` 对应的业务逻辑。"""
-    store = ctx.application.skill_store
+    store = await _store(params, ctx)
     if store is None:
         raise JsonRpcError(RpcErrorCode.INTERNAL_ERROR, "Skill Store unavailable")
     try:
@@ -226,7 +233,7 @@ async def skill_delete(
     ctx: RpcContext,
 ) -> dict[str, Any]:
     """执行 `skill_delete` 对应的业务逻辑。"""
-    store = ctx.application.skill_store
+    store = await _store(params, ctx)
     if store is None:
         raise JsonRpcError(RpcErrorCode.INTERNAL_ERROR, "Skill Store unavailable")
     name = _require_str(params, "name")
@@ -236,6 +243,16 @@ async def skill_delete(
             scope=SkillScope(_require_str(params, "scope")),
             enabled=_require_bool(params, "enabled"),
         )
+        if hasattr(ctx.application, "project_services"):
+            from .project_flows import services
+            service = await services(params, ctx)
+            targets = [service]
+            if params.get("scope") == "user":
+                targets = [await ctx.application.project_services.get(p.id) for p in await ctx.application.projects.list()]
+            for target in targets:
+                for candidate in await target.learning.list_candidates():
+                    if candidate.proposed_name == name and candidate.scope == params.get("scope") and candidate.status.value == "accepted":
+                        await target.learning.candidate_store.update(candidate.model_copy(update={"suppressed": True, "revision": candidate.revision + 1}))
     except (KeyError, ValueError, OSError) as exc:
         raise JsonRpcError(RpcErrorCode.INVALID_PARAMS, str(exc)) from exc
     return {"deleted": True, "name": name}
@@ -370,12 +387,20 @@ def _server_dict(
 
 def register(dispatcher: RpcDispatcher) -> None:
     """注册当前对象的相关流程。"""
+    from .project_flows import skill_lock
+
+    def serialized(handler):
+        async def locked(params, ctx):
+            async with skill_lock(ctx):
+                return await handler(params, ctx)
+        return locked
+
     dispatcher.register("extension.list", extension_list)
     dispatcher.register("extension.import.preview", extension_import_preview)
-    dispatcher.register("extension.import.apply", extension_import_apply)
-    dispatcher.register("skill.install", skill_install)
-    dispatcher.register("skill.set_enabled", skill_set_enabled)
-    dispatcher.register("skill.delete", skill_delete)
+    dispatcher.register("extension.import.apply", serialized(extension_import_apply))
+    dispatcher.register("skill.install", serialized(skill_install))
+    dispatcher.register("skill.set_enabled", serialized(skill_set_enabled))
+    dispatcher.register("skill.delete", serialized(skill_delete))
     dispatcher.register("mcp.add", mcp_add)
     dispatcher.register("mcp.set_enabled", mcp_set_enabled)
     dispatcher.register("mcp.delete", mcp_delete)

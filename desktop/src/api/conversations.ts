@@ -28,10 +28,10 @@ export async function getConversation(
 }
 
 /** 创建 `conversation` 对应的数据或流程。 */
-export async function createConversation(): Promise<Conversation> {
+export async function createConversation(projectId?: string): Promise<Conversation> {
   const data = await rpcClient.call<{ conversation: Conversation }>(
     RpcMethods.conversationCreate,
-    {},
+    projectId ? { project_id: projectId } : {},
   )
   return data.conversation
 }

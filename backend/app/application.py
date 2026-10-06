@@ -404,6 +404,13 @@ class Application:
             return
 
         database = self.database
+        from app.projects import backup_legacy
+        backup_legacy(database, {
+            "tasks": self.tasks_dir,
+            "memory": self.memory_dir or DEFAULT_MEMORY_DIR,
+            "project-skills": self.skills_project_dir or DEFAULT_PROJECT_SKILLS_DIR,
+            "skill-learning": (self._skill_learning_settings or SkillLearningSettings()).skill_learning_data_dir,
+        })
         conversation_store = SQLiteConversationStore(database)
         await conversation_store.initialize()
         evidence_store = SQLiteEvidenceStore(database)
@@ -768,6 +775,30 @@ class Application:
         self.automation_scheduler = automation_scheduler
         self.reconciled_runs = reconciled_runs
 
+        from app.projects import ProjectStore, ProjectServiceFactory
+        self.projects = ProjectStore(database)
+        await self.projects.initialize(self.workspace_root)
+        conversation_store.default_project_id = self.projects.default_id
+        async def project_for_conversation(conversation_id):
+            if conversation_id is None:
+                return self.projects.default_id
+            conversation = await conversation_store.get(conversation_id)
+            if conversation is None:
+                raise KeyError("会话不存在")
+            return conversation.project_id or self.projects.default_id
+        task_store.project_resolver = project_for_conversation
+        for task in await task_store.list(limit=1_000_000):
+            if task.project_id is None:
+                await task_store._write(task.model_copy(update={"project_id": self.projects.default_id}))
+        self.project_services = ProjectServiceFactory(self)
+        await self.project_services.get()
+        run_manager._project_resolver = project_for_conversation
+        run_manager._runtime_resolver = self.project_services.runtime
+        from app.project_learning import ProjectLearningWorker
+        self.learning_worker = ProjectLearningWorker(self)
+        run_manager._on_completed = self.learning_worker.completed
+        self.learning_worker.start()
+
         self._started = True
 
     async def close(self) -> None:
@@ -775,9 +806,11 @@ class Application:
 
         if not self._started:
             return
+        await self.learning_worker.close()
         # 先 drain post-run 后台任务（可能仍在用模型 registry / memory store），
         # 避免 event loop 关闭时遗留 pending task；有界等待，超时后 cancel。
         await self.post_run_processor.close()
+        await self.project_services.close()
         if self.automation_scheduler is not None:
             await self.automation_scheduler.shutdown()
         if self.mcp_manager is not None and self.tool_registry is not None:

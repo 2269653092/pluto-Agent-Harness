@@ -1,14 +1,16 @@
 /** 长期记忆观察页：Core 常驻信息 + 普通记忆 + 归档记忆。 */
 
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import ProjectPicker from '../components/ProjectPicker'
+import { LegacyPreferenceControls, MemoryControls, PreferenceControls } from '../components/MemoryControls'
 
 import { listMemories } from '../api/memories'
 import type { LongTermMemory } from '../api/types'
 import { EmptyState, ErrorState, LoadingState } from '../components/PageStates'
 import { PageShell } from '../components/PageShell'
 
-type MemoryView = 'active' | 'archived'
+type MemoryView = 'active' | 'archived' | 'preferences'
 
 interface CoreMemoryDisplayItem {
   label: string
@@ -103,9 +105,9 @@ export function CoreMemoryView({ content }: { content: string }): React.JSX.Elem
 }
 
 /** 渲染 `MemoryCard` React 组件。 */
-export function MemoryCard({ memory }: { memory: LongTermMemory }): React.JSX.Element {
+export function MemoryCard({ memory, projectId, onChanged }: { memory: LongTermMemory; projectId?: string; onChanged?: () => void }): React.JSX.Element {
   return (
-    <article className={`memory-card memory-card--${memory.status}`}>
+    <article id={`memory-${memory.id}`} className={`memory-card memory-card--${memory.status}`}>
       <div className="memory-card__identity">
         <span className="memory-card__mark" aria-hidden="true" />
         <div>
@@ -130,20 +132,23 @@ export function MemoryCard({ memory }: { memory: LongTermMemory }): React.JSX.El
         {memory.last_update_reason ? <small>更新原因：{memory.last_update_reason}</small> : null}
         {memory.archive_reason ? <small>归档原因：{memory.archive_reason}</small> : null}
       </details>
+      {onChanged ? <MemoryControls key={memory.id} memory={memory} projectId={projectId} onChanged={onChanged} /> : null}
     </article>
   )
 }
 
 /** 渲染 `MemoryPage` React 组件。 */
-export default function MemoryPage(): React.JSX.Element {
+export default function MemoryPage({ initialProjectId, memoryId }: { initialProjectId?: string; memoryId?: string } = {}): React.JSX.Element {
+  const [projectId, setProjectId] = useState(initialProjectId)
   const [view, setView] = useState<MemoryView>('active')
   const query = useQuery({
-    queryKey: ['memories'],
-    queryFn: listMemories,
+    queryKey: ['memories', projectId],
+    queryFn: () => projectId ? listMemories(projectId) : listMemories(),
     refetchInterval: 10_000,
   })
   const data = query.data
   const memories = view === 'active' ? (data?.active ?? []) : (data?.archived ?? [])
+  useEffect(() => { if (memoryId && data) document.getElementById(`memory-${memoryId}`)?.scrollIntoView?.({ block: 'center' }) }, [memoryId, data])
 
   return (
     <PageShell
@@ -152,8 +157,9 @@ export default function MemoryPage(): React.JSX.Element {
       maxWidth={1360}
       actions={
         <div className="segmented-control" aria-label="记忆筛选">
+          <button className={view === 'preferences' ? 'active' : ''} onClick={() => setView('preferences')}>用户偏好</button>
           <button className={view === 'active' ? 'active' : ''} onClick={() => setView('active')}>
-            使用中 {data ? `(${data.active_count})` : ''}
+            项目记忆 · 使用中 {data ? `(${data.active_count})` : ''}
           </button>
           <button className={view === 'archived' ? 'active' : ''} onClick={() => setView('archived')}>
             已归档 {data ? `(${data.archived.length})` : ''}
@@ -161,6 +167,7 @@ export default function MemoryPage(): React.JSX.Element {
         </div>
       }
     >
+      <ProjectPicker value={projectId} onChange={setProjectId} />
       {query.isPending ? <LoadingState label="正在加载长期记忆…" />
         : query.isError ? <ErrorState message={String(query.error)} onRetry={() => void query.refetch()} />
           : data ? (
@@ -188,9 +195,11 @@ export default function MemoryPage(): React.JSX.Element {
                 ) : (
                   <p className="memory-empty-hint">暂无核心记忆。当用户明确表达稳定偏好或长期约束后，系统会在这里保留。</p>
                 )}
+                <PreferenceControls data={data} onChanged={() => void query.refetch()} />
+                <LegacyPreferenceControls data={data} onChanged={() => void query.refetch()} />
               </section>
 
-              <section className="memory-list-section">
+              {view !== 'preferences' ? <section className="memory-list-section">
                 <div className="section-heading">
                   <div>
                     <h2>{view === 'active' ? '普通记忆' : '归档记忆'}</h2>
@@ -205,10 +214,10 @@ export default function MemoryPage(): React.JSX.Element {
                   />
                 ) : (
                   <div className="memory-grid">
-                    {memories.map((memory) => <MemoryCard key={memory.id} memory={memory} />)}
+                    {memories.map((memory) => <MemoryCard key={`${data.project_id ?? projectId}:${memory.id}`} memory={memory} projectId={projectId} onChanged={() => void query.refetch()} />)}
                   </div>
                 )}
-              </section>
+              </section> : null}
             </div>
           ) : null}
     </PageShell>

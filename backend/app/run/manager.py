@@ -47,11 +47,17 @@ class RunManager:
         runtime: AgentRuntime,
         approval_store: SQLiteApprovalStore | None = None,
         run_finalizers: Sequence[RunFinalizer] = (),
+        project_resolver: Callable[..., Awaitable[str]] | None = None,
+        runtime_resolver: Callable[..., Awaitable[AgentRuntime]] | None = None,
+        on_completed: Callable[..., Awaitable[object]] | None = None,
     ) -> None:
         """初始化 `RunManager` 实例及其依赖。"""
         self._run_store = run_store
         self._checkpoint_store = checkpoint_store
         self._runtime = runtime
+        self._project_resolver = project_resolver
+        self._runtime_resolver = runtime_resolver
+        self._on_completed = on_completed
         # Run 取消时清理其下无人等待的 PENDING approval（可选注入）。
         self._approval_store = approval_store
         self._run_finalizers = tuple(run_finalizers)
@@ -165,6 +171,8 @@ class RunManager:
 
         run = await self._run_store.create(
             conversation_id=conversation_id,
+            project_id=(await self._project_resolver(conversation_id)
+                        if self._project_resolver else None),
             user_message=user_message,
             recovered_from_run_id=recovered_from_run_id,
             source=source,
@@ -400,7 +408,11 @@ class RunManager:
         try:
             result: AgentResult | None = None
             try:
-                async for event in self._runtime.run_stream(
+                run = (await self._run_store.require(run_id)
+                       if self._runtime_resolver or self._on_completed else None)
+                runtime = (await self._runtime_resolver(run.project_id)
+                           if self._runtime_resolver else self._runtime)
+                async for event in runtime.run_stream(
                     user_message,
                     history=history,
                     conversation_id=conversation_id,
@@ -441,6 +453,11 @@ class RunManager:
                     run_id,
                     stop_reason=result.stop_reason.value,
                 )
+                if self._on_completed:
+                    try:
+                        await self._on_completed(run, core_generation=getattr(runtime, "_core_generation", None))
+                    except Exception:
+                        logger.exception("Post-completion scheduling failed: %s", run_id)
             else:
                 await self._run_store.mark_failed(
                     run_id,

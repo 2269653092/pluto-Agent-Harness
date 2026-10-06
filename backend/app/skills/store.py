@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import os
+import json
 import shutil
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -86,6 +87,31 @@ class SkillStore:
                 return self._load_metadata(metadata)
         return None
 
+    async def load_managed(self, name: str, scope: SkillScope, enabled: bool = True):
+        normalized = validate_skill_name(name)
+        for item in await self.managed_catalog():
+            if item.metadata.name == normalized and item.metadata.scope == scope and item.enabled == enabled:
+                return self._load_metadata(item.metadata)
+        return None
+
+    def origin(self, name, scope):
+        path = self._root(scope) / ".origins.json"
+        if not path.is_file():
+            return "manual"
+        try:
+            return json.loads(path.read_text(encoding="utf-8")).get(name, "manual")
+        except (OSError, ValueError):
+            return "manual"
+
+    def record_origin(self, name, scope, origin):
+        path = self._root(scope) / ".origins.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        data = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+        data[validate_skill_name(name)] = origin
+        temporary = path.with_suffix(f".{uuid4().hex}.tmp")
+        temporary.write_text(json.dumps(data), encoding="utf-8")
+        os.replace(temporary, path)
+
     async def managed_catalog(self) -> tuple[ManagedSkillEntry, ...]:
         """列出启用与停用 Skill；Project/User 同名项分别保留。"""
 
@@ -160,9 +186,10 @@ class SkillStore:
             if temporary.exists():
                 shutil.rmtree(temporary)
 
-        installed = await self.load(normalized_name)
+        installed = await self.load_managed(normalized_name, scope)
         if installed is None:
             raise RuntimeError("installed skill could not be loaded")
+        self.record_origin(normalized_name, scope, "manual")
         return installed
 
     async def update(
@@ -171,22 +198,21 @@ class SkillStore:
         name: str,
         description: str,
         instructions: str,
+        scope: SkillScope | None = None,
+        enabled: bool = True,
     ) -> Skill:
         """原子更新一个已启用 Skill，保留其目录与资源文件。"""
 
         normalized_name = validate_skill_name(name.strip())
-        existing = await self.load(normalized_name)
+        existing = (await self.load_managed(normalized_name, scope, enabled)
+                    if scope is not None else await self.load(normalized_name))
         if existing is None:
             raise ValueError(f"skill '{normalized_name}' not found")
         target = existing.metadata.location
         if target.name != "SKILL.md" or target.parent.name != normalized_name:
             raise ValueError(f"refusing to update unexpected skill path: {target}")
 
-        markdown = _render_skill_document(
-            normalized_name,
-            description.strip(),
-            instructions.strip(),
-        )
+        markdown = render_skill_update(existing, description, instructions)
         parse_skill_document(markdown, expected_name=normalized_name)
         temporary = target.with_name(f".{target.name}.{uuid4().hex}.tmp")
         try:
@@ -199,7 +225,8 @@ class SkillStore:
             if temporary.exists():
                 temporary.unlink()
 
-        updated = await self.load(normalized_name)
+        updated = (await self.load_managed(normalized_name, scope, enabled)
+                   if scope is not None else await self.load(normalized_name))
         if updated is None:
             raise RuntimeError("updated skill could not be loaded")
         return updated
@@ -280,11 +307,12 @@ class SkillStore:
             if temporary.exists():
                 shutil.rmtree(temporary)
 
-        installed = await self.load(name)
+        installed = await self.load_managed(name, scope)
         if installed is None:
             if target.exists():
                 shutil.rmtree(target)
             raise RuntimeError("installed skill package could not be loaded")
+        self.record_origin(name, scope, "import")
         return installed
 
     async def set_enabled(
@@ -405,6 +433,16 @@ def _render_skill_document(
         sort_keys=False,
     ).strip()
     return f"---\n{front_matter}\n---\n\n{instructions}\n"
+
+
+def render_skill_update(skill: Skill, description: str, instructions: str) -> str:
+    """Canonical update preview and write, retaining optional front matter."""
+    raw = skill.metadata.location.read_text(encoding="utf-8")
+    front = yaml.safe_load(raw.split("---", 2)[1])
+    if not isinstance(front, dict):
+        front = {}
+    front.update(name=skill.metadata.name, description=description.strip())
+    return "---\n" + yaml.safe_dump(front, allow_unicode=True, sort_keys=False).strip() + "\n---\n\n" + instructions.strip() + "\n"
 
 
 def _list_resource_dir(skill_dir: Path, subdir: str) -> tuple[str, ...]:
